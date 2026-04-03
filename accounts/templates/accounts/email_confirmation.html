@@ -1,0 +1,19 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>{% trans "Confirmation de votre adresse e-mail" %}</title>
+</head>
+<body>
+  <p>{% blocktrans with user.first_name as first_name %}Bonjour {{ first_name }},{% endblocktrans %}</p>
+
+  <p>{% trans "Merci de vous être inscrit. Veuillez cliquer sur le lien ci-dessous pour confirmer votre adresse e-mail :" %}</p>
+
+  <p><a href="{{ confirmation_link }}">{{ confirmation_link }}</a></p>
+
+  <p>{% trans "Ce lien est valable pendant 24 heures." %}</p>
+
+  <p>{% trans "Merci," %}<br>{% trans "L'équipe Intermas" %}</p>
+</body>
+</html>

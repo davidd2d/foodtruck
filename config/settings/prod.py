@@ -1,0 +1,14 @@
+from .base import *
+
+DEBUG = False
+SECRET_KEY = get_env('DJANGO_SECRET_KEY', required=True)
+ALLOWED_HOSTS = [host.strip() for host in get_env('DJANGO_ALLOWED_HOSTS', required=True).split(',') if host.strip()]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = get_bool_env('SECURE_SSL_REDIRECT', True)
+SECURE_HSTS_SECONDS = int(get_env('SECURE_HSTS_SECONDS', '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
