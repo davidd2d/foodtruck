@@ -1,12 +1,13 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
         user = self.model(email=email, **extra_fields)
         user.username = email  # Set username to email since USERNAME_FIELD = 'email'
         user.set_password(password)
@@ -28,6 +29,7 @@ class User(AbstractUser):
     No email domain restrictions are enforced.
     """
     email = models.EmailField('email address', unique=True)
+    email_verified = models.BooleanField(default=False, help_text=_("Whether the email is verified"))
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

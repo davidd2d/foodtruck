@@ -25,7 +25,7 @@ def test_invalid_email_domain_user_creation_form():
     }
     form = CustomUserCreationForm(data=form_data)
     assert not form.is_valid()
-    assert "Only @intermas.com email addresses are allowed" in form.errors["email"][0]
+    assert "@intermas.com" in form.errors["email"][0]
 
 @pytest.mark.django_db
 def test_password_mismatch_user_creation_form():

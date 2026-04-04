@@ -57,12 +57,10 @@ def test_email_confirmation(client):
         email="confirm@intermas.com", password="testpass", first_name="C", last_name="U"
     )
 
-    from accounts.tokens import email_confirmation_token_generator
+    from accounts.utils import generate_email_confirmation_token
 
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = email_confirmation_token_generator.make_token(user)
-
-    url = reverse("accounts:confirm_email", args=[uid, token])
+    token = generate_email_confirmation_token(user)
+    url = reverse("accounts:confirm_email", args=[token])
     response = client.get(url)
 
     user.refresh_from_db()

@@ -15,11 +15,20 @@ def _random_email():
     return f'user-{uuid.uuid4().hex[:8]}@example.com'
 
 
-def UserFactory(email=None, password='password123'):
-    return User.objects.create_user(
-        email=email or _random_email(),
+def UserFactory(email=None, password='password123', **kwargs):
+    email = (email or _random_email()).strip().lower()
+    if 'email_verified' not in kwargs:
+        kwargs['email_verified'] = True
+
+    user = User.objects.create_user(
+        email=email,
         password=password
     )
+    for attr, value in kwargs.items():
+        setattr(user, attr, value)
+    if kwargs:
+        user.save()
+    return user
 
 
 def PreferenceFactory(name=None):
