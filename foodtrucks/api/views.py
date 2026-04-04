@@ -40,7 +40,7 @@ class FoodTruckViewSet(viewsets.ReadOnlyModelViewSet):
         # Handle distance filtering if lat/lng provided
         lat = self.request.query_params.get('lat')
         lng = self.request.query_params.get('lng')
-        radius = self.request.query_params.get('radius_km', 10)
+        radius = self.request.query_params.get('radius_km') or self.request.query_params.get('radius') or 10
 
         if lat and lng:
             try:

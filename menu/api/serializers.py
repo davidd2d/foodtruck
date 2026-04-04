@@ -42,8 +42,26 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class MenuSerializer(serializers.ModelSerializer):
     """Serializer for Menu model."""
+    foodtruck = serializers.PrimaryKeyRelatedField(source='food_truck', read_only=True)
     categories = CategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Menu
-        fields = ['id', 'name', 'is_active', 'created_at', 'categories']
+        fields = ['id', 'name', 'foodtruck', 'is_active', 'created_at', 'categories']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        item_search = self.context.get('item_search')
+        if item_search:
+            normalized_search = item_search.strip().lower()
+            categories = []
+            for category in data.get('categories', []):
+                filtered_items = [
+                    item for item in category.get('items', [])
+                    if normalized_search in item.get('name', '').lower()
+                ]
+                if filtered_items:
+                    category['items'] = filtered_items
+                    categories.append(category)
+            data['categories'] = categories
+        return data

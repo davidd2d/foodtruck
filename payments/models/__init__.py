@@ -92,7 +92,7 @@ class Payment(models.Model):
         Raises:
             ValidationError: If order is not in correct state or payment already exists
         """
-        if hasattr(self.order, 'payment') and self.order.payment != self:
+        if Payment.objects.filter(order=self.order).exclude(pk=self.pk).exists():
             raise ValidationError("Order already has a payment")
 
         if self.order.status != 'submitted':

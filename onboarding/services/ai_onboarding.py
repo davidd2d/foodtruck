@@ -196,7 +196,12 @@ class AIOnboardingService:
             return []
 
         normalized = []
-        existing_prefs = {pref.name.lower(): pref.name for pref in Preference.objects.all()}
+        existing_prefs = {}
+        for pref in Preference.objects.all():
+            # Create multiple variations
+            existing_prefs[pref.name.lower()] = pref.name
+            existing_prefs[pref.name.lower().replace(' ', '-')] = pref.name
+            existing_prefs[pref.name.lower().replace('-', ' ')] = pref.name
 
         for pref in preferences:
             pref_lower = pref.lower().strip()
@@ -241,11 +246,13 @@ class AIOnboardingService:
                 # Create FoodTruck
                 foodtruck_data = data.get('foodtruck', {})
                 foodtruck = FoodTruck.objects.create(
-                    user=import_instance.user,
+                    owner=import_instance.user,
                     name=foodtruck_data.get('name', 'My Food Truck'),
                     description=foodtruck_data.get('description', ''),
-                    cuisine_type=foodtruck_data.get('cuisine_type', ''),
-                    location=foodtruck_data.get('possible_location', ''),
+                    latitude=foodtruck_data.get('latitude', 0.0),
+                    longitude=foodtruck_data.get('longitude', 0.0),
+                    primary_color=foodtruck_data.get('primary_color', '#000000'),
+                    secondary_color=foodtruck_data.get('secondary_color', '#FFFFFF'),
                 )
 
                 # Assign preferences
@@ -253,13 +260,13 @@ class AIOnboardingService:
                 for pref_name in preferences:
                     try:
                         pref = Preference.objects.get(name=pref_name)
-                        foodtruck.preferences.add(pref)
+                        foodtruck.supported_preferences.add(pref)
                     except Preference.DoesNotExist:
                         logger.warning(f"Preference '{pref_name}' not found, skipping")
 
                 # Create Menu
                 menu = Menu.objects.create(
-                    foodtruck=foodtruck,
+                    food_truck=foodtruck,
                     name=f"{foodtruck.name} Menu"
                 )
 
@@ -272,11 +279,23 @@ class AIOnboardingService:
                     )
 
                     for item_data in category_data.get('items', []):
+                        # Parse price, handling various formats
+                        price_str = item_data.get('price', '0')
+                        if isinstance(price_str, str):
+                            # Remove currency symbols and parse
+                            price_str = price_str.replace('€', '').replace('$', '').strip()
+                            try:
+                                price = float(price_str)
+                            except ValueError:
+                                price = 0.00
+                        else:
+                            price = float(price_str) if price_str else 0.00
+
                         item = Item.objects.create(
                             category=category,
                             name=item_data.get('name', 'Unnamed Item'),
                             description=item_data.get('description', ''),
-                            price=item_data.get('price')
+                            base_price=price
                         )
 
                         # Create options if any
@@ -291,10 +310,12 @@ class AIOnboardingService:
                                 price=option_data.get('price')
                             )
 
-                # Apply branding (if we had branding fields on FoodTruck)
-                # For now, just log it
+                # Apply branding
                 branding = data.get('branding', {})
-                logger.info(f"Branding data for {foodtruck.name}: {branding}")
+                if branding:
+                    foodtruck.primary_color = branding.get('primary_color', foodtruck.primary_color)
+                    foodtruck.secondary_color = branding.get('secondary_color', foodtruck.secondary_color)
+                    foodtruck.save()
 
                 return {
                     'status': 'success',

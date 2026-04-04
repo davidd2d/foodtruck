@@ -68,7 +68,7 @@ class OnboardingImportViewSet(ModelViewSet):
     @action(detail=False, methods=['post'])
     def create_from_import(self, request):
         """Create FoodTruck and related entities from processed import."""
-        serializer = OnboardingCreateSerializer(data=request.data)
+        serializer = OnboardingCreateSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
 
         import_id = serializer.validated_data['import_id']

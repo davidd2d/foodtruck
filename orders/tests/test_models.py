@@ -1,0 +1,186 @@
+import threading
+from decimal import Decimal
+from django.db import connections
+from django.test import TestCase, TransactionTestCase
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
+from orders.models import Order, PickupSlot
+from .factories import (
+    UserFactory,
+    FoodTruckFactory,
+    ItemFactory,
+    PickupSlotFactory,
+    OrderFactory,
+    OptionGroupFactory,
+    OptionFactory,
+    CategoryFactory,
+    MenuFactory,
+)
+
+
+class OrderModelTests(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.foodtruck = FoodTruckFactory(owner=self.user)
+        self.pickup_slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=2)
+        self.category = CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck), name='Pizza')
+        self.item = ItemFactory(category=self.category, base_price=Decimal('12.00'))
+
+    def test_add_item_adds_order_item_and_updates_total(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+
+        order.add_item(self.item, quantity=2)
+
+        self.assertEqual(order.items.count(), 1)
+        self.assertEqual(order.total_price, Decimal('24.00'))
+        order_item = order.items.first()
+        self.assertEqual(order_item.unit_price, Decimal('12.00'))
+        self.assertEqual(order_item.total_price, Decimal('24.00'))
+
+    def test_add_item_rejects_invalid_option_ids(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+
+        with self.assertRaises(ValidationError):
+            order.add_item(self.item, quantity=1, selected_options=[9999])
+
+    def test_add_item_rejects_unavailable_item(self):
+        unavailable_item = ItemFactory(category=self.category, is_available=False)
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+
+        with self.assertRaises(ValidationError):
+            order.add_item(unavailable_item, quantity=1)
+
+    def test_calculate_total_sums_multiple_items(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(self.item, quantity=1)
+        order.add_item(self.item, quantity=2)
+
+        self.assertEqual(order.calculate_total(), Decimal('36.00'))
+        self.assertEqual(order.total_price, Decimal('36.00'))
+
+    def test_can_be_submitted_false_when_no_items(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        self.assertFalse(order.can_be_submitted())
+
+    def test_can_be_submitted_false_when_slot_full(self):
+        slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
+        order1 = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        order2 = OrderFactory(customer=UserFactory(), food_truck=self.foodtruck, pickup_slot=slot)
+
+        order1.add_item(self.item, quantity=1)
+        order1.submit()
+        order2.add_item(self.item, quantity=1)
+
+        self.assertFalse(order2.can_be_submitted())
+
+    def test_can_be_submitted_false_when_total_price_zero(self):
+        free_item = ItemFactory(category=self.category, base_price=Decimal('0.00'))
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(free_item, quantity=1)
+
+        self.assertFalse(order.can_be_submitted())
+
+    def test_submit_changes_status_and_prevents_double_submission(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(self.item, quantity=1)
+
+        order.submit()
+        self.assertEqual(order.status, 'submitted')
+
+        with self.assertRaises(ValidationError):
+            order.submit()
+
+    def test_order_price_snapshot_remains_after_item_price_change(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(self.item, quantity=1)
+
+        self.item.base_price = Decimal('20.00')
+        self.item.save()
+
+        order_item = order.items.first()
+        self.assertEqual(order_item.unit_price, Decimal('12.00'))
+        self.assertEqual(order.total_price, Decimal('12.00'))
+
+    def test_negative_quantity_is_rejected(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+
+        with self.assertRaises(ValidationError):
+            order.add_item(self.item, quantity=-1)
+
+
+class OrderConcurrencyTests(TransactionTestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.foodtruck = FoodTruckFactory(owner=self.user)
+        self.slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
+        self.category = CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck), name='Pizza')
+        self.item = ItemFactory(category=self.category, base_price=Decimal('12.00'))
+
+    def test_submit_honors_slot_capacity_under_concurrent_attempts(self):
+        order1 = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.slot)
+        other_user = UserFactory()
+        order2 = OrderFactory(customer=other_user, food_truck=self.foodtruck, pickup_slot=self.slot)
+        order1.add_item(self.item, quantity=1)
+        order2.add_item(self.item, quantity=1)
+
+        results = []
+        start_event = threading.Event()
+
+        def attempt_submit(order_id):
+            try:
+                start_event.wait()
+                order = Order.objects.get(pk=order_id)
+                order.submit()
+                results.append('success')
+            except ValidationError:
+                results.append('failure')
+            except Exception as exc:
+                results.append(f'error:{exc}')
+            finally:
+                connections.close_all()
+
+        threads = [
+            threading.Thread(target=attempt_submit, args=(order1.pk,)),
+            threading.Thread(target=attempt_submit, args=(order2.pk,))
+        ]
+
+        for thread in threads:
+            thread.start()
+
+        start_event.set()
+
+        for thread in threads:
+            thread.join()
+
+        connections.close_all()
+
+        self.assertEqual(results.count('success'), 1)
+        self.assertEqual(results.count('failure'), 1)
+        self.assertFalse(any(isinstance(r, str) and r.startswith('error:') for r in results))
+
+
+class PickupSlotModelTests(TestCase):
+    def setUp(self):
+        self.foodtruck = FoodTruckFactory()
+        self.slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=2)
+
+    def test_is_available_true_when_capacity_not_reached(self):
+        self.assertTrue(self.slot.is_available())
+
+    def test_remaining_capacity_reports_available_spots(self):
+        self.assertEqual(self.slot.remaining_capacity(), 2)
+
+    def test_slot_becomes_unavailable_at_capacity(self):
+        user = UserFactory()
+        other = UserFactory()
+        order1 = OrderFactory(customer=user, food_truck=self.foodtruck, pickup_slot=self.slot)
+        order2 = OrderFactory(customer=other, food_truck=self.foodtruck, pickup_slot=self.slot)
+        item = ItemFactory(category=CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck)))
+        order1.add_item(item, quantity=1)
+        order2.add_item(item, quantity=1)
+        order1.submit()
+        order2.submit()
+
+        self.assertFalse(self.slot.is_available())
+        self.assertEqual(self.slot.remaining_capacity(), 0)

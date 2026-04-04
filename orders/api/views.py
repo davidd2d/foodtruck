@@ -44,6 +44,17 @@ class OrderViewSet(viewsets.ModelViewSet):
         """Create order for the current user."""
         serializer.save(customer=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        """Create an order and return the full serialized object."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # Return the created object with full serialization
+        instance = serializer.instance
+        response_serializer = OrderSerializer(instance)
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     @action(detail=True, methods=['post'])
     def add_item(self, request, pk=None):
         """

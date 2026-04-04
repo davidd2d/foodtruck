@@ -22,5 +22,6 @@ urlpatterns = [
     path('api/', include('foodtrucks.api.urls')),
     path('api/', include('menu.api.urls')),
     path('api/', include('orders.api.urls')),
+    path('api/', include('payments.api.urls')),
     path('api/onboarding/', include('onboarding.api.urls')),
 ]

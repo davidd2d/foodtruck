@@ -18,9 +18,22 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Optimize queryset with nested prefetch_related.
         """
-        return Menu.objects.select_related(
+        queryset = Menu.objects.select_related(
             'food_truck'
         ).prefetch_related(
             'categories__items__compatible_preferences',
             'categories__items__option_groups__options'
         ).filter(is_active=True)
+
+        item_search = self.request.query_params.get('item_search')
+        if item_search:
+            queryset = queryset.filter(
+                categories__items__name__icontains=item_search
+            ).distinct()
+
+        return queryset
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['item_search'] = self.request.query_params.get('item_search')
+        return context
