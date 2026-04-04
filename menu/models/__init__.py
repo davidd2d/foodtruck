@@ -94,7 +94,7 @@ class Item(models.Model):
     def __str__(self):
         return self.name
 
-    def get_price_with_options(self, selected_options):
+    def get_price_with_options(self, selected_options=None):
         """
         Calculate the total price including selected options.
 
@@ -107,6 +107,7 @@ class Item(models.Model):
         Raises:
             ValidationError: If options are invalid
         """
+        selected_options = selected_options or []
         self.validate_options(selected_options)
 
         total_price = self.base_price
@@ -117,6 +118,10 @@ class Item(models.Model):
                 total_price += option.price_modifier
 
         return total_price
+
+    def is_available_now(self):
+        """Return whether the item is available for purchase now."""
+        return bool(self.is_available)
 
     def is_compatible_with(self, preferences):
         """

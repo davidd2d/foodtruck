@@ -12,7 +12,13 @@ User = get_user_model()
 class AIOnboardingServiceTests(TestCase):
     def setUp(self):
         self.user = UserFactory()
-        self.service = AIOnboardingService()
+        self._service = None
+
+    @property
+    def service(self):
+        if self._service is None:
+            self._service = AIOnboardingService()
+        return self._service
 
     @patch('onboarding.services.ai_onboarding.OpenAIService')
     def test_process_import_handles_valid_json_response(self, mock_openai_class):
@@ -75,7 +81,7 @@ class AIOnboardingServiceTests(TestCase):
         result = self.service.process_import(import_instance.id)
         import_instance.refresh_from_db()
 
-        self.assertEqual(result['status'], 'success')  # Service handles gracefully
+        self.assertEqual(result['status'], 'success')
         self.assertEqual(import_instance.status, 'completed')
         self.assertEqual(import_instance.parsed_data, self.service._get_empty_structure())  # Empty structure
 
@@ -158,8 +164,8 @@ class AIOnboardingServiceTests(TestCase):
         result = self.service.process_import(import_instance.id)
         import_instance.refresh_from_db()
 
-        self.assertEqual(result['status'], 'success')  # Service handles gracefully
-        self.assertEqual(import_instance.status, 'completed')
+        self.assertEqual(result['status'], 'error')  # Service marks failure on critical errors
+        self.assertEqual(import_instance.status, 'failed')
 
     def test_normalize_preferences_maps_to_existing(self):
         from preferences.models import Preference

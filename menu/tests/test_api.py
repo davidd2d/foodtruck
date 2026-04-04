@@ -59,3 +59,12 @@ class MenuAPITests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_retrieve_menu_by_foodtruck_slug(self):
+        url = reverse('foodtruck-menu', kwargs={'slug': self.foodtruck.slug})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['foodtruck'], self.foodtruck.slug)
+        self.assertEqual(response.data['name'], self.menu.name)
+        self.assertEqual(len(response.data['categories']), 2)

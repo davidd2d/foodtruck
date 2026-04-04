@@ -65,3 +65,11 @@ class MenuSerializer(serializers.ModelSerializer):
                     categories.append(category)
             data['categories'] = categories
         return data
+
+
+class FoodTruckMenuSerializer(MenuSerializer):
+    """Serializer for active foodtruck menu endpoint."""
+    foodtruck = serializers.SlugRelatedField(source='food_truck', read_only=True, slug_field='slug')
+
+    class Meta(MenuSerializer.Meta):
+        fields = ['id', 'name', 'foodtruck', 'is_active', 'created_at', 'categories']

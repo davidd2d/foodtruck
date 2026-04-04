@@ -15,7 +15,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'foodtrucks:list' %}">
+            <a class="navbar-brand" href="{% url 'foodtrucks:foodtruck-list' %}">
                 🍔 FoodTruck SaaS
             </a>
 
@@ -26,7 +26,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'foodtrucks:list' %}">Foodtrucks</a>
+                        <a class="nav-link" href="{% url 'foodtrucks:foodtruck-list' %}">Foodtrucks</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
@@ -43,7 +43,7 @@
                             </span>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Cart (0)</a>
+                            <a class="nav-link" href="#" id="nav-cart-count">Cart (0)</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:logout' %}">Logout</a>

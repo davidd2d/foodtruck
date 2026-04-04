@@ -21,7 +21,8 @@ def UserFactory(email=None, password='password123'):
     )
 
 
-def PlanFactory(name='Standard Plan', code='standard', price=Decimal('29.99'), allows_ordering=True):
+def PlanFactory(name='Standard Plan', code=None, price=Decimal('29.99'), allows_ordering=True):
+    code = code or f'standard-{uuid.uuid4().hex[:8]}'
     return Plan.objects.create(
         name=name,
         code=code,

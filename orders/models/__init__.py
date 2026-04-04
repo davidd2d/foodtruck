@@ -1,9 +1,10 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import models, transaction, OperationalError
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from menu.models import Item, Option
 
 
 class PickupSlot(models.Model):
@@ -40,18 +41,58 @@ class PickupSlot(models.Model):
     def __str__(self):
         return f"{self.food_truck.name} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
 
+    def _capacity_queryset(self, *, exclude_order=None, include_drafts=True):
+        """Return the queryset used to evaluate slot capacity."""
+        statuses = ['submitted', 'paid']
+        if include_drafts:
+            statuses.append('draft')
+        qs = self.orders.filter(status__in=statuses)
+        if exclude_order is not None:
+            exclude_pk = exclude_order.pk if hasattr(exclude_order, 'pk') else exclude_order
+            qs = qs.exclude(pk=exclude_pk)
+        return qs
+
     @property
     def current_orders_count(self):
-        """Calculate current number of submitted orders for this slot."""
-        return self.orders.filter(status__in=['submitted', 'paid']).count()
+        """Count how many orders reserve this slot."""
+        return self._capacity_queryset().count()
+
+    def has_capacity_for(self, *, exclude_order=None, include_drafts=True):
+        """Determine if there is room for another submitted order."""
+        return self._capacity_queryset(
+            exclude_order=exclude_order,
+            include_drafts=include_drafts
+        ).count() < self.capacity
 
     def is_available(self):
-        """Check if the slot has remaining capacity."""
-        return self.current_orders_count < self.capacity
+        """Check if the slot is in the future and has spare capacity."""
+        return self.start_time >= timezone.now() and self.has_capacity_for()
 
     def remaining_capacity(self):
-        """Return the number of available spots in this slot."""
+        """Return the number of spots remaining for booking."""
         return max(0, self.capacity - self.current_orders_count)
+
+    @transaction.atomic
+    def assign_order(self, order, *, include_drafts=True):
+        """Assign a draft order to this slot while enforcing capacity and consistency."""
+
+        slot = PickupSlot.objects.select_for_update().select_related('food_truck').get(pk=self.pk)
+
+        if slot.food_truck_id != order.food_truck_id:
+            raise ValidationError('Pickup slot must belong to the order food truck.')
+
+        if slot.start_time < timezone.now():
+            raise ValidationError('Pickup slot is in the past.')
+
+        if not slot.has_capacity_for(exclude_order=order, include_drafts=include_drafts):
+            raise ValidationError('Pickup slot is no longer available.')
+
+        if order.status != 'draft':
+            raise ValidationError('Only draft orders may be assigned to a pickup slot.')
+
+        order.pickup_slot = slot
+        order.save(update_fields=['pickup_slot'])
+        return order
 
     def clean(self):
         """Validate that end_time is after start_time."""
@@ -87,6 +128,8 @@ class Order(models.Model):
         PickupSlot,
         on_delete=models.CASCADE,
         related_name='orders',
+        null=True,
+        blank=True,
         help_text=_("The pickup slot for this order")
     )
     status = models.CharField(
@@ -102,6 +145,7 @@ class Order(models.Model):
         help_text=_("Total price of the order")
     )
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the order was created"))
+    submitted_at = models.DateTimeField(null=True, blank=True, help_text=_("When the order was submitted"))
 
     class Meta:
         verbose_name = _("Order")
@@ -137,38 +181,40 @@ class Order(models.Model):
         if self.status != 'draft':
             raise ValidationError("Cannot modify order after submission")
 
-        if not item.is_available:
+        if not item.is_available_now():
             raise ValidationError(f"Item '{item.name}' is not available")
 
         if quantity <= 0:
             raise ValidationError("Quantity must be positive")
 
-        # Validate options and calculate price
-        unit_price = item.get_price_with_options(selected_options or [])
+        selected_options = selected_options or []
+        item.validate_options(selected_options)
 
-        # Create OrderItem
+        # Calculate price and persist the order item
+        unit_price = item.get_price_with_options(selected_options)
+
         order_item = OrderItem.objects.create(
             order=self,
             item=item,
             quantity=quantity,
             unit_price=unit_price,
-            total_price=unit_price * quantity
+            total_price=unit_price * quantity,
+            options=[{'option_id': int(option_id)} for option_id in selected_options]
         )
 
-        # Create OrderItemOptions if any
         if selected_options:
-            options = item.option_groups.prefetch_related('options').filter(
-                options__id__in=selected_options
-            ).values_list('options__id', 'options__price_modifier')
-
-            for option_id, modifier in options:
+            option_qs = Option.objects.filter(
+                id__in=selected_options,
+                group__item=item,
+                is_available=True
+            )
+            for option in option_qs:
                 OrderItemOption.objects.create(
                     order_item=order_item,
-                    option_id=option_id,
-                    price_modifier=modifier
+                    option=option,
+                    price_modifier=option.price_modifier
                 )
 
-        # Update total price
         self.total_price = self.calculate_total()
         self.save(update_fields=['total_price'])
 
@@ -183,42 +229,103 @@ class Order(models.Model):
             total=models.Sum('total_price')
         )['total'] or Decimal('0.00')
 
-    def can_be_submitted(self):
-        """
-        Check if the order can be submitted.
+    def clear(self):
+        """Remove all draft items from the order and reset totals."""
+        if self.status != 'draft':
+            raise ValidationError('Can only clear draft orders.')
 
-        Returns:
-            bool: True if order can be submitted
-        """
-        return (
-            self.status == 'draft' and
-            self.items.exists() and
-            self.total_price > 0 and
-            self.pickup_slot.is_available() and
-            self.food_truck.can_accept_orders()
+        self.items.all().delete()
+        self.total_price = Decimal('0.00')
+        self.save(update_fields=['total_price'])
+
+    def can_be_submitted(self):
+        """Return True if the order satisfies submission criteria."""
+
+        if self.status != 'draft':
+            return False
+
+        if not self.items.exists():
+            return False
+
+        if self.total_price <= Decimal('0.00'):
+            return False
+
+        if self.food_truck and not self.food_truck.can_accept_orders():
+            return False
+
+        slot = self.pickup_slot
+        if not slot:
+            return False
+
+        if slot.start_time < timezone.now():
+            return False
+
+        if slot.food_truck_id != self.food_truck_id:
+            return False
+
+        if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
+            return False
+
+        return all(
+            order_item.item.is_available_now()
+            for order_item in self.items.select_related('item')
         )
+
+    def validate(self):
+        """Raise ValidationError if the order cannot be submitted."""
+
+        if self.status != 'draft':
+            raise ValidationError('Only draft orders may be submitted.')
+
+        if not self.items.exists():
+            raise ValidationError('Order has no items.')
+
+        if self.total_price <= Decimal('0.00'):
+            raise ValidationError('Order total must be greater than zero.')
+
+        if not self.food_truck.can_accept_orders():
+            raise ValidationError('Food truck is not accepting orders at the moment.')
+
+        slot = self.pickup_slot
+        if not slot:
+            raise ValidationError('Pickup slot must be selected before submission.')
+
+        if slot.food_truck_id != self.food_truck_id:
+            raise ValidationError('Pickup slot does not belong to this food truck.')
+
+        if slot.start_time < timezone.now():
+            raise ValidationError('Pickup slot is in the past.')
+
+        if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
+            raise ValidationError('Pickup slot is no longer available.')
+
+        invalid_items = []
+        for order_item in self.items.select_related('item__category__menu__food_truck'):
+            item = order_item.item
+            if not item.is_available_now():
+                invalid_items.append(item.name)
+            elif item.category.menu.food_truck_id != self.food_truck_id:
+                raise ValidationError('Order contains items from multiple food trucks.')
+
+        if invalid_items:
+            message = ', '.join(invalid_items)
+            raise ValidationError(f"Items not available: {message}")
 
     @transaction.atomic
     def submit(self):
-        """
-        Submit the order, validating all constraints and reserving slot capacity.
+        """Atomically validate the order and reserve the pickup slot."""
 
-        Raises:
-            ValidationError: If order cannot be submitted
-        """
-        if not self.can_be_submitted():
-            raise ValidationError("Order cannot be submitted")
+        try:
+            self.validate()
 
-        # Lock the pickup slot for update to prevent race conditions
-        slot = PickupSlot.objects.select_for_update().get(id=self.pickup_slot_id)
+            slot = PickupSlot.objects.select_for_update().get(pk=self.pickup_slot_id)
+            slot.assign_order(self, include_drafts=False)
 
-        # Double-check availability after lock
-        if not slot.is_available():
-            raise ValidationError("Pickup slot is no longer available")
-
-        # Update status
-        self.status = 'submitted'
-        self.save(update_fields=['status'])
+            self.status = 'submitted'
+            self.submitted_at = timezone.now()
+            self.save(update_fields=['status', 'submitted_at'])
+        except OperationalError:
+            raise ValidationError('Pickup slot is no longer available.')
 
     def is_paid(self):
         """
@@ -267,6 +374,11 @@ class OrderItem(models.Model):
         'menu.Item',
         on_delete=models.CASCADE,
         help_text=_("The menu item")
+    )
+    options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Selected item options snapshot")
     )
     quantity = models.PositiveIntegerField(help_text=_("Quantity ordered"))
     unit_price = models.DecimalField(

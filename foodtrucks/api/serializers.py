@@ -14,6 +14,7 @@ class FoodTruckSerializer(serializers.ModelSerializer):
         model = FoodTruck
         fields = [
             'id',
+            'slug',
             'name',
             'description',
             'logo',

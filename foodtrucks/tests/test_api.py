@@ -27,10 +27,12 @@ class FoodTruckAPITests(APITestCase):
         response = self.client.get(reverse('foodtruck-list'))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        ids = {item['id'] for item in self.get_list_results(response)}
+        results = self.get_list_results(response)
+        ids = {item['id'] for item in results}
         self.assertIn(self.truck_a.id, ids)
         self.assertIn(self.truck_b.id, ids)
         self.assertNotIn(self.truck_c.id, ids)
+        self.assertTrue(all('slug' in item for item in results))
 
     def test_exclude_inactive_foodtrucks(self):
         response = self.client.get(reverse('foodtruck-list'))
@@ -85,6 +87,7 @@ class FoodTruckAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['id'], self.truck_a.id)
         self.assertEqual(response.data['name'], self.truck_a.name)
+        self.assertEqual(response.data['slug'], self.truck_a.slug)
         self.assertIn('supported_preferences', response.data)
         self.assertIn('primary_color', response.data)
         self.assertIn('secondary_color', response.data)

@@ -3,6 +3,8 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.reverse import reverse
 from django.core.exceptions import ValidationError
+from orders.models import Order
+from orders.services.cart_service import CartService
 from .factories import (
     UserFactory,
     FoodTruckFactory,
@@ -146,3 +148,79 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
         self.assertEqual(order.total_price, Decimal('14.00'))
+
+    def test_fetch_available_pickup_slots(self):
+        url = reverse('foodtruck-pickup-slots', kwargs={'slug': self.foodtruck.slug})
+        response = self.client.get(url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], self.pickup_slot.id)
+        self.assertTrue(response.data[0]['is_available'])
+        self.assertEqual(response.data[0]['remaining_capacity'], self.pickup_slot.remaining_capacity())
+
+    def test_set_slot_endpoint_assigns_slot(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=None)
+
+        url = reverse('order-set-slot')
+        response = self.client.post(
+            url,
+            {'order_id': order.id, 'pickup_slot': self.pickup_slot.id},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.pickup_slot_id, self.pickup_slot.id)
+        self.assertEqual(response.data['status'], 'pickup slot assigned')
+
+    def test_submit_endpoint_submits_order(self):
+        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(self.item, quantity=1)
+
+        url = reverse('order-finalize')
+        response = self.client.post(url, {'order_id': order.id}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'submitted')
+        self.assertEqual(response.data['status'], 'order submitted')
+
+    def test_set_slot_endpoint_rejects_full_slot(self):
+        slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
+        first = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        first.add_item(self.item, quantity=1)
+        first.submit()
+
+        second = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=None)
+        second.add_item(self.item, quantity=1)
+
+        response = self.client.post(
+            reverse('order-set-slot'),
+            {'order_id': second.id, 'pickup_slot': slot.id},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+
+    def test_cart_checkout_creates_order(self):
+        add_url = reverse('cart-add')
+        add_response = self.client.post(
+            add_url,
+            {
+                'foodtruck_slug': self.foodtruck.slug,
+                'item_id': self.item.id,
+                'quantity': 1,
+            },
+            format='json'
+        )
+        self.assertEqual(add_response.status_code, status.HTTP_200_OK)
+
+        url = reverse('cart-checkout')
+        response = self.client.post(url, {'pickup_slot': self.pickup_slot.id}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['status'], 'order created')
+        self.assertTrue(response.data['order_id'])
+        self.assertTrue(Order.objects.filter(id=response.data['order_id'], customer=self.user).exists())

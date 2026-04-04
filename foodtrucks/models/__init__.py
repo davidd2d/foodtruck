@@ -3,7 +3,9 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 from decimal import Decimal
 
 
@@ -188,6 +190,13 @@ class FoodTruck(models.Model):
         help_text=_("Secondary brand color (hex code)")
     )
 
+    slug = models.SlugField(
+        max_length=255,
+        unique=True,
+        blank=True,
+        help_text=_("SEO-friendly resource slug")
+    )
+
     # Location
     latitude = models.DecimalField(
         max_digits=9,
@@ -221,6 +230,29 @@ class FoodTruck(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        """
+        Return the canonical URL for this food truck.
+        """
+        return reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.slug})
+
+    def _build_unique_slug(self):
+        base_slug = slugify(self.name) or 'foodtruck'
+        slug = base_slug
+        counter = 1
+        while FoodTruck.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        return slug
+
+    def save(self, *args, **kwargs):
+        """
+        Automatically generate a unique slug on create.
+        """
+        if not self.slug:
+            self.slug = self._build_unique_slug()
+        super().save(*args, **kwargs)
 
     def is_open(self):
         """

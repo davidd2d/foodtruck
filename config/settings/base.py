@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -78,16 +79,38 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': get_env('POSTGRES_DB', 'foodtruck_db'),
-        'USER': get_env('POSTGRES_USER', 'postgres'),
-        'PASSWORD': get_env('POSTGRES_PASSWORD', ''),
-        'HOST': get_env('POSTGRES_HOST', 'localhost'),
-        'PORT': get_env('POSTGRES_PORT', '5432'),
+RUNNING_TESTS = os.getenv('DJANGO_TESTING', '').lower() in {'1', 'true', 'yes'} or any('pytest' in arg for arg in sys.argv)
+
+if RUNNING_TESTS:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                'timeout': 20,
+            }
+        }
     }
-}
+    from django.db.backends.signals import connection_created
+
+    def enable_sqlite_wal(sender, connection, **kwargs):
+        if connection.vendor == 'sqlite':
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA synchronous=NORMAL;')
+
+    connection_created.connect(enable_sqlite_wal)
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': get_env('POSTGRES_DB', 'foodtruck_db'),
+            'USER': get_env('POSTGRES_USER', 'postgres'),
+            'PASSWORD': get_env('POSTGRES_PASSWORD', ''),
+            'HOST': get_env('POSTGRES_HOST', 'localhost'),
+            'PORT': get_env('POSTGRES_PORT', '5432'),
+        }
+    }
 
 AUTH_USER_MODEL = 'accounts.User'
 

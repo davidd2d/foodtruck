@@ -15,6 +15,7 @@ export function createFoodtruckCard(foodtruck) {
 
     const {
         id,
+        slug,
         name,
         description,
         image,
@@ -59,7 +60,7 @@ export function createFoodtruckCard(foodtruck) {
 
                     <div class="mt-auto">
                         <div class="d-flex gap-2">
-                            <a href="/foodtrucks/${id}/" class="btn btn-primary btn-sm flex-fill">
+                            <a href="/foodtrucks/${slug || id}/" class="btn btn-primary btn-sm flex-fill">
                                 <i class="bi bi-eye"></i> View Menu
                             </a>
                             ${phone ? `<a href="tel:${phone}" class="btn btn-outline-secondary btn-sm">

@@ -1,4 +1,6 @@
+from django.utils import timezone
 from rest_framework import serializers
+
 from ..models import Order, OrderItem, OrderItemOption, PickupSlot
 
 
@@ -22,9 +24,29 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class PickupSlotSerializer(serializers.ModelSerializer):
     """Serializer for PickupSlot model."""
+    remaining_capacity = serializers.SerializerMethodField()
+    is_available = serializers.SerializerMethodField()
+
     class Meta:
         model = PickupSlot
-        fields = ['id', 'start_time', 'end_time', 'capacity']
+        fields = [
+            'id',
+            'start_time',
+            'end_time',
+            'capacity',
+            'remaining_capacity',
+            'is_available',
+        ]
+
+    def get_remaining_capacity(self, obj):
+        reserved = getattr(obj, 'reserved_orders', None)
+        if reserved is not None:
+            return max(0, obj.capacity - reserved)
+        return obj.remaining_capacity()
+
+    def get_is_available(self, obj):
+        remaining = self.get_remaining_capacity(obj)
+        return obj.start_time >= timezone.now() and remaining > 0
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -57,3 +79,55 @@ class AddItemSerializer(serializers.Serializer):
         required=False,
         allow_empty=True
     )
+
+
+class CartItemSerializer(serializers.Serializer):
+    """Serializer for cart item payload."""
+    line_key = serializers.CharField()
+    item_id = serializers.IntegerField()
+    item_name = serializers.CharField()
+    quantity = serializers.IntegerField()
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    selected_options = serializers.ListField(child=serializers.DictField(), required=False)
+
+
+class CartSerializer(serializers.Serializer):
+    """Serializer for cart payload."""
+    foodtruck_slug = serializers.CharField(allow_null=True)
+    items = CartItemSerializer(many=True)
+    total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    item_count = serializers.IntegerField()
+
+
+class AddCartItemSerializer(serializers.Serializer):
+    """Serializer for adding an item to the cart."""
+    foodtruck_slug = serializers.SlugField()
+    item_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+    selected_options = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        allow_empty=True
+    )
+
+
+class RemoveCartItemSerializer(serializers.Serializer):
+    """Serializer for removing an item from the cart."""
+    line_key = serializers.CharField()
+
+
+class CartCheckoutSerializer(serializers.Serializer):
+    """Serializer for creating an order from the cart."""
+    pickup_slot = serializers.IntegerField(required=False)
+
+
+class OrderSlotAssignmentSerializer(serializers.Serializer):
+    """Serializer for assigning a pickup slot to an existing draft order."""
+    order_id = serializers.IntegerField()
+    pickup_slot = serializers.IntegerField()
+
+
+class OrderSubmissionSerializer(serializers.Serializer):
+    """Serializer for submitting a draft order."""
+    order_id = serializers.IntegerField()

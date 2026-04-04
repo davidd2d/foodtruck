@@ -1,7 +1,23 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
-from .serializers import MenuSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import MenuSerializer, FoodTruckMenuSerializer
 from ..models import Menu
+from ..services.menu_service import MenuService
+
+
+class FoodTruckMenuView(APIView):
+    """API endpoint for retrieving a foodtruck menu by slug."""
+    permission_classes = [AllowAny]
+
+    def get(self, request, slug):
+        menu = MenuService.get_active_menu_for_foodtruck(slug)
+        serializer = FoodTruckMenuSerializer(menu, context=self.get_serializer_context())
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 
 class MenuViewSet(viewsets.ReadOnlyModelViewSet):
