@@ -27,4 +27,5 @@ urlpatterns = [
     path('api/', include('payments.api.urls')),
     path('api/onboarding/', include('onboarding.api.urls')),
     path('foodtrucks/', include('foodtrucks.urls')),
+    path('payments/', include(('payments.urls', 'payments'), namespace='payments')),
 ]

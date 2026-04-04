@@ -1,119 +1,120 @@
 from decimal import Decimal
+
 from django.urls import reverse
 from rest_framework import status
-from payments.tests.factories import UserFactory, OrderFactory, PaymentFactory
+from rest_framework.test import APIClient
+
 from accounts.tests.base import JWTAPITestCase
+from orders.tests.factories import CategoryFactory, ItemFactory, MenuFactory, OrderFactory
+from payments.models import Payment
+from payments.services.payment_service import PaymentService
+from payments.tests.factories import UserFactory
 
 
 class PaymentAPITests(JWTAPITestCase):
     def setUp(self):
         self.user = UserFactory()
         self.other_user = UserFactory()
-        self.order = OrderFactory(customer=self.user, status='submitted', total_price=Decimal('18.75'))
-        self.unsubmitted_order = OrderFactory(customer=self.user, status='draft')
-        self.other_order = OrderFactory(customer=self.other_user, status='submitted')
+        self.client = APIClient()
 
-    def test_initialize_payment_success(self):
+    def _prepare_order_with_items(self, customer, status='submitted'):
+        order = OrderFactory(customer=customer, status='draft')
+        menu = MenuFactory(food_truck=order.food_truck)
+        category = CategoryFactory(menu=menu)
+        item = ItemFactory(category=category, base_price=Decimal('15.00'))
+        order.add_item(item, quantity=2)
+        order.submit()
+        return order
+
+    def test_create_payment_success(self):
+        order = self._prepare_order_with_items(self.user)
         self.authenticate_user(self.user)
-        url = reverse('payment-initialize', kwargs={'order_id': self.order.id})
-        response = self.client.post(url)
+
+        response = self.client.post(reverse('payment-create'), {'order_id': order.id})
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['order'], self.order.id)
-        self.assertEqual(Decimal(response.data['amount']), self.order.total_price)
+        self.assertEqual(Decimal(response.data['amount']), order.total_price)
         self.assertEqual(response.data['status'], 'pending')
 
-    def test_initialize_fails_for_non_submitted_order(self):
+    def test_create_payment_requires_submitted_order(self):
+        order = OrderFactory(customer=self.user, status='draft')
         self.authenticate_user(self.user)
-        url = reverse('payment-initialize', kwargs={'order_id': self.unsubmitted_order.id})
-        response = self.client.post(url)
+
+        response = self.client.post(reverse('payment-create'), {'order_id': order.id})
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('error', response.data)
 
-    def test_pay_success_updates_payment_and_order_status(self):
+    def test_create_payment_requires_order_ownership(self):
+        order = self._prepare_order_with_items(self.other_user)
         self.authenticate_user(self.user)
-        payment = PaymentFactory(order=self.order, status='pending')
 
-        url = reverse('payment-pay', kwargs={'pk': payment.id})
-        response = self.client.post(url)
+        response = self.client.post(reverse('payment-create'), {'order_id': order.id})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_authorize_payment_success(self):
+        order = self._prepare_order_with_items(self.user)
+        self.authenticate_user(self.user)
+        payment = PaymentService.create_payment(order)
+
+        response = self.client.post(reverse('payment-authorize'), {'payment_id': payment.id})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'authorized')
+
+    def test_authorize_payment_missing_payment(self):
+        self.authenticate_user(self.user)
+        response = self.client.post(reverse('payment-authorize'), {'payment_id': 999})
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_capture_payment_marks_order_paid(self):
+        order = self._prepare_order_with_items(self.user)
+        self.authenticate_user(self.user)
+        payment = PaymentService.create_payment(order)
+        PaymentService.authorize_payment(payment)
+
+        response = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], 'paid')
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'paid')
 
-        payment.refresh_from_db()
-        self.order.refresh_from_db()
+    def test_capture_requires_authorized_payment(self):
+        order = self._prepare_order_with_items(self.user)
+        self.authenticate_user(self.user)
+        payment = PaymentService.create_payment(order)
+
+        response = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_user_cannot_capture_other_users_payment(self):
+        order = self._prepare_order_with_items(self.other_user)
+        payment = PaymentService.create_payment(order)
+        PaymentService.authorize_payment(payment)
+
+        self.authenticate_user(self.user)
+        response = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_full_payment_flow_integration(self):
+        order = self._prepare_order_with_items(self.user)
+        self.authenticate_user(self.user)
+
+        created = self.client.post(reverse('payment-create'), {'order_id': order.id})
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+
+        payment_id = created.data['id']
+
+        authorized = self.client.post(reverse('payment-authorize'), {'payment_id': payment_id})
+        self.assertEqual(authorized.status_code, status.HTTP_200_OK)
+
+        captured = self.client.post(reverse('payment-capture'), {'payment_id': payment_id})
+        self.assertEqual(captured.status_code, status.HTTP_200_OK)
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'paid')
+        payment = Payment.objects.get(id=payment_id)
         self.assertEqual(payment.status, 'paid')
-        self.assertEqual(self.order.status, 'paid')
-
-    def test_pay_fails_if_payment_already_paid(self):
-        self.authenticate_user(self.user)
-        payment = PaymentFactory(order=self.order, status='paid')
-
-        url = reverse('payment-pay', kwargs={'pk': payment.id})
-        response = self.client.post(url)
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('error', response.data)
-
-    def test_fail_sets_status_failed(self):
-        self.authenticate_user(self.user)
-        payment = PaymentFactory(order=self.order, status='pending')
-
-        url = reverse('payment-fail', kwargs={'pk': payment.id})
-        response = self.client.post(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'failed')
-
-        payment.refresh_from_db()
-        self.assertEqual(payment.status, 'failed')
-
-    def test_anonymous_user_cannot_initialize_payment(self):
-        url = reverse('payment-initialize', kwargs={'order_id': self.order.id})
-        response = self.client.post(url)
-
-        self.assertIn(response.status_code, [
-            status.HTTP_401_UNAUTHORIZED,
-            status.HTTP_403_FORBIDDEN,
-        ])
-
-    def test_user_cannot_initialize_other_users_order(self):
-        self.authenticate_user(self.user)
-        url = reverse('payment-initialize', kwargs={'order_id': self.other_order.id})
-        response = self.client.post(url)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_user_cannot_access_other_users_payment(self):
-        self.authenticate_user(self.user)
-        payment = PaymentFactory(order=self.other_order, status='pending')
-
-        url = reverse('payment-pay', kwargs={'pk': payment.id})
-        response = self.client.post(url)
-
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-    def test_payment_amount_matches_order_total_on_initialize(self):
-        self.authenticate_user(self.user)
-        url = reverse('payment-initialize', kwargs={'order_id': self.order.id})
-        response = self.client.post(url)
-
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Decimal(response.data['amount']), self.order.total_price)
-
-    def test_double_payment_attempt_is_rejected(self):
-        self.authenticate_user(self.user)
-        payment = PaymentFactory(order=self.order, status='pending')
-        self.client.post(reverse('payment-pay', kwargs={'pk': payment.id}))
-        response = self.client.post(reverse('payment-pay', kwargs={'pk': payment.id}))
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_payment_after_cancellation_fails(self):
-        self.authenticate_user(self.user)
-        cancelled_order = OrderFactory(customer=self.user, status='cancelled')
-        payment = PaymentFactory(order=cancelled_order, status='pending')
-
-        response = self.client.post(reverse('payment-pay', kwargs={'pk': payment.id}))
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

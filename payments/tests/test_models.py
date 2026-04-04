@@ -1,89 +1,57 @@
-from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from orders.models import Order
+
 from payments.models import Payment
-from payments.tests.factories import UserFactory, OrderFactory, PaymentFactory
+from payments.tests.factories import PaymentFactory
 
 
 class PaymentModelTests(TestCase):
-    def test_initialize_sets_status_pending_and_copies_order_amount(self):
-        order = OrderFactory(status='submitted', total_price=Decimal('32.50'))
-        payment = PaymentFactory(order=order, amount=Decimal('1.00'), status='pending')
+    def test_is_paid_only_returns_true_for_paid_status(self):
+        payment = PaymentFactory(status='pending')
+        self.assertFalse(payment.is_paid())
 
-        payment.amount = Decimal('1.00')
-        payment.status = 'failed'
-        payment.initialize()
+        payment.status = 'paid'
+        payment.save(update_fields=['status'])
+        self.assertTrue(payment.is_paid())
 
-        payment.refresh_from_db()
-        self.assertEqual(payment.status, 'pending')
-        self.assertEqual(payment.amount, order.total_price)
+    def test_can_transition_to_respects_state_machine(self):
+        payment = PaymentFactory(status='pending')
+        self.assertTrue(payment.can_transition_to('authorized'))
+        self.assertFalse(payment.can_transition_to('paid'))
 
-    def test_initialize_fails_if_order_not_submitted(self):
-        order = OrderFactory(status='draft')
-        payment = PaymentFactory(order=order, amount=Decimal('12.00'), status='pending')
+        payment.status = 'authorized'
+        self.assertTrue(payment.can_transition_to('paid'))
+        self.assertTrue(payment.can_transition_to('failed'))
 
-        with self.assertRaises(ValidationError):
-            payment.initialize()
-
-    def test_mark_as_paid_updates_payment_and_order_status(self):
-        order = OrderFactory(status='submitted')
-        payment = PaymentFactory(order=order, status='pending')
-
-        payment.mark_as_paid()
+    def test_transition_to_updates_status_and_provider_id(self):
+        payment = PaymentFactory(status='pending')
+        payment.transition_to('authorized', provider_payment_id='stripe-session-1')
 
         payment.refresh_from_db()
-        order.refresh_from_db()
-        self.assertEqual(payment.status, 'paid')
-        self.assertEqual(order.status, 'paid')
-        self.assertTrue(order.is_paid())
+        self.assertEqual(payment.status, 'authorized')
+        self.assertEqual(payment.provider_payment_id, 'stripe-session-1')
 
-    def test_mark_as_paid_cannot_be_called_twice(self):
-        order = OrderFactory(status='submitted')
-        payment = PaymentFactory(order=order, status='pending')
-        payment.mark_as_paid()
+    def test_transition_to_invalid_target_raises(self):
+        payment = PaymentFactory(status='pending')
 
         with self.assertRaises(ValidationError):
-            payment.mark_as_paid()
+            payment.transition_to('paid')
 
-    def test_mark_as_failed_sets_failed_status(self):
-        order = OrderFactory(status='submitted')
-        payment = PaymentFactory(order=order, status='pending')
-
-        payment.mark_as_failed()
-        self.assertEqual(payment.status, 'failed')
-
-    def test_refund_only_allowed_for_paid_payment(self):
-        order = OrderFactory(status='submitted')
-        payment = PaymentFactory(order=order, status='paid')
-
-        payment.refund()
-        self.assertEqual(payment.status, 'refunded')
-
-    def test_refund_before_payment_raises_validation_error(self):
-        order = OrderFactory(status='submitted')
-        payment = PaymentFactory(order=order, status='pending')
+    def test_transition_to_same_state_raises(self):
+        payment = PaymentFactory(status='pending')
 
         with self.assertRaises(ValidationError):
-            payment.refund()
+            payment.transition_to('pending')
 
-    def test_order_is_paid_returns_true_when_payment_paid(self):
-        order = OrderFactory(status='submitted')
-        PaymentFactory(order=order, status='paid')
+    def test_clean_validates_amount_and_currency(self):
+        payment = PaymentFactory(amount='10.00', currency='EUR')
+        payment.full_clean()  # should not raise
 
-        self.assertTrue(order.is_paid())
-
-    def test_cannot_initialize_second_payment_for_same_order(self):
-        order = OrderFactory(status='submitted')
-        existing_payment = PaymentFactory(order=order, status='pending')
-        second_payment = Payment(order=order, amount=order.total_price, status='pending')
-
+        payment.amount = '-5.00'
         with self.assertRaises(ValidationError):
-            second_payment.initialize()
+            payment.full_clean()
 
-    def test_cannot_pay_order_not_in_submitted_state(self):
-        order = OrderFactory(status='cancelled')
-        payment = PaymentFactory(order=order, status='pending')
-
+        payment.amount = '10.00'
+        payment.currency = 'EURO'
         with self.assertRaises(ValidationError):
-            payment.mark_as_paid()
+            payment.full_clean()

@@ -1,19 +1,17 @@
 from django.core.exceptions import ValidationError
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from orders.models import Order
 from payments.models import Payment
+from payments.services.payment_service import PaymentService
 from .serializers import PaymentSerializer
 
 
 class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for Payment model.
-
-    Provides payment initialization, pay, and fail actions.
-    """
+    """Read-only access to payments owned by the current user."""
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
@@ -23,44 +21,83 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
             order__customer=self.request.user
         ).select_related('order')
 
-    @action(detail=False, methods=['post'], url_path=r'(?P<order_id>[^/.]+)/initialize')
-    def initialize(self, request, order_id=None):
+
+class PaymentCreateAPIView(APIView):
+    """Create a simulated payment in the pending state."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        order_id = request.data.get('order_id')
+
+        if not order_id:
+            return Response({'detail': 'order_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
         order = Order.objects.filter(
             id=order_id,
             customer=request.user
-        ).first()
+        ).select_related('payment').first()
 
         if not order:
-            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        if hasattr(order, 'payment'):
-            return Response({'error': 'Payment already exists for this order'}, status=status.HTTP_400_BAD_REQUEST)
-
-        payment = Payment(order=order, amount=order.total_price)
+            return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            payment.initialize()
+            payment = PaymentService.create_payment(order)
         except ValidationError as exc:
-            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.get_serializer(payment)
+        serializer = PaymentSerializer(payment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'])
-    def pay(self, request, pk=None):
-        payment = self.get_object()
+
+class PaymentAuthorizeAPIView(APIView):
+    """Transition a pending payment to authorized."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        payment_id = request.data.get('payment_id')
+
+        if not payment_id:
+            return Response({'detail': 'payment_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        payment = Payment.objects.filter(
+            pk=payment_id,
+            order__customer=request.user
+        ).select_related('order').first()
+
+        if not payment:
+            return Response({'detail': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            payment.mark_as_paid()
+            payment = PaymentService.authorize_payment(payment)
         except ValidationError as exc:
-            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.get_serializer(payment)
+        serializer = PaymentSerializer(payment)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'])
-    def fail(self, request, pk=None):
-        payment = self.get_object()
-        payment.mark_as_failed()
-        serializer = self.get_serializer(payment)
+
+class PaymentCaptureAPIView(APIView):
+    """Capture funds and mark the order as paid."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        payment_id = request.data.get('payment_id')
+
+        if not payment_id:
+            return Response({'detail': 'payment_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        payment = Payment.objects.filter(
+            pk=payment_id,
+            order__customer=request.user
+        ).select_related('order').first()
+
+        if not payment:
+            return Response({'detail': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            payment = PaymentService.capture_payment(payment)
+        except ValidationError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = PaymentSerializer(payment)
         return Response(serializer.data, status=status.HTTP_200_OK)

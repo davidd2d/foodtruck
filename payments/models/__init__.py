@@ -1,16 +1,15 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
 class Payment(models.Model):
     """
-    Represents a payment for an order.
+    Represents a payment for a submitted order.
 
-    Handles payment lifecycle and integration with external payment providers.
-    Designed to be extensible for multiple payment providers.
+    Tracks the lifecycle of a payment with strictly enforced transitions
+    so that the state machine can stay in sync with order status.
     """
 
     STATUS_CHOICES = [
@@ -26,6 +25,12 @@ class Payment(models.Model):
         ('paypal', 'PayPal'),
         ('bank_transfer', 'Bank Transfer'),
     ]
+
+    STATUS_TRANSITIONS = {
+        'pending': {'authorized'},
+        'authorized': {'paid', 'failed'},
+        'paid': {'refunded'},
+    }
 
     order = models.OneToOneField(
         'orders.Order',
@@ -82,101 +87,43 @@ class Payment(models.Model):
     def __str__(self):
         return f"Payment for Order {self.order_id} - {self.amount} {self.currency}"
 
-    def initialize(self):
+    def is_paid(self):
+        """Return True when the payment reached the paid state."""
+        return self.status == 'paid'
+
+    def can_transition_to(self, new_status):
+        """Determine whether transitioning to the provided status is allowed."""
+        if not isinstance(new_status, str):
+            return False
+        allowed = self.STATUS_TRANSITIONS.get(self.status, set())
+        return new_status in allowed
+
+    def transition_to(self, new_status, *, provider_payment_id=None):
         """
-        Initialize the payment for a submitted order.
+        Transition the payment status through the defined state machine.
 
-        Sets status to pending and copies amount from order.
-        Should be called when starting the payment process.
-
-        Raises:
-            ValidationError: If order is not in correct state or payment already exists
+        The transition is transactional so that the payment cannot land in an
+        intermediate state if saving fails.
         """
-        if Payment.objects.filter(order=self.order).exclude(pk=self.pk).exists():
-            raise ValidationError("Order already has a payment")
+        new_status = new_status.lower()
 
-        if self.order.status != 'submitted':
-            raise ValidationError("Can only create payment for submitted orders")
+        if new_status == self.status:
+            raise ValidationError(f"Payment already in '{self.status}' state")
 
-        self.amount = self.order.total_price
-        self.status = 'pending'
-        self.save()
-
-    def mark_as_authorized(self, provider_id=None):
-        """
-        Mark the payment as authorized by the payment provider.
-
-        Args:
-            provider_id: Optional provider payment ID
-
-        Raises:
-            ValidationError: If current status doesn't allow authorization
-        """
-        if self.status not in ['pending']:
-            raise ValidationError(f"Cannot authorize payment with status '{self.status}'")
-
-        if provider_id:
-            self.provider_payment_id = provider_id
-
-        self.status = 'authorized'
-        self.save(update_fields=['status', 'provider_payment_id', 'updated_at'])
-
-    def mark_as_paid(self):
-        """
-        Mark the payment as successfully paid.
-
-        Updates payment status and related order status.
-        Should only be called after successful payment confirmation.
-
-        Raises:
-            ValidationError: If current status doesn't allow payment
-        """
-        if self.status not in ['pending', 'authorized']:
-            raise ValidationError(f"Cannot mark as paid from status '{self.status}'")
+        if not self.can_transition_to(new_status):
+            raise ValidationError(f"Cannot transition from '{self.status}' to '{new_status}'")
 
         with transaction.atomic():
-            self.status = 'paid'
-            self.save(update_fields=['status', 'updated_at'])
-
-            # Update order status
-            self.order.mark_as_paid()
-
-    def mark_as_failed(self):
-        """
-        Mark the payment as failed.
-
-        Should be called when payment processing fails.
-        """
-        self.status = 'failed'
-        self.save(update_fields=['status', 'updated_at'])
-
-    def refund(self):
-        """
-        Process a refund for the payment.
-
-        Only allowed for paid payments.
-
-        Raises:
-            ValidationError: If payment cannot be refunded
-        """
-        if self.status != 'paid':
-            raise ValidationError(f"Cannot refund payment with status '{self.status}'")
-
-        self.status = 'refunded'
-        self.save(update_fields=['status', 'updated_at'])
-
-    def can_be_refunded(self):
-        """
-        Check if the payment can be refunded.
-
-        Returns:
-            bool: True if refund is possible
-        """
-        return self.status == 'paid'
+            self.status = new_status
+            update_fields = ['status', 'updated_at']
+            if provider_payment_id is not None:
+                self.provider_payment_id = provider_payment_id
+                update_fields.append('provider_payment_id')
+            self.save(update_fields=update_fields)
 
     def clean(self):
         """Validate payment data."""
-        if self.amount <= 0:
+        if self.amount <= Decimal('0.00'):
             raise ValidationError("Payment amount must be positive")
 
         if self.currency and len(self.currency) != 3:

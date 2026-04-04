@@ -334,7 +334,7 @@ class Order(models.Model):
         Returns:
             bool: True if order has a successful payment
         """
-        return hasattr(self, 'payment') and self.payment.status == 'paid'
+        return hasattr(self, 'payment') and self.payment.is_paid()
 
     def mark_as_paid(self):
         """
@@ -346,8 +346,17 @@ class Order(models.Model):
         Raises:
             ValidationError: If order is not in correct state
         """
+        if self.status == 'paid':
+            raise ValidationError('Order is already marked as paid.')
+
         if self.status != 'submitted':
             raise ValidationError(f"Cannot mark as paid from status '{self.status}'")
+
+        if not hasattr(self, 'payment'):
+            raise ValidationError('Order has no associated payment.')
+
+        if not self.payment.is_paid():
+            raise ValidationError('Payment must be paid before marking order as paid.')
 
         self.status = 'paid'
         self.save(update_fields=['status'])
