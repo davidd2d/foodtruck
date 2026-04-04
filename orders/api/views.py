@@ -48,9 +48,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         Optimize with select_related and prefetch_related.
         """
         return Order.objects.filter(
-            customer=self.request.user
+            user=self.request.user
         ).select_related(
-            'food_truck', 'pickup_slot'
+            'user', 'food_truck', 'pickup_slot'
         ).prefetch_related(
             'items__selected_options__option',
             'items__item'
@@ -58,7 +58,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Create order for the current user."""
-        serializer.save(customer=self.request.user)
+        serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         """Create an order and return the full serialized object."""
@@ -167,7 +167,7 @@ class CartCheckoutView(APIView):
         if serializer.is_valid():
             try:
                 order = OrderService.create_order_from_cart(
-                    customer=request.user,
+                    user=request.user,
                     pickup_slot_id=serializer.validated_data.get('pickup_slot'),
                     session=request.session,
                 )
@@ -188,7 +188,7 @@ class SetOrderPickupSlotView(APIView):
 
         order = Order.objects.filter(
             pk=serializer.validated_data['order_id'],
-            customer=request.user,
+            user=request.user,
         ).select_related('food_truck', 'pickup_slot').first()
 
         if not order:
@@ -212,7 +212,7 @@ class SubmitOrderView(APIView):
 
         order = Order.objects.filter(
             pk=serializer.validated_data['order_id'],
-            customer=request.user,
+            user=request.user,
         ).select_related('pickup_slot', 'food_truck').first()
 
         if not order:

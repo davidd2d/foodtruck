@@ -102,7 +102,7 @@ class PickupSlot(models.Model):
 
 class Order(models.Model):
     """
-    Represents a customer order with items and pickup details.
+    Represents an authenticated order with pickup details and lifecycle management.
     """
 
     STATUS_CHOICES = [
@@ -112,11 +112,13 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    customer = models.ForeignKey(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='orders',
-        help_text=_("The customer who placed the order")
+        null=True,
+        blank=True,
+        help_text=_("The account that placed or owns this order")
     )
     food_truck = models.ForeignKey(
         'foodtrucks.FoodTruck',
@@ -164,7 +166,8 @@ class Order(models.Model):
         ]
 
     def __str__(self):
-        return f"Order {self.id} - {self.customer.email}"
+        owner_email = getattr(self.user, 'email', 'anonymous')
+        return f"Order {self.id} - {owner_email}"
 
     def add_item(self, item, quantity, selected_options=None):
         """

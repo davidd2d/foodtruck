@@ -18,7 +18,7 @@ class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Payment.objects.filter(
-            order__customer=self.request.user
+            order__user=self.request.user
         ).select_related('order')
 
 
@@ -34,7 +34,7 @@ class PaymentCreateAPIView(APIView):
 
         order = Order.objects.filter(
             id=order_id,
-            customer=request.user
+            user=request.user
         ).select_related('payment').first()
 
         if not order:
@@ -61,7 +61,7 @@ class PaymentAuthorizeAPIView(APIView):
 
         payment = Payment.objects.filter(
             pk=payment_id,
-            order__customer=request.user
+            order__user=request.user
         ).select_related('order').first()
 
         if not payment:
@@ -88,7 +88,7 @@ class PaymentCaptureAPIView(APIView):
 
         payment = Payment.objects.filter(
             pk=payment_id,
-            order__customer=request.user
+            order__user=request.user
         ).select_related('order').first()
 
         if not payment:

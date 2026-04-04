@@ -17,8 +17,8 @@ class PaymentAPITests(JWTAPITestCase):
         self.other_user = UserFactory()
         self.client = APIClient()
 
-    def _prepare_order_with_items(self, customer, status='submitted'):
-        order = OrderFactory(customer=customer, status='draft')
+    def _prepare_order_with_items(self, user, status='submitted'):
+        order = OrderFactory(user=user, status='draft')
         menu = MenuFactory(food_truck=order.food_truck)
         category = CategoryFactory(menu=menu)
         item = ItemFactory(category=category, base_price=Decimal('15.00'))
@@ -37,7 +37,7 @@ class PaymentAPITests(JWTAPITestCase):
         self.assertEqual(response.data['status'], 'pending')
 
     def test_create_payment_requires_submitted_order(self):
-        order = OrderFactory(customer=self.user, status='draft')
+        order = OrderFactory(user=self.user, status='draft')
         self.authenticate_user(self.user)
 
         response = self.client.post(reverse('payment-create'), {'order_id': order.id})

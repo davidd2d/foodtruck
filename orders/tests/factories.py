@@ -98,12 +98,12 @@ def PickupSlotFactory(food_truck=None, capacity=5, start_time=None, end_time=Non
     )
 
 
-def OrderFactory(customer=None, food_truck=None, pickup_slot=None, status='draft'):
-    customer = customer or UserFactory()
-    food_truck = food_truck or FoodTruckFactory(owner=customer)
+def OrderFactory(user=None, food_truck=None, pickup_slot=None, status='draft'):
+    user = user or UserFactory()
+    food_truck = food_truck or FoodTruckFactory(owner=user)
     pickup_slot = pickup_slot or PickupSlotFactory(food_truck=food_truck)
     return Order.objects.create(
-        customer=customer,
+        user=user,
         food_truck=food_truck,
         pickup_slot=pickup_slot,
         status=status

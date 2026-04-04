@@ -53,6 +53,7 @@ class OrderSerializer(serializers.ModelSerializer):
     """Serializer for Order model."""
     items = OrderItemSerializer(many=True, read_only=True)
     pickup_slot = PickupSlotSerializer(read_only=True)
+    customer = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
 
     class Meta:
         model = Order

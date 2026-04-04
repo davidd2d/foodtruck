@@ -3,6 +3,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 
+from foodtrucks.tests.factories import FoodTruckFactory
+
 User = get_user_model()
 
 
@@ -89,3 +91,23 @@ def test_invalid_user_creation_duplicate_email():
     User.objects.create_user(email="dup@test.com", password="testpass123")
     with pytest.raises(IntegrityError):
         User.objects.create_user(email="dup@test.com", password="testpass456")
+
+
+@pytest.mark.django_db
+def test_user_role_flags():
+    user = User.objects.create_user(email="role@test.com", password="pwd123")
+    assert user.is_customer is True
+    assert user.is_foodtruck_owner is False
+
+
+@pytest.mark.django_db
+def test_can_manage_foodtruck_for_owner():
+    owner = User.objects.create_user(
+        email="owner@test.com",
+        password="pwd123",
+        is_foodtruck_owner=True
+    )
+    foodtruck = FoodTruckFactory(owner=owner)
+    assert owner.can_manage_foodtruck(foodtruck) is True
+    another_user = User.objects.create_user(email="other@test.com", password="pwd123")
+    assert another_user.can_manage_foodtruck(foodtruck) is False

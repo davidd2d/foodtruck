@@ -41,7 +41,7 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data['customer'], self.user.id)
 
     def test_add_item_updates_total_price(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         url = reverse('order-add-item', kwargs={'pk': order.id})
 
         response = self.client.post(
@@ -55,7 +55,7 @@ class OrderAPITests(APITestCase):
         self.assertEqual(order.total_price, Decimal('24.00'))
 
     def test_submit_order_success(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         order.add_item(self.item, quantity=1)
 
         url = reverse('order-submit', kwargs={'pk': order.id})
@@ -67,7 +67,7 @@ class OrderAPITests(APITestCase):
         self.assertEqual(order.status, 'submitted')
 
     def test_submit_empty_order_fails(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         url = reverse('order-submit', kwargs={'pk': order.id})
 
         response = self.client.post(url, format='json')
@@ -77,11 +77,11 @@ class OrderAPITests(APITestCase):
 
     def test_submit_slot_full_fails(self):
         slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
-        order1 = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        order1 = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
         order1.add_item(self.item, quantity=1)
         order1.submit()
 
-        order2 = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        order2 = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
         order2.add_item(self.item, quantity=1)
 
         url = reverse('order-submit', kwargs={'pk': order2.id})
@@ -91,7 +91,7 @@ class OrderAPITests(APITestCase):
         self.assertIn('error', response.data)
 
     def test_submit_invalid_state_fails(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         order.add_item(self.item, quantity=1)
         order.submit()
 
@@ -103,7 +103,7 @@ class OrderAPITests(APITestCase):
 
     def test_user_cannot_access_another_users_order(self):
         other_user = UserFactory()
-        other_order = OrderFactory(customer=other_user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        other_order = OrderFactory(user=other_user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
 
         url = reverse('order-detail', kwargs={'pk': other_order.id})
         response = self.client.get(url, format='json')
@@ -121,7 +121,7 @@ class OrderAPITests(APITestCase):
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
 
     def test_invalid_quantity_returns_bad_request(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         url = reverse('order-add-item', kwargs={'pk': order.id})
 
         response = self.client.post(
@@ -134,7 +134,7 @@ class OrderAPITests(APITestCase):
         self.assertIn('quantity', response.data)
 
     def test_add_item_with_options_updates_price(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         option_group = OptionGroupFactory(item=self.item, name='Size')
         option = OptionFactory(group=option_group, name='Large', price_modifier=Decimal('2.00'))
         url = reverse('order-add-item', kwargs={'pk': order.id})
@@ -160,7 +160,7 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data[0]['remaining_capacity'], self.pickup_slot.remaining_capacity())
 
     def test_set_slot_endpoint_assigns_slot(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=None)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=None)
 
         url = reverse('order-set-slot')
         response = self.client.post(
@@ -175,7 +175,7 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data['status'], 'pickup slot assigned')
 
     def test_submit_endpoint_submits_order(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
         order.add_item(self.item, quantity=1)
 
         url = reverse('order-finalize')
@@ -188,11 +188,11 @@ class OrderAPITests(APITestCase):
 
     def test_set_slot_endpoint_rejects_full_slot(self):
         slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
-        first = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        first = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
         first.add_item(self.item, quantity=1)
         first.submit()
 
-        second = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=None)
+        second = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=None)
         second.add_item(self.item, quantity=1)
 
         response = self.client.post(
@@ -223,4 +223,4 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['status'], 'order created')
         self.assertTrue(response.data['order_id'])
-        self.assertTrue(Order.objects.filter(id=response.data['order_id'], customer=self.user).exists())
+        self.assertTrue(Order.objects.filter(id=response.data['order_id'], user=self.user).exists())

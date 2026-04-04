@@ -17,9 +17,9 @@ def UserFactory(email=None, password='password123'):
     )
 
 
-def OrderFactory(customer=None, food_truck=None, pickup_slot=None, status='submitted', total_price=Decimal('25.50')):
-    customer = customer or UserFactory()
-    food_truck = food_truck or FoodTruckFactory()
+def OrderFactory(user=None, food_truck=None, pickup_slot=None, status='submitted', total_price=Decimal('25.50')):
+    user = user or UserFactory()
+    food_truck = food_truck or FoodTruckFactory(owner=user)
 
     if pickup_slot is None:
         start_time = timezone.now() + timedelta(hours=1)
@@ -32,7 +32,7 @@ def OrderFactory(customer=None, food_truck=None, pickup_slot=None, status='submi
         )
 
     return Order.objects.create(
-        customer=customer,
+        user=user,
         food_truck=food_truck,
         pickup_slot=pickup_slot,
         status=status,

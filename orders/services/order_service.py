@@ -13,7 +13,7 @@ class OrderService:
     """Service layer responsible for orchestrating order finalization."""
 
     @staticmethod
-    def create_order_from_cart(customer, session, pickup_slot_id=None):
+    def create_order_from_cart(user, session, pickup_slot_id=None):
         """
         Construct an order from the session-backed cart and optionally assign a slot.
         """
@@ -50,7 +50,7 @@ class OrderService:
 
         with transaction.atomic():
             order = Order.objects.create(
-                customer=customer,
+                user=user,
                 food_truck=food_truck,
                 status='draft',
                 total_price=Decimal('0.00'),

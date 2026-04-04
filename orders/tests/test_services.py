@@ -95,7 +95,7 @@ class OrderServiceTests(TestCase):
         self.item = ItemFactory(category=self.category, base_price=Decimal('11.00'))
 
     def test_assign_pickup_slot_with_matching_truck(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=None)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=None)
 
         OrderService.assign_pickup_slot(order, self.slot.id)
 
@@ -104,13 +104,13 @@ class OrderServiceTests(TestCase):
 
     def test_assign_pickup_slot_rejects_different_truck(self):
         different_truck = FoodTruckFactory()
-        order = OrderFactory(customer=self.user, food_truck=different_truck, pickup_slot=None)
+        order = OrderFactory(user=self.user, food_truck=different_truck, pickup_slot=None)
 
         with self.assertRaises(ValidationError):
             OrderService.assign_pickup_slot(order, self.slot.id)
 
     def test_submit_order_marks_submitted(self):
-        order = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=self.slot)
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.slot)
         order.add_item(self.item, quantity=1)
 
         OrderService.submit_order(order)
@@ -121,11 +121,11 @@ class OrderServiceTests(TestCase):
 
     def test_submit_order_rolls_back_when_slot_full(self):
         slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
-        first = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        first = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
         first.add_item(self.item, quantity=1)
         first.submit()
 
-        second = OrderFactory(customer=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        second = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
         second.add_item(self.item, quantity=1)
 
         with self.assertRaises(ValidationError):

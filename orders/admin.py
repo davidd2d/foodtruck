@@ -18,15 +18,15 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('id', 'customer', 'food_truck', 'status', 'total_price', 'created_at')
-    search_fields = ('id', 'customer__email', 'food_truck__name')
+    list_display = ('id', 'user', 'food_truck', 'status', 'total_price', 'created_at')
+    search_fields = ('id', 'user__email', 'food_truck__name')
     list_filter = ('status', 'food_truck', 'created_at')
     readonly_fields = ('total_price',)
     inlines = [OrderItemInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.select_related('customer', 'food_truck', 'pickup_slot').prefetch_related('items__selected_options')
+        return qs.select_related('user', 'food_truck', 'pickup_slot').prefetch_related('items__selected_options')
 
     def _filter_by_food_trucks(self, qs, truck_ids):
         """Filter orders by food truck ownership."""

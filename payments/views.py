@@ -16,7 +16,7 @@ class PaymentPageView(LoginRequiredMixin, TemplateView):
         order = get_object_or_404(
             Order.objects.select_related('pickup_slot').prefetch_related('items'),
             pk=self.kwargs['order_id'],
-            customer=self.request.user
+            user=self.request.user
         )
         context.update({
             'order': order,

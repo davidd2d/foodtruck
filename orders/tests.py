@@ -18,7 +18,7 @@
     def test_calculate_total(self):
         """Test calculating order total."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -34,7 +34,7 @@
     def test_submit_order(self):
         """Test submitting a valid order."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -52,7 +52,7 @@
     def test_cannot_submit_empty_order(self):
         """Test that empty orders cannot be submitted."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -70,7 +70,7 @@
                 password='password123'
             )
             order = Order.objects.create(
-                customer=user,
+                user=user,
                 food_truck=self.foodtruck,
                 pickup_slot=self.pickup_slot
             )
@@ -83,7 +83,7 @@
             password='password123'
         )
         new_order = Order.objects.create(
-            customer=new_user,
+            user=new_user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -96,7 +96,7 @@
     def test_cannot_modify_after_submit(self):
         """Test that orders cannot be modified after submission."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -175,7 +175,7 @@ class OrderAPITestCase(APITestCase):
         """Test adding an item to an order via API."""
         # Create order first
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -200,7 +200,7 @@ class OrderAPITestCase(APITestCase):
         """Test submitting an order via API."""
         # Create order with item
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -220,7 +220,7 @@ class OrderAPITestCase(APITestCase):
     def test_cannot_submit_empty_order_api(self):
         """Test that empty orders cannot be submitted via API."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -241,7 +241,7 @@ class OrderAPITestCase(APITestCase):
                 password='password123'
             )
             order = Order.objects.create(
-                customer=user,
+                user=user,
                 food_truck=self.foodtruck,
                 pickup_slot=self.pickup_slot
             )
@@ -250,7 +250,7 @@ class OrderAPITestCase(APITestCase):
 
         # Create new order
         new_order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -266,7 +266,7 @@ class OrderAPITestCase(APITestCase):
     def test_cannot_modify_after_submit_api(self):
         """Test that orders cannot be modified after submission via API."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -298,7 +298,7 @@ class OrderAPITestCase(APITestCase):
         )
 
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -321,7 +321,7 @@ class OrderAPITestCase(APITestCase):
     def test_invalid_item_id(self):
         """Test adding item with invalid item_id."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
@@ -340,7 +340,7 @@ class OrderAPITestCase(APITestCase):
     def test_invalid_quantity(self):
         """Test adding item with invalid quantity."""
         order = Order.objects.create(
-            customer=self.user,
+            user=self.user,
             food_truck=self.foodtruck,
             pickup_slot=self.pickup_slot
         )
