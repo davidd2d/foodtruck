@@ -1,14 +1,13 @@
 import json
 from unittest.mock import patch, MagicMock
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
 from onboarding.models import OnboardingImport
 from foodtrucks.tests.factories import UserFactory
+from accounts.tests.base import JWTAPITestCase
 
 
-class OnboardingAPITests(APITestCase):
+class OnboardingAPITests(JWTAPITestCase):
     def setUp(self):
         self.user = UserFactory()
         self.other_user = UserFactory()
@@ -24,7 +23,7 @@ class OnboardingAPITests(APITestCase):
         })
         mock_openai_class.return_value = mock_openai
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-list')
         data = {
             'raw_text': 'Sample menu text',
@@ -51,7 +50,7 @@ class OnboardingAPITests(APITestCase):
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
 
     def test_create_onboarding_import_invalid_data(self):
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-list')
         data = {'raw_text': ''}  # Empty raw_text might be invalid
 
@@ -66,7 +65,7 @@ class OnboardingAPITests(APITestCase):
         OnboardingImport.objects.create(user=self.user, raw_text="User's import")
         OnboardingImport.objects.create(user=self.other_user, raw_text="Other's import")
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-list')
 
         response = self.client.get(url)
@@ -96,7 +95,7 @@ class OnboardingAPITests(APITestCase):
         service = AIOnboardingService()
         service.process_import(import_instance.id)
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-preview', kwargs={'pk': import_instance.id})
 
         response = self.client.get(url)
@@ -114,7 +113,7 @@ class OnboardingAPITests(APITestCase):
             status='pending'
         )
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-preview', kwargs={'pk': import_instance.id})
 
         response = self.client.get(url)
@@ -129,7 +128,7 @@ class OnboardingAPITests(APITestCase):
             status='completed'
         )
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-preview', kwargs={'pk': import_instance.id})
 
         response = self.client.get(url)
@@ -153,7 +152,7 @@ class OnboardingAPITests(APITestCase):
             parsed_data={'foodtruck': {'name': 'Test'}}
         )
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-create-from-import')
         data = {'import_id': import_instance.id}
 
@@ -168,7 +167,7 @@ class OnboardingAPITests(APITestCase):
             status='pending'
         )
 
-        self.client.force_login(self.user)
+        self.authenticate_user(self.user)
         url = reverse('onboarding-import-create-from-import')
         data = {'import_id': import_instance.id}
 
