@@ -22,7 +22,7 @@ export function buildOptionControl(group, itemIndex) {
     }).join('');
 }
 
-export function renderMenuItem(item, itemIndex) {
+export function renderMenuItem(item, itemIndex, orderingEnabled = true) {
     const optionGroupsMarkup = item.option_groups.map((group) => {
         return `
             <div class="mb-3">
@@ -54,13 +54,15 @@ export function renderMenuItem(item, itemIndex) {
                         </div>
                     </div>
                     <div class="col-md-4 text-md-end">
+                        ${orderingEnabled ? `
                         <div class="mb-3">
                             <label class="form-label small mb-1" for="quantity-${item.id}">Quantity</label>
                             <input type="number" class="form-control form-control-sm menu-item-quantity" id="quantity-${item.id}" value="1" min="1" />
                         </div>
                         <button type="button" class="btn btn-primary btn-sm add-to-cart" data-item-id="${item.id}">
-                            Add to cart
+                            Ajouter
                         </button>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -68,8 +70,10 @@ export function renderMenuItem(item, itemIndex) {
     `;
 }
 
-export function renderCategory(category, itemIndexStart = 0) {
-    const itemsMarkup = category.items.map((item, index) => renderMenuItem(item, itemIndexStart + index)).join('');
+export function renderCategory(category, itemIndexStart = 0, orderingEnabled = true) {
+    const itemsMarkup = category.items
+        .map((item, index) => renderMenuItem(item, itemIndexStart + index, orderingEnabled))
+        .join('');
 
     return `
         <section class="mb-4" id="category-${category.id}">

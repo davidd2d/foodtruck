@@ -14,6 +14,7 @@
 </head>
 <body>
     <!-- Navigation -->
+    {% block navbar %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'foodtrucks:foodtruck-list' %}">
@@ -27,11 +28,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'foodtrucks:foodtruck-list' %}">Foodtrucks</a>
+                        <a class="nav-link" href="{% url 'foodtrucks:foodtruck-list' %}">{% trans "Foodtrucks" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Orders</a>
+                        <a class="nav-link" href="#">{% trans "Orders" %}</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -64,15 +65,37 @@
                             {% trans "Language" %}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageMenu">
-                            <li><a class="dropdown-item" href="?lang=en">English</a></li>
-                            <li><a class="dropdown-item" href="?lang=fr">Français</a></li>
-                            <li><a class="dropdown-item" href="?lang=es">Español</a></li>
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                    <input name="language" type="hidden" value="en">
+                                    <button type="submit" class="dropdown-item">English</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                    <input name="language" type="hidden" value="fr">
+                                    <button type="submit" class="dropdown-item">Français</button>
+                                </form>
+                            </li>
+                            <li>
+                                <form action="{% url 'set_language' %}" method="post" class="m-0">
+                                    {% csrf_token %}
+                                    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                                    <input name="language" type="hidden" value="es">
+                                    <button type="submit" class="dropdown-item">Español</button>
+                                </form>
+                            </li>
                         </ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
+    {% endblock %}
 
     <!-- Main Content -->
     <main>
@@ -84,11 +107,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; 2024 FoodTruck SaaS. All rights reserved.</p>
+                    <p class="mb-0">&copy; 2024 {% trans "FoodTruck SaaS" %}. {% trans "All rights reserved." %}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a href="#" class="text-decoration-none me-3">Privacy Policy</a>
-                    <a href="#" class="text-decoration-none">Terms of Service</a>
+                    <a href="#" class="text-decoration-none me-3">{% trans "Privacy Policy" %}</a>
+                    <a href="#" class="text-decoration-none">{% trans "Terms of Service" %}</a>
                 </div>
             </div>
         </div>

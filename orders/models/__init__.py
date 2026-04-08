@@ -242,7 +242,7 @@ class Order(models.Model):
         self.save(update_fields=['total_price'])
 
     def can_be_submitted(self):
-        """Return True if the order satisfies submission criteria."""
+        """Return True when the draft order meets all submission requirements."""
 
         if self.status != 'draft':
             return False
@@ -253,29 +253,31 @@ class Order(models.Model):
         if self.total_price <= Decimal('0.00'):
             return False
 
-        if self.food_truck and not self.food_truck.can_accept_orders():
+        if not self.food_truck or not self.food_truck.can_accept_orders():
             return False
 
         slot = self.pickup_slot
         if not slot:
             return False
 
-        if slot.start_time < timezone.now():
+        if slot.food_truck_id != self.food_truck_id:
             return False
 
-        if slot.food_truck_id != self.food_truck_id:
+        if slot.start_time <= timezone.now():
             return False
 
         if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
             return False
 
-        return all(
-            order_item.item.is_available_now()
-            for order_item in self.items.select_related('item')
-        )
+        for order_item in self.items.select_related('item__category__menu__food_truck'):
+            item = order_item.item
+            if not item.is_available_now() or item.category.menu.food_truck_id != self.food_truck_id:
+                return False
+
+        return True
 
     def validate(self):
-        """Raise ValidationError if the order cannot be submitted."""
+        """Raise ValidationError when business rules forbid submission."""
 
         if self.status != 'draft':
             raise ValidationError('Only draft orders may be submitted.')
@@ -286,7 +288,7 @@ class Order(models.Model):
         if self.total_price <= Decimal('0.00'):
             raise ValidationError('Order total must be greater than zero.')
 
-        if not self.food_truck.can_accept_orders():
+        if not self.food_truck or not self.food_truck.can_accept_orders():
             raise ValidationError('Food truck is not accepting orders at the moment.')
 
         slot = self.pickup_slot
@@ -296,7 +298,7 @@ class Order(models.Model):
         if slot.food_truck_id != self.food_truck_id:
             raise ValidationError('Pickup slot does not belong to this food truck.')
 
-        if slot.start_time < timezone.now():
+        if slot.start_time <= timezone.now():
             raise ValidationError('Pickup slot is in the past.')
 
         if not slot.has_capacity_for(exclude_order=self, include_drafts=False):

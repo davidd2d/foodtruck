@@ -2,6 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils.translation import gettext as _
+from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth import logout
 from .models import User
@@ -52,3 +53,7 @@ def confirm_email(request, token):
     messages.success(request, _("Email confirmé avec succès."))
     return redirect("accounts:login")
 
+
+@login_required
+def profile(request):
+    return render(request, "accounts/profile.html")

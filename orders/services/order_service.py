@@ -48,6 +48,9 @@ class OrderService:
             except FoodTruck.DoesNotExist:
                 raise ValidationError('Food truck does not exist.')
 
+        if not food_truck.can_accept_orders():
+            raise ValidationError('This foodtruck cannot accept orders.')
+
         with transaction.atomic():
             order = Order.objects.create(
                 user=user,

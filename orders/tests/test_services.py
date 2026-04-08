@@ -1,6 +1,9 @@
 from decimal import Decimal
+from datetime import timedelta
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.utils import timezone
 from orders.services.cart_service import CartService
 from orders.services.order_service import OrderService
 from orders.tests.factories import (
@@ -14,6 +17,16 @@ from orders.tests.factories import (
     PickupSlotFactory,
     OrderFactory,
 )
+
+from foodtrucks.tests.factories import PlanFactory
+
+
+class DummySession(dict):
+    """Thin session replacement for CartService tests."""
+
+    def __init__(self):
+        super().__init__()
+        self.modified = False
 
 
 class CartServiceTests(TestCase):
@@ -93,6 +106,12 @@ class OrderServiceTests(TestCase):
         self.slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=2)
         self.category = CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck), name='Pizza')
         self.item = ItemFactory(category=self.category, base_price=Decimal('11.00'))
+        pro_plan = PlanFactory(code='pro', allows_ordering=True)
+        subscription = self.foodtruck.subscription
+        subscription.plan = pro_plan
+        subscription.status = 'active'
+        subscription.end_date = timezone.now() + timedelta(days=30)
+        subscription.save(update_fields=['plan', 'status', 'end_date'])
 
     def test_assign_pickup_slot_with_matching_truck(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=None)
@@ -133,3 +152,24 @@ class OrderServiceTests(TestCase):
 
         second.refresh_from_db()
         self.assertEqual(second.status, 'draft')
+
+    def test_create_order_rejects_foodtruck_without_pro_subscription(self):
+        free_truck = FoodTruckFactory(owner=self.user, name='Free Truck')
+        session = DummySession()
+        session[CartService.SESSION_KEY] = {
+            'foodtruck_slug': free_truck.slug,
+            'items': [
+                {
+                    'line_key': '1',
+                    'item_id': 1,
+                    'item_name': 'Placeholder',
+                    'quantity': 1,
+                    'unit_price': '1.00',
+                    'total_price': '1.00',
+                    'selected_options': [],
+                }
+            ],
+        }
+
+        with self.assertRaises(ValidationError):
+            OrderService.create_order_from_cart(self.user, session)

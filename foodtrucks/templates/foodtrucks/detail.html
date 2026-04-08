@@ -3,49 +3,32 @@
 
 {% block title %}{{ foodtruck.name }} - {% trans "FoodTruck SaaS" %}{% endblock %}
 
-{% block content %}
-<div class="container py-5" data-foodtruck-slug="{{ foodtruck.slug }}" data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
-    <div class="row gy-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm overflow-hidden">
-                <div class="position-relative">
-                    <img src="{% if foodtruck.cover_image %}{{ foodtruck.cover_image.url }}{% else %}/static/images/foodtruck-placeholder.svg{% endif %}" class="img-fluid w-100" alt="{{ foodtruck.name }}">
-                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(0,0,0,0.24), rgba(0,0,0,0.65));"></div>
-                    <div class="position-absolute bottom-0 start-0 text-white p-4">
-                        <h1 class="mb-2">{{ foodtruck.name }}</h1>
-                        <p class="mb-0 text-light">{{ foodtruck.description }}</p>
-                    </div>
-                </div>
-                <div class="card-body" style="border-top: 4px solid {{ foodtruck.primary_color }}; background-color: {{ foodtruck.secondary_color }}1A;">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <h2 class="h5">{% trans "Branding" %}</h2>
-                            <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge rounded-circle" style="width: 24px; height: 24px; background-color: {{ foodtruck.primary_color }};"></span>
-                                    <span>{% trans "Primary" %}</span>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge rounded-circle" style="width: 24px; height: 24px; background-color: {{ foodtruck.secondary_color }};"></span>
-                                    <span>{% trans "Secondary" %}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-outline-primary">
-                                &larr; {% trans "Back to table" %}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+{% endblock %}
 
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" data-foodtruck-slug="{{ foodtruck.slug }}" data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-ordering-enabled="{{ foodtruck.can_accept_orders|yesno:'true,false' }}">
+    <div class="row gy-4">
         <div class="col-lg-8">
             {% include 'foodtrucks/components/menu_panel.html' %}
         </div>
         <div class="col-lg-4">
-            {% include 'foodtrucks/components/cart_drawer.html' %}
+            {% if foodtruck.can_accept_orders %}
+                {% include 'foodtrucks/components/cart_drawer.html' %}
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="alert alert-info mb-0">
+                            {% trans "Ordering is not available for this foodtruck." %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -53,5 +36,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/pages/foodtruckBranding.js' %}"></script>
 <script type="module" src="{% static 'js/pages/foodtruckDetail.js' %}"></script>
 {% endblock %}

@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
+{% load i18n %}
 
-{% block title %}Payment success{% endblock %}
+{% block title %}{% trans "Payment success" %}{% endblock %}
 
 {% block content %}
 <section class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-6 text-center">
             <div class="alert alert-success">
-                <h1 class="h4 mb-3">Payment successful!</h1>
-                <p class="mb-0">Thank you for your order. We'll notify you when it's ready for pickup.</p>
-                <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-link mt-3">Back to food trucks</a>
+                <h1 class="h4 mb-3">{% trans "Payment successful!" %}</h1>
+                <p class="mb-0">{% trans "Thank you for your order. We'll notify you when it's ready for pickup." %}</p>
+                <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-link mt-3">{% trans "Back to food trucks" %}</a>
             </div>
         </div>
     </div>

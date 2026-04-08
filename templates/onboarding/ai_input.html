@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}AI Foodtruck Onboarding - FoodTruck SaaS{% endblock %}
+{% block title %}{% trans "AI foodtruck onboarding" %} - {% trans "FoodTruck SaaS" %}{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -10,64 +10,64 @@
             <div class="card shadow-sm">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <h1 class="h2 mb-3">Create Your Foodtruck with AI</h1>
-                        <p class="text-muted">Tell us about your concept and we'll generate a complete foodtruck with menu</p>
+                        <h1 class="h2 mb-3">{% trans "Create your foodtruck with AI" %}</h1>
+                        <p class="text-muted">{% trans "Tell us about your concept and we'll generate a complete foodtruck with menu." %}</p>
                     </div>
 
                     <form id="ai-form" class="mb-4">
                         {% csrf_token %}
                         <div class="mb-3">
-                            <label for="concept" class="form-label">Foodtruck Concept <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="concept" name="concept" placeholder="e.g., Mexican street food, Vegan burgers, Italian gelato" required>
-                            <div class="form-text">Describe your foodtruck idea in a few words</div>
+                            <label for="concept" class="form-label">{% trans "Foodtruck concept" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="concept" name="concept" placeholder="{% trans "e.g., Mexican street food, Vegan burgers, Italian gelato" %}" required>
+                            <div class="form-text">{% trans "Describe your foodtruck idea in a few words." %}</div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="cuisine_type" class="form-label">Cuisine Type (Optional)</label>
+                                <label for="cuisine_type" class="form-label">{% trans "Cuisine type" %} ({% trans "Optional" %})</label>
                                 <select class="form-select" id="cuisine_type" name="cuisine_type">
-                                    <option value="">Select cuisine...</option>
-                                    <option value="american">American</option>
-                                    <option value="italian">Italian</option>
-                                    <option value="mexican">Mexican</option>
-                                    <option value="asian">Asian</option>
-                                    <option value="mediterranean">Mediterranean</option>
-                                    <option value="vegan">Vegan</option>
-                                    <option value="other">Other</option>
+                                    <option value="">{% trans "Select cuisine..." %}</option>
+                                    <option value="american">{% trans "American" %}</option>
+                                    <option value="italian">{% trans "Italian" %}</option>
+                                    <option value="mexican">{% trans "Mexican" %}</option>
+                                    <option value="asian">{% trans "Asian" %}</option>
+                                    <option value="mediterranean">{% trans "Mediterranean" %}</option>
+                                    <option value="vegan">{% trans "Vegan" %}</option>
+                                    <option value="other">{% trans "Other" %}</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="price_range" class="form-label">Price Range (Optional)</label>
+                                <label for="price_range" class="form-label">{% trans "Price range" %} ({% trans "Optional" %})</label>
                                 <select class="form-select" id="price_range" name="price_range">
-                                    <option value="">Select range...</option>
-                                    <option value="budget">$ (Budget)</option>
-                                    <option value="moderate">$$ (Moderate)</option>
-                                    <option value="premium">$$$ (Premium)</option>
+                                    <option value="">{% trans "Select range..." %}</option>
+                                    <option value="budget">{% trans "$ (Budget)" %}</option>
+                                    <option value="moderate">{% trans "$$ (Moderate)" %}</option>
+                                    <option value="premium">{% trans "$$$ (Premium)" %}</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="dietary_tags" class="form-label">Dietary Preferences (Optional)</label>
+                            <label for="dietary_tags" class="form-label">{% trans "Dietary preferences" %} ({% trans "Optional" %})</label>
                             <div class="row">
                                 <div class="col-sm-6">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="vegetarian" name="dietary_tags" value="vegetarian">
-                                        <label class="form-check-label" for="vegetarian">Vegetarian</label>
+                                        <label class="form-check-label" for="vegetarian">{% trans "Vegetarian" %}</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="vegan" name="dietary_tags" value="vegan">
-                                        <label class="form-check-label" for="vegan">Vegan</label>
+                                        <label class="form-check-label" for="vegan">{% trans "Vegan" %}</label>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="gluten_free" name="dietary_tags" value="gluten_free">
-                                        <label class="form-check-label" for="gluten_free">Gluten Free</label>
+                                        <label class="form-check-label" for="gluten_free">{% trans "Gluten free" %}</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="halal" name="dietary_tags" value="halal">
-                                        <label class="form-check-label" for="halal">Halal</label>
+                                        <label class="form-check-label" for="halal">{% trans "Halal" %}</label>
                                     </div>
                                 </div>
                             </div>
@@ -76,7 +76,7 @@
                         <div class="text-center">
                             <button type="submit" class="btn btn-primary btn-lg px-5" id="generate-btn">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                Generate my foodtruck
+                                {% trans "Generate my foodtruck" %}
                             </button>
                         </div>
                     </form>
@@ -96,8 +96,8 @@
                 <div class="card shadow-sm">
                     <div class="card-body p-5">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2 class="h3 mb-0">Review Your AI-Generated Foodtruck</h2>
-                            <button type="button" class="btn btn-outline-secondary" id="back-to-edit">Edit Concept</button>
+                            <h2 class="h3 mb-0">{% trans "Review your AI-generated foodtruck" %}</h2>
+                            <button type="button" class="btn btn-outline-secondary" id="back-to-edit">{% trans "Edit concept" %}</button>
                         </div>
 
                         <div id="foodtruck-preview"></div>
@@ -105,7 +105,7 @@
                         <div class="text-center mt-4">
                             <button type="button" class="btn btn-success btn-lg px-5" id="save-btn">
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                                Create my foodtruck
+                                {% trans "Create my foodtruck" %}
                             </button>
                         </div>
                     </div>

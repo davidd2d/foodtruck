@@ -1,0 +1,62 @@
+{% load i18n %}
+<nav class="navbar sticky-top" style="background-color: {{ foodtruck.get_primary_color }};">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap py-2">
+        <div class="d-flex align-items-center gap-2 m-2">
+            {% if foodtruck.get_logo_url %}
+                <img src="{{ foodtruck.get_logo_url }}" alt="{{ foodtruck.name }} logo" height="40" class="rounded">
+            {% endif %}
+            <div class="d-flex align-items-center">
+                <span id="foodtruck-title" class="navbar-brand mb-0 text-white fs-5">{{ foodtruck.name }}</span>
+                <button
+                    class="btn btn-link text-white text-decoration-none ms-2"
+                    id="foodtruck-description-toggle"
+                    data-show-text="{% trans 'Show description' %}"
+                    data-hide-text="{% trans 'Hide description' %}"
+                >
+                    <small>{% trans "Show description" %}</small>
+                </button>
+                        <div class="dropdown ms-2">
+            <button class="btn btn-light dropdown-toggle" type="button" id="foodtruck-user-menu" data-bs-toggle="dropdown" aria-expanded="false">
+                ☰
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="foodtruck-user-menu">
+                {% if user.is_authenticated %}
+                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">{% trans "Profile" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'orders:history' %}">{% trans "Orders" %}</a></li>
+                    {% if user.is_staff %}
+                        <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a></li>
+                {% else %}
+                    <li><a class="dropdown-item" href="{% url 'accounts:login' %}">{% trans "Login" %}</a></li>
+                {% endif %}
+            </ul>
+        </div>
+            </div>
+        </div>
+
+        {% if categories %}
+            <div class="category-nav flex-grow-1 d-flex justify-content-center align-items-center flex-nowrap px-2">
+                {% for category in categories %}
+                    <a href="#category-{{ category.id }}"
+                       class="btn btn-sm me-2 text-uppercase fw-semibold"
+                       style="background-color: {{ foodtruck.get_secondary_color }}; color: #000;">
+                        {{ category.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+
+    </div>
+</nav>
+
+<div id="foodtruck-header" class="foodtruck-header d-none">
+    {% if foodtruck.cover_image %}
+        <img src="{{ foodtruck.cover_image.url }}" class="img-fluid w-100" alt="{{ foodtruck.name }} cover">
+    {% endif %}
+    <div class="p-3" style="background-color: {{ foodtruck.get_secondary_color }};">
+        <p class="mb-0 text-dark">{{ foodtruck.description }}</p>
+    </div>
+</div>

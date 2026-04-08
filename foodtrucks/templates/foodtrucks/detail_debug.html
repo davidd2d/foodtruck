@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{{ foodtruck.name }} - FoodTruck SaaS{% endblock %}
+{% block title %}{{ foodtruck.name }} - {% trans "FoodTruck SaaS" %}{% endblock %}
 
 {% block content %}
 <div class="container py-5" data-foodtruck-slug="{{ foodtruck.slug }}" data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
@@ -19,21 +19,21 @@
                 <div class="card-body" style="border-top: 4px solid {{ foodtruck.primary_color }}; background-color: {{ foodtruck.secondary_color }}1A;">
                     <div class="row">
                         <div class="col-md-8">
-                            <h2 class="h5">Branding</h2>
+                            <h2 class="h5">{% trans "Branding" %}</h2>
                             <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="badge rounded-circle" style="width: 24px; height: 24px; background-color: {{ foodtruck.primary_color }};"></span>
-                                    <span>Primary</span>
+                                    <span>{% trans "Primary" %}</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="badge rounded-circle" style="width: 24px; height: 24px; background-color: {{ foodtruck.secondary_color }};"></span>
-                                    <span>Secondary</span>
+                                    <span>{% trans "Secondary" %}</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4 text-md-end">
                             <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-outline-primary">
-                                &larr; Back to table
+                                &larr; {% trans "Back to table" %}
                             </a>
                         </div>
                     </div>
@@ -51,10 +51,10 @@
 
     <!-- Debug Info -->
     <div class="mt-4 alert alert-info">
-        <h5>Debug Information</h5>
-        <p><strong>Foodtruck Slug:</strong> <code>{{ foodtruck.slug }}</code></p>
-        <p><strong>API URL:</strong> <code>/api/foodtrucks/{{ foodtruck.slug }}/menu/</code></p>
-        <p><strong>Check browser console for detailed logs.</strong></p>
+        <h5>{% trans "Debug information" %}</h5>
+        <p><strong>{% trans "Foodtruck slug:" %}</strong> <code>{{ foodtruck.slug }}</code></p>
+        <p><strong>{% trans "API URL:" %}</strong> <code>/api/foodtrucks/{{ foodtruck.slug }}/menu/</code></p>
+        <p><strong>{% trans "Check browser console for detailed logs." %}</strong></p>
     </div>
 </div>
 

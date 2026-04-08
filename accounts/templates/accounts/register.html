@@ -1,7 +1,7 @@
 {% extends "core/basic.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Inscription" %}{% endblock %}
+{% block title %}{% trans "Sign up" %}{% endblock %}
 {% block extra_css %}
 <style>
   body {
@@ -23,13 +23,11 @@
 {% endblock %}
 
 {% block content %}
-  <h2>{% trans "Créer un compte" %}</h2>
-
+  <h2>{% trans "Create an account" %}</h2>
 
   <form method="post">
     {% csrf_token %}
 
-    {# erreurs générales du formulaire #}
     {% if form.non_field_errors %}
       <div class="alert alert-danger">
         {{ form.non_field_errors }}
@@ -40,19 +38,18 @@
     <div class="mb-3">
       <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
       {{ field }}
-  
       {% if field.errors %}
         <div class="text-red-600 text-sm mt-1">
           {{ field.errors|striptags }}
         </div>
       {% endif %}
     </div>
-  {% endfor %}
+    {% endfor %}
 
-    <button type="submit">{% trans "S'inscrire" %}</button>
+    <button type="submit">{% trans "Sign up" %}</button>
   </form>
 
   <p>
-    <a href="{% url 'accounts:login' %}">{% trans "Déjà un compte ? Connectez-vous." %}</a>
+    <a href="{% url 'accounts:login' %}">{% trans "Already have an account? Log in." %}</a>
   </p>
 {% endblock %}

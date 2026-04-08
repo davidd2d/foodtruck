@@ -37,7 +37,7 @@ def PreferenceFactory(name=None):
     )
 
 
-def PlanFactory(name='Standard Plan', code='standard', price=Decimal('29.99'), allows_ordering=True):
+def PlanFactory(name='Standard Plan', code='pro', price=Decimal('29.99'), allows_ordering=True):
     plan, _ = Plan.objects.get_or_create(
         code=code,
         defaults={

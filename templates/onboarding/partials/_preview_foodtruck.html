@@ -1,25 +1,26 @@
+{% load i18n %}
 <!-- Foodtruck Preview Partial -->
 <div class="card mb-4">
     <div class="card-header">
-        <h3 class="mb-0">Foodtruck Details</h3>
+        <h3 class="mb-0">{% trans "Foodtruck details" %}</h3>
     </div>
     <div class="card-body">
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Name</label>
+                <label class="form-label fw-bold">{% trans "Name" %}</label>
                 <div class="editable-field" data-field="foodtruck.name" contenteditable="true">{{ foodtruck.name|default:"" }}</div>
             </div>
             <div class="col-md-6 mb-3">
-                <label class="form-label fw-bold">Cuisine Type</label>
+                <label class="form-label fw-bold">{% trans "Cuisine type" %}</label>
                 <div class="editable-field" data-field="foodtruck.cuisine_type" contenteditable="true">{{ foodtruck.cuisine_type|default:"" }}</div>
             </div>
         </div>
         <div class="mb-3">
-            <label class="form-label fw-bold">Description</label>
+            <label class="form-label fw-bold">{% trans "Description" %}</label>
             <div class="editable-field" data-field="foodtruck.description" contenteditable="true">{{ foodtruck.description|default:"" }}</div>
         </div>
         <div class="mb-3">
-            <label class="form-label fw-bold">Preferences</label>
+            <label class="form-label fw-bold">{% trans "Preferences" %}</label>
             <div id="preferences-tags" class="d-flex flex-wrap align-items-center">
                 {% for preference in foodtruck.preferences %}
                 <span class="tag">
@@ -27,7 +28,7 @@
                     <span class="tag-remove" data-preference="{{ preference }}">×</span>
                 </span>
                 {% endfor %}
-                <input type="text" class="tag-input" placeholder="Add preference..." id="preference-input">
+                <input type="text" class="tag-input" placeholder="{% trans "Add preference..." %}" id="preference-input">
             </div>
         </div>
     </div>

@@ -6,22 +6,27 @@ import { renderCart } from '../components/cart.js';
 import { SlotSelector } from '../components/slotSelector.js';
 import { createCheckoutHandler } from '../pages/checkout.js';
 
-const menuContainer = document.getElementById('menu-container');
-const cartItemsContainer = document.getElementById('cart-items');
-const cartTotalElement = document.getElementById('cart-total');
-const cartContent = document.getElementById('cart-content');
-const cartEmpty = document.getElementById('cart-empty');
-const cartLoading = document.getElementById('cart-loading');
-const navCartCount = document.getElementById('nav-cart-count');
-const checkoutButton = document.getElementById('checkout-button');
-const checkoutHelp = document.getElementById('checkout-help');
-const pickupSlotSelect = document.getElementById('pickup-slot-select');
-const pickupSlotHelp = document.getElementById('pickup-slot-help');
 const pageContainer = document.querySelector('[data-foodtruck-slug]');
 const foodtruckSlug = pageContainer?.dataset.foodtruckSlug;
 const userAuthenticated = pageContainer?.dataset.userAuthenticated === 'true';
+const orderingEnabled = pageContainer?.dataset.orderingEnabled === 'true';
+
+const menuContainer = document.getElementById('menu-container');
 const categoryShortcuts = document.getElementById('category-shortcuts');
+const cartItemsContainer = orderingEnabled ? document.getElementById('cart-items') : null;
+const cartTotalElement = orderingEnabled ? document.getElementById('cart-total') : null;
+const cartContent = orderingEnabled ? document.getElementById('cart-content') : null;
+const cartEmpty = orderingEnabled ? document.getElementById('cart-empty') : null;
+const cartLoading = orderingEnabled ? document.getElementById('cart-loading') : null;
+const navCartCount = orderingEnabled ? document.getElementById('nav-cart-count') : null;
+const checkoutButton = orderingEnabled ? document.getElementById('checkout-button') : null;
+const checkoutHelp = orderingEnabled ? document.getElementById('checkout-help') : null;
+const pickupSlotSelect = orderingEnabled ? document.getElementById('pickup-slot-select') : null;
+const pickupSlotHelp = orderingEnabled ? document.getElementById('pickup-slot-help') : null;
 let slotSelector = null;
+let menuLoaded = false;
+let menuLoadTimeout = null;
+const MENU_LOAD_TIMEOUT_MS = 6000;
 
 function createLoadingState() {
     menuContainer.innerHTML = `
@@ -66,7 +71,7 @@ function renderMenu(menu) {
     categoryShortcuts?.classList.remove('d-none');
     renderCategoryShortcuts(menu.categories);
     menuContainer.innerHTML = menu.categories
-        .map((category, index) => renderCategory(category, index * 10))
+        .map((category, index) => renderCategory(category, index * 10, orderingEnabled))
         .join('');
 }
 
@@ -275,16 +280,23 @@ async function handleRemoveFromCart(event) {
 }
 
 function wireEvents() {
-    menuContainer.addEventListener('click', handleAddToCart);
-    cartItemsContainer.addEventListener('click', handleRemoveFromCart);
+    if (!orderingEnabled) {
+        return;
+    }
+
+    menuContainer?.addEventListener('click', handleAddToCart);
+    cartItemsContainer?.addEventListener('click', handleRemoveFromCart);
 }
 
 async function bootstrap() {
-    initializeSlotSelector();
-    initializeCheckoutFlow();
-    wireEvents();
     await initializeMenu();
-    await refreshCart();
+
+    if (orderingEnabled) {
+        initializeSlotSelector();
+        initializeCheckoutFlow();
+        wireEvents();
+        await refreshCart();
+    }
 }
 
 bootstrap();

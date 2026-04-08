@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04 08:27+0000\n"
+"POT-Creation-Date: 2026-04-08 10:32+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,132 +26,187 @@ msgstr ""
 msgid "Ce compte est inactif."
 msgstr ""
 
-#: accounts/forms.py:22
+#: accounts/forms.py:26
 msgid "Adresse e-mail"
 msgstr ""
 
-#: accounts/forms.py:22
+#: accounts/forms.py:26
 msgid "Utilisez une adresse @intermas.com"
 msgstr ""
 
-#: accounts/forms.py:31
+#: accounts/forms.py:27
+msgid "Mot de passe"
+msgstr ""
+
+#: accounts/forms.py:46
 msgid "Seuls les addresses email @intermas.com sont autorisées."
 msgstr ""
 
-#: accounts/templates/accounts/email_confirmation.html:6 accounts/utils.py:27
-msgid "Confirmation de votre adresse e-mail"
+#: accounts/models.py:33
+msgid "Whether the email is verified"
+msgstr ""
+
+#: accounts/models.py:36
+msgid "Whether the user owns or manages food trucks"
+msgstr ""
+
+#: accounts/models.py:40
+msgid "Whether the user places orders"
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:6
+msgid "Email confirmation"
 msgstr ""
 
 #: accounts/templates/accounts/email_confirmation.html:9
 #, python-format
-msgid "Bonjour %(first_name)s,"
+msgid "Hello %(first_name)s,"
 msgstr ""
 
 #: accounts/templates/accounts/email_confirmation.html:11
 msgid ""
-"Merci de vous être inscrit. Veuillez cliquer sur le lien ci-dessous pour "
-"confirmer votre adresse e-mail :"
+"Thank you for signing up. Please click the link below to confirm your email "
+"address:"
 msgstr ""
 
 #: accounts/templates/accounts/email_confirmation.html:15
-msgid "Ce lien est valable pendant 24 heures."
+msgid "This link is valid for 24 hours."
 msgstr ""
 
 #: accounts/templates/accounts/email_confirmation.html:17
 #: accounts/templates/accounts/password_reset_email.html:10
-msgid "Merci,"
+msgid "Thank you,"
 msgstr ""
 
 #: accounts/templates/accounts/email_confirmation.html:17
 #: accounts/templates/accounts/password_reset_email.html:11
-msgid "L'équipe Intermas"
+msgid "The Intermas team"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_done.html:4
-#: accounts/templates/accounts/password_reset_form.html:4
-#: accounts/templates/accounts/register.html:4
-msgid "Inscription"
+msgid "Password reset sent"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_done.html:26
-msgid "Vérifiez votre boîte mail"
+msgid "Check your email"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_done.html:27
-msgid ""
-"Un e-mail vous a été envoyé avec les instructions pour réinitialiser votre "
-"mot de passe."
+msgid "An email has been sent with instructions to reset your password."
 msgstr ""
 
-#: accounts/templates/accounts/password_reset_done.html:30
-msgid "Retour"
+#: accounts/templates/accounts/password_reset_done.html:29
+msgid "Return to login"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_email.html:2
 msgid ""
-"Vous recevez cet e-mail car vous (ou quelqu’un d’autre) avez demandé une "
-"réinitialisation du mot de passe pour votre compte."
+"You are receiving this email because you (or someone else) requested a "
+"password reset for your account."
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_email.html:4
-msgid ""
-"Veuillez cliquer sur le lien suivant pour définir un nouveau mot de passe :"
+msgid "Please click the link below to choose a new password:"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_email.html:8
-msgid "Si vous n'avez pas demandé cela, vous pouvez ignorer cet e-mail."
+msgid "If you did not request this, you may ignore this email."
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_form.html:4
+msgid "Password reset"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_form.html:26
-msgid "Réinitialiser votre mot de passe"
+msgid "Reset your password"
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_form.html:27
-msgid "Entrez votre adresse e-mail pour recevoir un lien de réinitialisation."
+msgid "Enter your email address to receive a password reset link."
 msgstr ""
 
 #: accounts/templates/accounts/password_reset_form.html:32
-msgid "Envoyer"
+msgid "Send"
+msgstr ""
+
+#: accounts/templates/accounts/register.html:4
+#: accounts/templates/accounts/register.html:49
+msgid "Sign up"
 msgstr ""
 
 #: accounts/templates/accounts/register.html:26
-msgid "Créer un compte"
+msgid "Create an account"
 msgstr ""
 
-#: accounts/templates/accounts/register.html:52
-msgid "S'inscrire"
+#: accounts/templates/accounts/register.html:53
+msgid "Already have an account? Log in."
 msgstr ""
 
-#: accounts/templates/accounts/register.html:56
-msgid "Déjà un compte ? Connectez-vous."
+#: accounts/templates/core/basic.html:6
+#, fuzzy
+#| msgid "Food Truck"
+msgid "Foodtruck"
+msgstr "Camión de Comida"
+
+#: accounts/templates/registration/login.html:3
+#: accounts/templates/registration/login.html:8 templates/base.html:54
+msgid "Login"
 msgstr ""
 
-#: accounts/views.py:24
+#: accounts/templates/registration/login.html:9
+msgid "Access your account"
+msgstr ""
+
+#: accounts/templates/registration/login.html:12
+msgid "Email"
+msgstr ""
+
+#: accounts/templates/registration/login.html:15
+msgid "Password"
+msgstr ""
+
+#: accounts/templates/registration/login.html:18
+msgid "Sign in"
+msgstr ""
+
+#: accounts/templates/registration/login.html:21
+msgid "Forgot your password?"
+msgstr ""
+
+#: accounts/templates/registration/login.html:22
+msgid "Click here to reset it."
+msgstr ""
+
+#: accounts/utils.py:27
+msgid "Confirmation de votre adresse e-mail"
+msgstr ""
+
+#: accounts/views.py:20
 msgid "Un e-mail de confirmation vous a été envoyé."
 msgstr ""
 
-#: accounts/views.py:27
+#: accounts/views.py:23
 msgid "Votre demande ne peut aboutir."
 msgstr ""
 
-#: accounts/views.py:38
+#: accounts/views.py:34
 msgid "You have been logged out."
 msgstr ""
 
-#: accounts/views.py:45
-msgid "Utilisateur introuvable."
-msgstr ""
-
-#: accounts/views.py:52 accounts/views.py:69
-msgid "Email confirmé avec succès."
-msgstr ""
-
-#: accounts/views.py:55 accounts/views.py:72
+#: accounts/views.py:40
 msgid "Lien de confirmation invalide ou expiré."
 msgstr ""
 
+#: accounts/views.py:46
+msgid "Utilisateur introuvable."
+msgstr ""
+
+#: accounts/views.py:52
+msgid "Email confirmé avec succès."
+msgstr ""
+
 #: foodtrucks/api/i18n_example_serializers.py:62
-#: foodtrucks/models/__init__.py:162
+#: foodtrucks/models/__init__.py:164
 msgid "Name of the food truck"
 msgstr "Nombre del camión de comida"
 
@@ -175,116 +230,275 @@ msgstr ""
 msgid "Whether this item is currently available"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:17
+#: foodtrucks/models/__init__.py:19 test_translations.py:36
+#: test_translations.py:45
 msgid "Display name of the plan"
 msgstr "Nombre mostrado del plan"
 
-#: foodtrucks/models/__init__.py:21
+#: foodtrucks/models/__init__.py:23
 msgid "Unique code identifier for the plan"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:27
+#: foodtrucks/models/__init__.py:29
 msgid "Monthly price of the plan"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:31
+#: foodtrucks/models/__init__.py:33
 msgid "Whether this plan allows accepting orders"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:33
+#: foodtrucks/models/__init__.py:35
 msgid "When the plan was created"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:36
+#: foodtrucks/models/__init__.py:38 test_translations.py:26
+#: test_translations.py:32 test_translations.py:44
 msgid "Plan"
 msgstr "Plan"
 
-#: foodtrucks/models/__init__.py:37
+#: foodtrucks/models/__init__.py:39
 msgid "Plans"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:61
+#: foodtrucks/models/__init__.py:63
 msgid "The food truck this subscription belongs to"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:67
+#: foodtrucks/models/__init__.py:69
 msgid "The plan this subscription is for"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:73
+#: foodtrucks/models/__init__.py:75
 msgid "Current status of the subscription"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:77
+#: foodtrucks/models/__init__.py:79
 msgid "When the subscription started"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:82
+#: foodtrucks/models/__init__.py:84
 msgid "When the subscription ends (null for ongoing)"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:84
+#: foodtrucks/models/__init__.py:86
 msgid "When the subscription was created"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:87
+#: foodtrucks/models/__init__.py:89
 msgid "Subscription"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:88
+#: foodtrucks/models/__init__.py:90
 msgid "Subscriptions"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:160
+#: foodtrucks/models/__init__.py:162
 msgid "The user who owns this food truck"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:163
+#: foodtrucks/models/__init__.py:165
 msgid "Description of the food truck"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:164
+#: foodtrucks/models/__init__.py:166
 msgid "Whether the food truck is active"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:165
+#: foodtrucks/models/__init__.py:167
 msgid "When the food truck was created"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:172
+#: foodtrucks/models/__init__.py:174
 msgid "Logo image for the food truck"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:178
+#: foodtrucks/models/__init__.py:180
 msgid "Cover image for the food truck"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:183
+#: foodtrucks/models/__init__.py:185
 msgid "Primary brand color (hex code)"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:188
+#: foodtrucks/models/__init__.py:190
 msgid "Secondary brand color (hex code)"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:195
+#: foodtrucks/models/__init__.py:197
+msgid "SEO-friendly resource slug"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:204
 msgid "Latitude coordinate"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:201
+#: foodtrucks/models/__init__.py:210
 msgid "Longitude coordinate"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:209
+#: foodtrucks/models/__init__.py:218
 msgid "Dietary preferences this food truck supports"
 msgstr ""
 
-#: foodtrucks/models/__init__.py:215
+#: foodtrucks/models/__init__.py:224 test_translations.py:37
+#: test_translations.py:46
 msgid "Food Truck"
 msgstr "Camión de Comida"
 
-#: foodtrucks/models/__init__.py:216
+#: foodtrucks/models/__init__.py:225
 msgid "Food Trucks"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:6
+msgid "Your cart"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:7
+msgid "Session-based cart for fast MVP ordering."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:9
+msgid "Draft"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:14
+msgid "Preparing cart…"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:20
+msgid "Total"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:24
+#, fuzzy
+#| msgid "Pickup Slot"
+msgid "Pickup window"
+msgstr "Espacio de Recogida"
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:26
+msgid "Loading available slots…"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:28
+msgid "Choose an available slot before checkout."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:31
+#: payments/templates/payments/checkout.html:4
+#: payments/templates/payments/checkout.html:12
+msgid "Checkout"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:37
+msgid "Your cart is empty."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:38
+msgid "Pick a menu item to start building your order."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:6
+#: menu/models/__init__.py:25 templates/onboarding/preview.html:121
+#: test_translations.py:38 test_translations.py:47
+msgid "Menu"
+msgstr "Menú"
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:7
+msgid "Choose meals, customize with options, then add them to your cart."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:9
+msgid "Live menu"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:17
+msgid "Loading menu…"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:4
+#: foodtrucks/templates/foodtrucks/detail_debug.html:4
+#: foodtrucks/templates/foodtrucks/list.html:4 templates/base.html:7
+#: templates/base.html:20 templates/base.html:108
+#: templates/onboarding/ai_input.html:4 templates/onboarding/import.html:4
+#: templates/onboarding/preview.html:4
+#, fuzzy
+#| msgid "Food Truck"
+msgid "FoodTruck SaaS"
+msgstr "Camión de Comida"
+
+#: foodtrucks/templates/foodtrucks/detail.html:22
+#: foodtrucks/templates/foodtrucks/detail_debug.html:22
+#: templates/onboarding/preview.html:136
+msgid "Branding"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:26
+#: foodtrucks/templates/foodtrucks/detail_debug.html:26
+msgid "Primary"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:30
+#: foodtrucks/templates/foodtrucks/detail_debug.html:30
+msgid "Secondary"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:36
+#: foodtrucks/templates/foodtrucks/detail_debug.html:36
+msgid "Back to table"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:54
+msgid "Debug information"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:55
+#, fuzzy
+#| msgid "Food Truck"
+msgid "Foodtruck slug:"
+msgstr "Camión de Comida"
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:56
+msgid "API URL:"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:57
+msgid "Check browser console for detailed logs."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:4 templates/base.html:30
+#, fuzzy
+#| msgid "Food Truck"
+msgid "Foodtrucks"
+msgstr "Camión de Comida"
+
+#: foodtrucks/templates/foodtrucks/list.html:12
+msgid "Discover foodtrucks"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:13
+msgid "Find delicious food from local foodtrucks near you."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:18
+#, fuzzy
+#| msgid "Food Truck"
+msgid "Add foodtruck"
+msgstr "Camión de Comida"
+
+#: foodtrucks/templates/foodtrucks/list.html:33
+msgid "Search foodtrucks..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:37
+msgid "All locations"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:38
+msgid "Nearby"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:43
+msgid "Search"
 msgstr ""
 
 #: menu/models/__init__.py:18
@@ -302,10 +516,6 @@ msgstr ""
 #: menu/models/__init__.py:22
 msgid "When the menu was created"
 msgstr ""
-
-#: menu/models/__init__.py:25
-msgid "Menu"
-msgstr "Menú"
 
 #: menu/models/__init__.py:26
 msgid "Menus"
@@ -327,7 +537,7 @@ msgstr ""
 msgid "Category"
 msgstr "Categoría"
 
-#: menu/models/__init__.py:48
+#: menu/models/__init__.py:48 templates/menu_test.html:30
 msgid "Categories"
 msgstr ""
 
@@ -363,207 +573,320 @@ msgstr "Artículo"
 msgid "Items"
 msgstr ""
 
-#: menu/models/__init__.py:195
+#: menu/models/__init__.py:200
 msgid "The item this option group belongs to"
 msgstr ""
 
-#: menu/models/__init__.py:197
+#: menu/models/__init__.py:202
 msgid "Name of the option group"
 msgstr ""
 
-#: menu/models/__init__.py:198
+#: menu/models/__init__.py:203
 msgid "Whether this group is required"
 msgstr ""
 
-#: menu/models/__init__.py:199
+#: menu/models/__init__.py:204
 msgid "Minimum number of choices required"
 msgstr ""
 
-#: menu/models/__init__.py:203
+#: menu/models/__init__.py:208
 msgid "Maximum number of choices allowed (null for unlimited)"
 msgstr ""
 
-#: menu/models/__init__.py:207
+#: menu/models/__init__.py:212
 msgid "Option Group"
 msgstr "Grupo de Opciones"
 
-#: menu/models/__init__.py:208
+#: menu/models/__init__.py:213
 msgid "Option Groups"
 msgstr ""
 
-#: menu/models/__init__.py:227
+#: menu/models/__init__.py:232
 msgid "The option group this option belongs to"
 msgstr ""
 
-#: menu/models/__init__.py:229
+#: menu/models/__init__.py:234
 msgid "Name of the option"
 msgstr ""
 
-#: menu/models/__init__.py:234
+#: menu/models/__init__.py:239
 msgid "Price modifier for this option (can be negative)"
 msgstr ""
 
-#: menu/models/__init__.py:236
+#: menu/models/__init__.py:241
 msgid "Whether the option is available"
 msgstr ""
 
-#: menu/models/__init__.py:239
+#: menu/models/__init__.py:244
 msgid "Option"
 msgstr "Opción"
 
-#: menu/models/__init__.py:240
+#: menu/models/__init__.py:245
 msgid "Options"
 msgstr ""
 
-#: orders/models/__init__.py:19
+#: onboarding/admin.py:13
+msgid "Basic Information"
+msgstr ""
+
+#: onboarding/admin.py:16
+msgid "Input Data"
+msgstr ""
+
+#: onboarding/admin.py:19
+msgid "Processed Data"
+msgstr ""
+
+#: onboarding/models.py:34
+msgid "Onboarding Image"
+msgstr ""
+
+#: onboarding/models.py:35
+msgid "Onboarding Images"
+msgstr ""
+
+#: onboarding/models.py:46
+msgid "Pending"
+msgstr ""
+
+#: onboarding/models.py:47
+msgid "Processing"
+msgstr ""
+
+#: onboarding/models.py:48
+msgid "Completed"
+msgstr ""
+
+#: onboarding/models.py:49
+msgid "Failed"
+msgstr ""
+
+#: onboarding/models.py:56
+msgid "User who initiated the import"
+msgstr ""
+
+#: onboarding/models.py:60
+msgid "Raw text input from user (e.g., copied from Instagram, website)"
+msgstr ""
+
+#: onboarding/models.py:66
+msgid "Uploaded images for AI processing"
+msgstr ""
+
+#: onboarding/models.py:71
+msgid "Optional reference URL (not scraped automatically)"
+msgstr ""
+
+#: onboarding/models.py:77
+msgid "Current processing status"
+msgstr ""
+
+#: onboarding/models.py:82
+msgid "Structured data extracted by AI processing"
+msgstr ""
+
+#: onboarding/models.py:86
+msgid "Timestamp when import was created"
+msgstr ""
+
+#: onboarding/models.py:90
+msgid "Onboarding Import"
+msgstr ""
+
+#: onboarding/models.py:91
+msgid "Onboarding Imports"
+msgstr ""
+
+#: orders/models/__init__.py:20
 msgid "The food truck this slot belongs to"
 msgstr ""
 
-#: orders/models/__init__.py:21
+#: orders/models/__init__.py:22
 msgid "Start time of the pickup slot"
 msgstr ""
 
-#: orders/models/__init__.py:22
+#: orders/models/__init__.py:23
 msgid "End time of the pickup slot"
 msgstr ""
 
-#: orders/models/__init__.py:23
+#: orders/models/__init__.py:24
 msgid "Maximum number of orders for this slot"
 msgstr ""
 
-#: orders/models/__init__.py:24
+#: orders/models/__init__.py:25
 msgid "When the slot was created"
 msgstr ""
 
-#: orders/models/__init__.py:27
+#: orders/models/__init__.py:28
 msgid "Pickup Slot"
 msgstr "Espacio de Recogida"
 
-#: orders/models/__init__.py:28
+#: orders/models/__init__.py:29
 msgid "Pickup Slots"
 msgstr ""
 
-#: orders/models/__init__.py:78
-msgid "The customer who placed the order"
+#: orders/models/__init__.py:121
+msgid "The account that placed or owns this order"
 msgstr ""
 
-#: orders/models/__init__.py:84
+#: orders/models/__init__.py:127
 msgid "The food truck for this order"
 msgstr ""
 
-#: orders/models/__init__.py:90
+#: orders/models/__init__.py:135
 msgid "The pickup slot for this order"
 msgstr ""
 
-#: orders/models/__init__.py:96
+#: orders/models/__init__.py:141
 msgid "Current status of the order"
 msgstr ""
 
-#: orders/models/__init__.py:102
+#: orders/models/__init__.py:147
 msgid "Total price of the order"
 msgstr ""
 
-#: orders/models/__init__.py:104
+#: orders/models/__init__.py:149
 msgid "When the order was created"
 msgstr ""
 
-#: orders/models/__init__.py:107
+#: orders/models/__init__.py:150
+msgid "When the order was submitted"
+msgstr ""
+
+#: orders/models/__init__.py:153
 #: venv/lib/python3.8/site-packages/django/forms/formsets.py:484
 #: venv/lib/python3.8/site-packages/django/forms/formsets.py:491
 msgid "Order"
 msgstr "Pedido"
 
-#: orders/models/__init__.py:108
+#: orders/models/__init__.py:154 templates/base.html:34
 msgid "Orders"
 msgstr ""
 
-#: orders/models/__init__.py:264
+#: orders/models/__init__.py:383
 msgid "The order this item belongs to"
 msgstr ""
 
-#: orders/models/__init__.py:269
+#: orders/models/__init__.py:388
 msgid "The menu item"
 msgstr ""
 
-#: orders/models/__init__.py:271
+#: orders/models/__init__.py:393
+msgid "Selected item options snapshot"
+msgstr ""
+
+#: orders/models/__init__.py:395
 msgid "Quantity ordered"
 msgstr ""
 
-#: orders/models/__init__.py:275
+#: orders/models/__init__.py:399
 msgid "Price per unit at time of order"
 msgstr ""
 
-#: orders/models/__init__.py:280
+#: orders/models/__init__.py:404
 msgid "Total price for this item (unit_price * quantity)"
 msgstr ""
 
-#: orders/models/__init__.py:284
+#: orders/models/__init__.py:408
 msgid "Order Item"
 msgstr "Artículo del Pedido"
 
-#: orders/models/__init__.py:285
+#: orders/models/__init__.py:409
 msgid "Order Items"
 msgstr ""
 
-#: orders/models/__init__.py:319
+#: orders/models/__init__.py:443
 msgid "The order item this option belongs to"
 msgstr ""
 
-#: orders/models/__init__.py:324
+#: orders/models/__init__.py:448
 msgid "The selected option"
 msgstr ""
 
-#: orders/models/__init__.py:329
+#: orders/models/__init__.py:453
 msgid "Price modifier at time of order"
 msgstr ""
 
-#: orders/models/__init__.py:333
+#: orders/models/__init__.py:457
 msgid "Order Item Option"
 msgstr ""
 
-#: orders/models/__init__.py:334
+#: orders/models/__init__.py:458
 msgid "Order Item Options"
 msgstr ""
 
-#: payments/models/__init__.py:34
+#: payments/models/__init__.py:39
 msgid "The order this payment is for"
 msgstr ""
 
-#: payments/models/__init__.py:39
+#: payments/models/__init__.py:44
 msgid "Payment amount"
 msgstr ""
 
-#: payments/models/__init__.py:44
+#: payments/models/__init__.py:49
 msgid "Currency code (ISO 4217)"
 msgstr ""
 
-#: payments/models/__init__.py:50
+#: payments/models/__init__.py:55
 msgid "Current payment status"
 msgstr ""
 
-#: payments/models/__init__.py:56
+#: payments/models/__init__.py:61
 msgid "Payment provider"
 msgstr ""
 
-#: payments/models/__init__.py:62
+#: payments/models/__init__.py:67
 msgid "Payment ID from the provider"
 msgstr ""
 
-#: payments/models/__init__.py:64
+#: payments/models/__init__.py:69
 msgid "When the payment was created"
 msgstr ""
 
-#: payments/models/__init__.py:65
+#: payments/models/__init__.py:70
 msgid "When the payment was last updated"
 msgstr ""
 
-#: payments/models/__init__.py:68
+#: payments/models/__init__.py:73
 msgid "Payment"
 msgstr "Pago"
 
-#: payments/models/__init__.py:69
+#: payments/models/__init__.py:74
 msgid "Payments"
 msgstr ""
+
+#: payments/templates/payments/checkout.html:13
+#, python-format
+msgid "Order ID: %(order_id)s"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:14
+msgid "Amount due"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:23
+msgid "Pay now"
+msgstr ""
+
+#: payments/templates/payments/success.html:4
+#, fuzzy
+#| msgid "Payment"
+msgid "Payment success"
+msgstr "Pago"
+
+#: payments/templates/payments/success.html:11
+msgid "Payment successful!"
+msgstr ""
+
+#: payments/templates/payments/success.html:12
+msgid "Thank you for your order. We'll notify you when it's ready for pickup."
+msgstr ""
+
+#: payments/templates/payments/success.html:13
+#, fuzzy
+#| msgid "Name of the food truck"
+msgid "Back to food trucks"
+msgstr "Nombre del camión de comida"
 
 #: preferences/models/__init__.py:13
 msgid "Name of the dietary preference"
@@ -582,7 +905,357 @@ msgid "Preference"
 msgstr "Preferencia"
 
 #: preferences/models/__init__.py:19
+#: templates/onboarding/partials/_preview_foodtruck.html:23
+#: templates/onboarding/preview.html:110
 msgid "Preferences"
+msgstr ""
+
+#: templates/base.html:43
+msgid "Welcome"
+msgstr ""
+
+#: templates/base.html:47
+msgid "Cart"
+msgstr ""
+
+#: templates/base.html:50
+msgid "Logout"
+msgstr ""
+
+#: templates/base.html:57
+msgid "Register"
+msgstr ""
+
+#: templates/base.html:64
+msgid "Language"
+msgstr ""
+
+#: templates/base.html:108
+msgid "All rights reserved."
+msgstr ""
+
+#: templates/base.html:111
+msgid "Privacy Policy"
+msgstr ""
+
+#: templates/base.html:112
+msgid "Terms of Service"
+msgstr ""
+
+#: templates/menu_test.html:6 templates/menu_test.html:11
+msgid "Menu API Test"
+msgstr ""
+
+#: templates/menu_test.html:12
+msgid "Test Menu API"
+msgstr ""
+
+#: templates/menu_test.html:19 templates/onboarding/import.html:148
+#: templates/onboarding/preview.html:178
+msgid "Loading..."
+msgstr ""
+
+#: templates/menu_test.html:29
+msgid "Menu loaded successfully"
+msgstr ""
+
+#: templates/menu_test.html:32
+msgid "items"
+msgstr ""
+
+#: templates/menu_test.html:36
+msgid "No categories found"
+msgstr ""
+
+#: templates/menu_test.html:40
+msgid "Error"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:4
+msgid "AI foodtruck onboarding"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:13
+msgid "Create your foodtruck with AI"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:14
+msgid ""
+"Tell us about your concept and we'll generate a complete foodtruck with menu."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:20
+msgid "Foodtruck concept"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:21
+msgid "e.g., Mexican street food, Vegan burgers, Italian gelato"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:22
+msgid "Describe your foodtruck idea in a few words."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:27
+#: templates/onboarding/partials/_preview_foodtruck.html:14
+#: templates/onboarding/preview.html:101
+msgid "Cuisine type"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:27 templates/onboarding/ai_input.html:40
+#: templates/onboarding/ai_input.html:51 templates/onboarding/import.html:93
+#: templates/onboarding/import.html:107 templates/onboarding/import.html:121
+#: templates/onboarding/partials/_form.html:17
+#: templates/onboarding/partials/_form.html:31
+#, fuzzy
+#| msgid "Option"
+msgid "Optional"
+msgstr "Opción"
+
+#: templates/onboarding/ai_input.html:29
+msgid "Select cuisine..."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:30
+msgid "American"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:31
+msgid "Italian"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:32
+msgid "Mexican"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:33
+msgid "Asian"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:34
+msgid "Mediterranean"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:35 templates/onboarding/ai_input.html:60
+msgid "Vegan"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:36
+msgid "Other"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:40
+msgid "Price range"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:42
+msgid "Select range..."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:43
+msgid "$ (Budget)"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:44
+msgid "$$ (Moderate)"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:45
+msgid "$$$ (Premium)"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:51
+#, fuzzy
+#| msgid "Preference"
+msgid "Dietary preferences"
+msgstr "Preferencia"
+
+#: templates/onboarding/ai_input.html:56
+msgid "Vegetarian"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:66
+msgid "Gluten free"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:70
+msgid "Halal"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:79 templates/onboarding/import.html:136
+#, fuzzy
+#| msgid "Name of the food truck"
+msgid "Generate my foodtruck"
+msgstr "Nombre del camión de comida"
+
+#: templates/onboarding/ai_input.html:99
+msgid "Review your AI-generated foodtruck"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:100
+msgid "Edit concept"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:108 templates/onboarding/preview.html:168
+#, fuzzy
+#| msgid "Name of the food truck"
+msgid "Create my foodtruck"
+msgstr "Nombre del camión de comida"
+
+#: templates/onboarding/import.html:4 templates/onboarding/import.html:59
+#, fuzzy
+#| msgid "Name of the food truck"
+msgid "Import your foodtruck"
+msgstr "Nombre del camión de comida"
+
+#: templates/onboarding/import.html:60
+msgid ""
+"Paste your content and upload images. We'll use AI to create your complete "
+"foodtruck profile."
+msgstr ""
+
+#: templates/onboarding/import.html:71
+#: templates/onboarding/partials/_form.html:4
+msgid "Content"
+msgstr ""
+
+#: templates/onboarding/import.html:77
+msgid ""
+"Paste your foodtruck description, menu, or any relevant text here. For "
+"example: Welcome to Taco Fiesta! We serve authentic Mexican street food with "
+"fresh ingredients. Our menu includes: - Chicken Tacos $8.99 - Beef Burritos "
+"$10.99 - Quesadillas $7.99 - Chips & Salsa $4.99 Located downtown, open "
+"daily 11am-9pm. #tacofiesta #mexicanfood"
+msgstr ""
+
+#: templates/onboarding/import.html:88
+#: templates/onboarding/partials/_form.html:13
+msgid ""
+"Copy from your Instagram, website, or any text describing your foodtruck."
+msgstr ""
+
+#: templates/onboarding/import.html:93
+#: templates/onboarding/partials/_form.html:17
+msgid "Images"
+msgstr ""
+
+#: templates/onboarding/import.html:102
+#: templates/onboarding/partials/_form.html:26
+msgid "Upload menu photos, logo, or any relevant images."
+msgstr ""
+
+#: templates/onboarding/import.html:107
+msgid "Upload your logo"
+msgstr ""
+
+#: templates/onboarding/import.html:115
+msgid "We use your logo to extract reliable brand colors and style."
+msgstr ""
+
+#: templates/onboarding/import.html:121
+#: templates/onboarding/partials/_form.html:31
+#, fuzzy
+#| msgid "Preference"
+msgid "Reference URL"
+msgstr "Preferencia"
+
+#: templates/onboarding/import.html:129
+#: templates/onboarding/partials/_form.html:39
+msgid "Link to your social media or website (for reference only)."
+msgstr ""
+
+#: templates/onboarding/import.html:150
+msgid "AI is analyzing your content..."
+msgstr ""
+
+#: templates/onboarding/import.html:151
+msgid "This may take a few moments."
+msgstr ""
+
+#: templates/onboarding/partials/_form.html:10
+msgid "Paste your foodtruck description, menu, or any relevant text here..."
+msgstr ""
+
+#: templates/onboarding/partials/_form.html:37
+msgid "https://instagram.com/yourfoodtruck"
+msgstr ""
+
+#: templates/onboarding/partials/_preview_foodtruck.html:5
+#: templates/onboarding/preview.html:92
+msgid "Foodtruck details"
+msgstr ""
+
+#: templates/onboarding/partials/_preview_foodtruck.html:10
+#: templates/onboarding/preview.html:97
+msgid "Name"
+msgstr ""
+
+#: templates/onboarding/partials/_preview_foodtruck.html:19
+#: templates/onboarding/preview.html:106
+#, fuzzy
+#| msgid "Item description"
+msgid "Description"
+msgstr "Descripción del artículo"
+
+#: templates/onboarding/partials/_preview_foodtruck.html:31
+#: templates/onboarding/preview.html:112
+#, fuzzy
+#| msgid "Preference"
+msgid "Add preference..."
+msgstr "Preferencia"
+
+#: templates/onboarding/preview.html:4 templates/onboarding/preview.html:83
+msgid "Preview your foodtruck"
+msgstr ""
+
+#: templates/onboarding/preview.html:84
+msgid ""
+"Review and edit the AI-generated content before creating your foodtruck."
+msgstr ""
+
+#: templates/onboarding/preview.html:123
+#, fuzzy
+#| msgid "Category"
+msgid "Add category"
+msgstr "Categoría"
+
+#: templates/onboarding/preview.html:141
+msgid "Primary color"
+msgstr ""
+
+#: templates/onboarding/preview.html:148
+msgid "Secondary color"
+msgstr ""
+
+#: templates/onboarding/preview.html:165
+msgid "Back to import"
+msgstr ""
+
+#: templates/onboarding/preview.html:180
+msgid "Creating your foodtruck..."
+msgstr ""
+
+#: templates/onboarding/preview.html:181
+msgid "This will only take a moment."
+msgstr ""
+
+#: templates/onboarding/preview.html:193
+msgid "Foodtruck created successfully!"
+msgstr ""
+
+#: templates/onboarding/preview.html:194
+msgid "Your foodtruck has been created and is ready to use."
+msgstr ""
+
+#: templates/onboarding/preview.html:196
+#, fuzzy
+#| msgid "Name of the food truck"
+msgid "View my foodtrucks"
+msgstr "Nombre del camión de comida"
+
+#: venv/lib/python3.8/site-packages/_pytest/config/argparsing.py:474
+#, python-format
+msgid "ambiguous option: %(option)s could match %(matches)s"
 msgstr ""
 
 #: venv/lib/python3.8/site-packages/django/contrib/messages/apps.py:15

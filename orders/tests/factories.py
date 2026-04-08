@@ -21,14 +21,17 @@ def UserFactory(email=None, password='password123'):
     )
 
 
-def PlanFactory(name='Standard Plan', code=None, price=Decimal('29.99'), allows_ordering=True):
-    code = code or f'standard-{uuid.uuid4().hex[:8]}'
-    return Plan.objects.create(
-        name=name,
+def PlanFactory(name='Pro Plan', code=None, price=Decimal('29.99'), allows_ordering=True):
+    code = code or f'pro-{uuid.uuid4().hex[:6]}'
+    plan, _ = Plan.objects.get_or_create(
         code=code,
-        price=price,
-        allows_ordering=allows_ordering
+        defaults={
+            'name': name,
+            'price': price,
+            'allows_ordering': allows_ordering,
+        }
     )
+    return plan
 
 
 def FoodTruckFactory(owner=None, name='Test Truck', description='Test description', latitude=40.7128, longitude=-74.0060):

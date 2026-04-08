@@ -143,8 +143,10 @@ class FoodTruckQuerySet(models.QuerySet):
 
 class FoodTruckManager(models.Manager):
     def get_queryset(self):
-        return FoodTruckQuerySet(self.model, using=self._db).select_related(
-            'subscription__plan'
+        return (
+            FoodTruckQuerySet(self.model, using=self._db)
+            .select_related('subscription__plan')
+            .prefetch_related('menus__categories__items')
         )
 
 
@@ -263,6 +265,26 @@ class FoodTruck(models.Model):
         """
         return True
 
+    def has_active_subscription(self) -> bool:
+        """
+        Return True when the foodtruck has an active subscription that allows ordering.
+        """
+        subscription = (
+            Subscription.objects.select_related('plan')
+            .filter(food_truck=self)
+            .order_by('-start_date')
+            .first()
+        )
+
+        if not subscription or not subscription.is_active():
+            return False
+
+        plan = subscription.plan
+        if not plan or not getattr(plan, 'allows_ordering', False):
+            return False
+
+        return True
+
     def can_accept_orders(self):
         """
         Check if the food truck can accept orders.
@@ -278,10 +300,19 @@ class FoodTruck(models.Model):
         if not self.is_active:
             return False
 
-        if not hasattr(self, 'subscription') or not self.subscription.is_active():
-            return False
+        return self.has_active_subscription() and self.is_open()
 
-        return self.subscription.plan.allows_ordering
+    def can_display_menu(self):
+        """
+        Determine if the food truck has a menu worth displaying.
+
+        The menu display state is independent of subscription status and
+        relies solely on whether an active menu exists with available items.
+        """
+        return self.menus.filter(
+            is_active=True,
+            categories__items__is_available=True,
+        ).exists()
 
     def get_plan(self):
         """
@@ -292,6 +323,20 @@ class FoodTruck(models.Model):
         """
         if hasattr(self, 'subscription'):
             return self.subscription.plan
+        return None
+
+    def get_primary_color(self):
+        """Return a valid primary color for branding fallbacks."""
+        return self.primary_color or '#000000'
+
+    def get_secondary_color(self):
+        """Return a valid secondary color for branding fallbacks."""
+        return self.secondary_color or '#f8f9fa'
+
+    def get_logo_url(self):
+        """Return logo URL when available (None otherwise)."""
+        if self.logo and hasattr(self.logo, 'url'):
+            return self.logo.url
         return None
 
     def distance_to(self, lat, lng):

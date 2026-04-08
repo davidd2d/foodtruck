@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Foodtrucks - FoodTruck SaaS{% endblock %}
+{% block title %}{% trans "Foodtrucks" %} - {% trans "FoodTruck SaaS" %}{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -9,13 +9,13 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="mb-0">Discover Foodtrucks</h1>
-                    <p class="text-muted mt-2">Find delicious food from local foodtrucks near you</p>
+                    <h1 class="mb-0">{% trans "Discover foodtrucks" %}</h1>
+                    <p class="text-muted mt-2">{% trans "Find delicious food from local foodtrucks near you." %}</p>
                 </div>
                 {% if user.is_authenticated %}
                 <div>
                     <a href="{% url 'onboarding:import' %}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Add Foodtruck
+                        <i class="bi bi-plus-circle"></i> {% trans "Add foodtruck" %}
                     </a>
                 </div>
                 {% endif %}
@@ -30,17 +30,17 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <input type="text" class="form-control" id="search-input" placeholder="Search foodtrucks...">
+                            <input type="text" class="form-control" id="search-input" placeholder="{% trans "Search foodtrucks..." %}">
                         </div>
                         <div class="col-md-3">
                             <select class="form-select" id="location-filter">
-                                <option value="">All Locations</option>
-                                <option value="nearby">Nearby</option>
+                                <option value="">{% trans "All locations" %}</option>
+                                <option value="nearby">{% trans "Nearby" %}</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <button type="button" class="btn btn-outline-primary w-100" id="search-btn">
-                                <i class="bi bi-search"></i> Search
+                                <i class="bi bi-search"></i> {% trans "Search" %}
                             </button>
                         </div>
                     </div>

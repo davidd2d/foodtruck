@@ -32,6 +32,7 @@ urlpatterns = [
     path('foodtrucks/', include('foodtrucks.urls')),
     path('payments/', include(('payments.urls', 'payments'), namespace='payments')),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('orders/', include(('orders.urls', 'orders'), namespace='orders')),
 ]
 
 if settings.DEBUG:

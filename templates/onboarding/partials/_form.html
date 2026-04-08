@@ -1,19 +1,20 @@
+{% load i18n %}
 <!-- Import Form Partial -->
 <div class="mb-4">
-    <label for="raw_text" class="form-label h5">Content <span class="text-danger">*</span></label>
+    <label for="raw_text" class="form-label h5">{% trans "Content" %} <span class="text-danger">*</span></label>
     <textarea
         class="form-control"
         id="raw_text"
         name="raw_text"
         rows="6"
-        placeholder="Paste your foodtruck description, menu, or any relevant text here..."
+        placeholder="{% trans "Paste your foodtruck description, menu, or any relevant text here..." %}"
         required
     ></textarea>
-    <div class="form-text">Copy from your Instagram, website, or any text describing your foodtruck</div>
+    <div class="form-text">{% trans "Copy from your Instagram, website, or any text describing your foodtruck." %}</div>
 </div>
 
 <div class="mb-4">
-    <label for="images" class="form-label h5">Images (Optional)</label>
+    <label for="images" class="form-label h5">{% trans "Images" %} ({% trans "Optional" %})</label>
     <input
         type="file"
         class="form-control"
@@ -22,18 +23,18 @@
         multiple
         accept="image/*"
     >
-    <div class="form-text">Upload menu photos, logo, or any relevant images</div>
+    <div class="form-text">{% trans "Upload menu photos, logo, or any relevant images." %}</div>
     <div id="image-preview" class="mt-3"></div>
 </div>
 
 <div class="mb-4">
-    <label for="source_url" class="form-label">Reference URL (Optional)</label>
+    <label for="source_url" class="form-label">{% trans "Reference URL" %} ({% trans "Optional" %})</label>
     <input
         type="url"
         class="form-control"
         id="source_url"
         name="source_url"
-        placeholder="https://instagram.com/yourfoodtruck"
+        placeholder="{% trans "https://instagram.com/yourfoodtruck" %}"
     >
-    <div class="form-text">Link to your social media or website (for reference only)</div>
+    <div class="form-text">{% trans "Link to your social media or website (for reference only)." %}</div>
 </div>

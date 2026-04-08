@@ -1,0 +1,16 @@
+.category-nav {
+    scrollbar-width: none;
+}
+
+.category-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.foodtruck-header img {
+    object-fit: cover;
+    max-height: 320px;
+}
+
+.navbar-brand {
+    cursor: pointer;
+}

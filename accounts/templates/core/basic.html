@@ -1,8 +1,9 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Foodtruck{% endblock %}</title>
+    <title>{% block title %}{% trans "Foodtruck" %}{% endblock %}</title>
 </head>
 <body>
     <main>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Complete payment{% endblock %}
+{% block title %}{% trans "Checkout" %}{% endblock %}
 
 {% block content %}
 <section class="container py-5">
@@ -9,9 +9,9 @@
         <div class="col-lg-6">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h1 class="card-title h4 mb-3">Checkout</h1>
-                    <p class="text-muted">Order ID: {{ order.id }}</p>
-                    <p class="lead mb-1">Amount due</p>
+                    <h1 class="card-title h4 mb-3">{% trans "Checkout" %}</h1>
+                    <p class="text-muted">{% blocktrans with order_id=order.id %}Order ID: {{ order_id }}{% endblocktrans %}</p>
+                    <p class="lead mb-1">{% trans "Amount due" %}</p>
                     <p class="h3 fw-bold mb-3">
                         {{ order.total_price }}
                         {% if order.payment %}
@@ -20,7 +20,7 @@
                             EUR
                         {% endif %}
                     </p>
-                    <button id="payment-button" class="btn btn-primary btn-lg w-100" type="button">Pay now</button>
+                    <button id="payment-button" class="btn btn-primary btn-lg w-100" type="button">{% trans "Pay now" %}</button>
                     <div id="payment-status" class="mt-3 text-center small text-muted"></div>
                 </div>
             </div>
