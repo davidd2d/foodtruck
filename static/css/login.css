@@ -1,0 +1,70 @@
+body {
+    background: linear-gradient(180deg, #0d1b2a, #1b263b);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f8f9fa;
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 2rem;
+    width: min(420px, 90vw);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.login-container h2 {
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.login-container form {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.login-container label {
+    font-size: 0.85rem;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.login-container input {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: inherit;
+}
+
+.login-container button {
+    margin-top: 0.5rem;
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    background: #e63946;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s ease-in-out;
+}
+
+.login-container button:hover {
+    transform: translateY(-1px);
+}
+
+.password-reset {
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.password-reset a {
+    color: #f8f9fa;
+    text-decoration: underline;
+}

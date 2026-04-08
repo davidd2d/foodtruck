@@ -3,8 +3,9 @@ from django.db.models import Count, Q
 from django.utils import timezone
 
 from rest_framework import viewsets, status
+from rest_framework import permissions
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +18,7 @@ from .serializers import (
     RemoveCartItemSerializer,
     CartCheckoutSerializer,
     PickupSlotSerializer,
+    PickupSlotManageSerializer,
     OrderSlotAssignmentSerializer,
     OrderSubmissionSerializer,
 )
@@ -24,6 +26,13 @@ from ..models import Order, PickupSlot
 from ..services.cart_service import CartService
 from ..services.order_service import OrderService
 from menu.models import Item
+
+
+class IsFoodTruckOwner(BasePermission):
+    """Object permission to ensure the user is the owner of the related food truck."""
+
+    def has_object_permission(self, request, view, obj):
+        return getattr(obj.food_truck, 'owner_id', None) == request.user.id
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -247,3 +256,26 @@ class PickupSlotListView(APIView):
 
         serializer = PickupSlotSerializer(slots, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PickupSlotViewSet(viewsets.ModelViewSet):
+    """Allow food truck owners to manage their pickup slots."""
+
+    serializer_class = PickupSlotManageSerializer
+    permission_classes = [IsAuthenticated, IsFoodTruckOwner]
+
+    def get_queryset(self):
+        """Return slots belonging to the logged-in owner."""
+        slug = self.request.query_params.get('foodtruck_slug')
+        queryset = PickupSlot.objects.filter(
+            food_truck__owner=self.request.user
+        ).order_by('start_time').select_related('food_truck')
+
+        if slug:
+            queryset = queryset.filter(food_truck__slug=slug)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        """Ensure the serializer enforces ownership."""
+        serializer.save()

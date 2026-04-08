@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Manage Pickup Slots" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .slot-table th,
+    .slot-table td {
+        vertical-align: middle;
+    }
+    .slot-table .actions button {
+        min-width: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5"
+     id="slot-manager-app"
+     data-foodtruck-id="{{ foodtruck.id }}"
+     data-foodtruck-slug="{{ foodtruck.slug }}"
+     data-empty-message="{% trans "No slots configured yet." %}"
+     data-loading-message="{% trans "Loading slots..." %}"
+     data-edit-label="{% trans "Edit slot" %}"
+     data-create-label="{% trans "Create pickup slot" %}">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">{% trans "Manage Pickup Slots" %}</h1>
+            <p class="text-muted mb-0">{% trans "Only future slots can be created and must not overlap." %}</p>
+        </div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#slotModal" data-action="create">
+            {% trans "Create slot" %}
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover slot-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Start" %}</th>
+                    <th>{% trans "End" %}</th>
+                    <th>{% trans "Capacity" %}</th>
+                    <th>{% trans "Remaining" %}</th>
+                    <th>{% trans "Bookings" %}</th>
+                    <th>{% trans "Status" %}</th>
+                    <th class="text-end">{% trans "Actions" %}</th>
+                </tr>
+            </thead>
+            <tbody id="slot-table-body">
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-5" id="slot-loading-placeholder">
+                        <div class="spinner-border spinner-border-sm me-2" role="status">
+                            <span class="visually-hidden">{% trans "Loading..." %}</span>
+                        </div>
+                        {% trans "Loading slots..." %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Slot form modal -->
+    <div class="modal fade" id="slotModal" tabindex="-1" aria-labelledby="slotModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="slot-form" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="slotModalLabel">{% trans "Create pickup slot" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="slot_id" id="slot-id">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Start time (Paris)" %}</label>
+                        <input type="datetime-local" name="start_time" id="slot-start" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "End time (Paris)" %}</label>
+                        <input type="datetime-local" name="end_time" id="slot-end" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Capacity" %}</label>
+                        <input type="number" name="capacity" id="slot-capacity" class="form-control" min="1" value="5" required>
+                    </div>
+                    <div class="alert alert-danger d-none" id="slot-form-error"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Save slot" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pages/slotManager.js' %}"></script>
+{% endblock %}

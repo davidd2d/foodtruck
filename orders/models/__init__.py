@@ -1,10 +1,36 @@
 from decimal import Decimal
+import pytz
+
 from django.core.exceptions import ValidationError
 from django.db import models, transaction, OperationalError
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from menu.models import Item, Option
+
+PARIS_TZ = pytz.timezone('Europe/Paris')
+
+
+class PickupSlotQuerySet(models.QuerySet):
+    """QuerySet helpers for pickup slots."""
+
+    def upcoming_for(self, food_truck):
+        """Return slots for the food truck that start in the Paris timezone future."""
+        paris_now = timezone.localtime(timezone.now(), PARIS_TZ)
+        return self.filter(
+            food_truck=food_truck,
+            end_time__gt=paris_now,
+        ).order_by('start_time')
+
+
+class PickupSlotManager(models.Manager):
+    """Manager that exposes slot helpers."""
+
+    def get_queryset(self):
+        return PickupSlotQuerySet(self.model, using=self._db).select_related('food_truck')
+
+    def upcoming_for(self, food_truck):
+        return self.get_queryset().upcoming_for(food_truck)
 
 
 class PickupSlot(models.Model):
@@ -23,6 +49,7 @@ class PickupSlot(models.Model):
     end_time = models.DateTimeField(help_text=_("End time of the pickup slot"))
     capacity = models.PositiveIntegerField(help_text=_("Maximum number of orders for this slot"))
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the slot was created"))
+    updated_at = models.DateTimeField(auto_now=True, help_text=_("When the slot was last updated"))
 
     class Meta:
         verbose_name = _("Pickup Slot")
@@ -37,6 +64,8 @@ class PickupSlot(models.Model):
                 name='pickup_slot_end_after_start'
             ),
         ]
+
+    objects = PickupSlotManager()
 
     def __str__(self):
         return f"{self.food_truck.name} - {self.start_time.strftime('%Y-%m-%d %H:%M')}"
@@ -57,6 +86,11 @@ class PickupSlot(models.Model):
         """Count how many orders reserve this slot."""
         return self._capacity_queryset().count()
 
+    @property
+    def current_bookings(self):
+        """Alias for current reservations (used on the frontend)."""
+        return self.current_orders_count
+
     def has_capacity_for(self, *, exclude_order=None, include_drafts=True):
         """Determine if there is room for another submitted order."""
         return self._capacity_queryset(
@@ -66,7 +100,8 @@ class PickupSlot(models.Model):
 
     def is_available(self):
         """Check if the slot is in the future and has spare capacity."""
-        return self.start_time >= timezone.now() and self.has_capacity_for()
+        paris_now = timezone.localtime(timezone.now(), PARIS_TZ)
+        return self.start_time >= paris_now and self.has_capacity_for()
 
     def remaining_capacity(self):
         """Return the number of spots remaining for booking."""
@@ -81,7 +116,8 @@ class PickupSlot(models.Model):
         if slot.food_truck_id != order.food_truck_id:
             raise ValidationError('Pickup slot must belong to the order food truck.')
 
-        if slot.start_time < timezone.now():
+        paris_now = timezone.localtime(timezone.now(), PARIS_TZ)
+        if slot.start_time <= paris_now:
             raise ValidationError('Pickup slot is in the past.')
 
         if not slot.has_capacity_for(exclude_order=order, include_drafts=include_drafts):

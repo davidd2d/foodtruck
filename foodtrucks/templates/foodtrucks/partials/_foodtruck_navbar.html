@@ -13,8 +13,9 @@
                     data-show-text="{% trans 'Show description' %}"
                     data-hide-text="{% trans 'Hide description' %}"
                 >
-                    <small>{% trans "Show description" %}</small>
-                </button>
+                <small>{% trans "Show description" %}</small>
+            </button>
+
                         <div class="dropdown ms-2">
             <button class="btn btn-light dropdown-toggle" type="button" id="foodtruck-user-menu" data-bs-toggle="dropdown" aria-expanded="false">
                 ☰
@@ -26,6 +27,13 @@
                     {% if user.is_staff %}
                         <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
                     {% endif %}
+                    <li>                        
+                        {% if user.is_superuser or foodtruck.owner_id == user.id %}
+                            <a href="{% url 'orders:manage-pickup-slots' slug=foodtruck.slug %}"
+                               class="dropdown-item">
+                                {% trans "Manage time slots" %}
+                            </a>
+                        {% endif %}</li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a></li>
                 {% else %}

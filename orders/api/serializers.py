@@ -1,7 +1,11 @@
 from django.utils import timezone
 from rest_framework import serializers
 
+import pytz
+
 from ..models import Order, OrderItem, OrderItemOption, PickupSlot
+
+PARIS_TZ = pytz.timezone('Europe/Paris')
 
 
 class OrderItemOptionSerializer(serializers.ModelSerializer):
@@ -48,6 +52,93 @@ class PickupSlotSerializer(serializers.ModelSerializer):
         remaining = self.get_remaining_capacity(obj)
         return obj.start_time >= timezone.now() and remaining > 0
 
+
+class PickupSlotManageSerializer(serializers.ModelSerializer):
+    """Serializer used by food truck owners to manage slots."""
+
+    remaining_capacity = serializers.IntegerField(read_only=True)
+    current_bookings = serializers.IntegerField(read_only=True)
+    is_available = serializers.SerializerMethodField()
+    food_truck_id = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = PickupSlot
+        fields = [
+            'id',
+            'food_truck_id',
+            'food_truck',
+            'start_time',
+            'end_time',
+            'capacity',
+            'remaining_capacity',
+            'current_bookings',
+            'is_available',
+        ]
+
+    food_truck = serializers.ReadOnlyField(source='food_truck.slug')
+
+    def get_is_available(self, obj):
+        return obj.is_available()
+
+    def validate(self, attrs):
+        data = dict(attrs)
+        start_time = data.get('start_time') or getattr(self.instance, 'start_time', None)
+        end_time = data.get('end_time') or getattr(self.instance, 'end_time', None)
+
+        if not start_time or not end_time:
+            raise serializers.ValidationError('Both start_time and end_time are required.')
+
+        if start_time >= end_time:
+            raise serializers.ValidationError('end_time must be after start_time.')
+
+        paris_now = timezone.localtime(timezone.now(), PARIS_TZ)
+        if start_time <= paris_now:
+            raise serializers.ValidationError('Pickup slot must be scheduled in the future (Paris time).')
+
+        food_truck = self._resolve_food_truck(data)
+        overlapping = PickupSlot.objects.filter(
+            food_truck=food_truck,
+            start_time__lt=end_time,
+            end_time__gt=start_time,
+        )
+        if self.instance:
+            overlapping = overlapping.exclude(pk=self.instance.pk)
+
+        if overlapping.exists():
+            raise serializers.ValidationError('This slot overlaps with an existing slot.')
+
+        return attrs
+
+    def _resolve_food_truck(self, data):
+        from foodtrucks.models import FoodTruck
+
+        if self.instance:
+            return self.instance.food_truck
+
+        food_truck_id = data.get('food_truck_id')
+        if not food_truck_id:
+            raise serializers.ValidationError('food_truck_id is required.')
+
+        try:
+            food_truck = FoodTruck.objects.get(pk=food_truck_id)
+        except FoodTruck.DoesNotExist:
+            raise serializers.ValidationError('Food truck does not exist.')
+
+        request = self.context.get('request')
+        if request and food_truck.owner_id != request.user.id:
+            raise serializers.ValidationError('You do not own this food truck.')
+
+        return food_truck
+
+    def create(self, validated_data):
+        food_truck_id = validated_data.pop('food_truck_id', None)
+        food_truck = self._resolve_food_truck({'food_truck_id': food_truck_id})
+        validated_data['food_truck'] = food_truck
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('food_truck_id', None)
+        return super().update(instance, validated_data)
 
 class OrderSerializer(serializers.ModelSerializer):
     """Serializer for Order model."""

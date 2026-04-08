@@ -9,12 +9,12 @@ class UserAdmin(UserAdmin):
     model = User
     ordering = ('email',)
     search_fields = ('email', 'first_name', 'last_name')
-    list_filter = ('is_staff', 'is_superuser', 'is_active')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'email_verified')
 
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name')}),
-        ('Permissions', {'fields': ('is_staff', 'is_superuser', 'is_active', 'groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_staff', 'is_superuser', 'is_active', 'email_verified', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
@@ -26,7 +26,7 @@ class UserAdmin(UserAdmin):
     )
 
     filter_horizontal = ('groups', 'user_permissions')
-    list_display = ('email', 'is_staff', 'is_superuser')
+    list_display = ('email', 'is_staff', 'is_superuser', 'email_verified')
 
     def has_view_permission(self, request, obj=None):
         """Only superusers can view users."""
@@ -43,4 +43,3 @@ class UserAdmin(UserAdmin):
     def has_add_permission(self, request):
         """Only superusers can add users."""
         return request.user.is_superuser
-

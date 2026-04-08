@@ -9,11 +9,25 @@
   <h1>{% trans "Access your account" %}</h1>
   <form method="post">
     {% csrf_token %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger small">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
     <label for="id_username">{% trans "Email" %}</label>
     <input type="email" name="username" id="id_username" required value="{{ form.username.value|default:'' }}">
+    {% if form.username.errors %}
+      <small class="text-danger">{{ form.username.errors|first }}</small>
+    {% endif %}
 
     <label for="id_password">{% trans "Password" %}</label>
     <input type="password" name="password" id="id_password" required>
+    {% if form.password.errors %}
+      <small class="text-danger">{{ form.password.errors|first }}</small>
+    {% endif %}
 
     <button type="submit">{% trans "Sign in" %}</button>
 
