@@ -17,7 +17,6 @@ class OnboardingImportModelTests(TestCase):
         import_instance = OnboardingImport.objects.create(
             user=self.user,
             raw_text="Sample text",
-            images=["image1.jpg"],
             source_url="https://example.com"
         )
         self.assertEqual(import_instance.status, 'pending')

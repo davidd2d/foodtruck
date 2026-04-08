@@ -11,7 +11,7 @@ from .serializers import (
     OnboardingImportSerializer,
     OnboardingImportCreateSerializer,
     OnboardingPreviewSerializer,
-    OnboardingCreateSerializer
+    GenerateFoodtruckSerializer
 )
 
 
@@ -22,7 +22,7 @@ class OnboardingImportViewSet(ModelViewSet):
     serializer_class = OnboardingImportSerializer
 
     def get_queryset(self):
-        return OnboardingImport.objects.filter(user=self.request.user)
+        return OnboardingImport.objects.filter(user=self.request.user).prefetch_related("image_files")
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -31,13 +31,20 @@ class OnboardingImportViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         import_instance = serializer.save()
+        print(f"DEBUG: Created import instance with ID: {import_instance.id}")
 
         # Trigger async processing (for now, sync)
         service = AIOnboardingService()
         result = service.process_import(import_instance.id)
+        print(f"DEBUG: Process result: {result}")
 
         # Update the instance with the result
         import_instance.refresh_from_db()
+        print(f"DEBUG: Final instance status: {import_instance.status}, ID: {import_instance.id}")
+
+        # Ensure the instance has an ID and is saved
+        if not import_instance.id:
+            import_instance.save()
 
         return import_instance
 
@@ -65,26 +72,37 @@ class OnboardingImportViewSet(ModelViewSet):
 
         return Response(serializer.data)
 
-    @action(detail=False, methods=['post'])
-    def create_from_import(self, request):
-        """Create FoodTruck and related entities from processed import."""
-        serializer = OnboardingCreateSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
+    @action(detail=True, methods=['post'], url_path='create', url_name='create')
+    def create_foodtruck(self, request, pk=None):
+        """Create FoodTruck and related entities from a completed import."""
+        import_instance = self.get_object()
 
-        import_id = serializer.validated_data['import_id']
-        import_instance = get_object_or_404(
-            OnboardingImport,
-            id=import_id,
-            user=request.user,
-            status='completed'
-        )
+        if import_instance.status != 'completed':
+            return Response(
+                {'error': 'Import is not yet processed.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         service = AIOnboardingService()
         try:
             result = service.create_foodtruck_from_import(import_instance)
             return Response(result, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        except ValidationError as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as exc:
+            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GenerateFoodtruckView(generics.CreateAPIView):
+    """Generate foodtruck with menu using AI."""
+    permission_classes = [IsAuthenticated]
+    serializer_class = GenerateFoodtruckSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        service = AIOnboardingService()
+        result = service.generate_foodtruck(serializer.validated_data)
+
+        return Response(result, status=status.HTTP_200_OK)

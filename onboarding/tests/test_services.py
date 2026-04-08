@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.contrib.auth import get_user_model
@@ -182,10 +183,73 @@ class AIOnboardingServiceTests(TestCase):
 
     def test_normalize_price_handles_various_formats(self):
         # Test different price formats
-        self.assertEqual(self.service._normalize_price("10.50"), 10.50)
-        self.assertEqual(self.service._normalize_price("€10.50"), 10.50)
-        self.assertEqual(self.service._normalize_price("$10"), 10.00)
-        self.assertEqual(self.service._normalize_price("10"), 10.00)
+        price, _ = self.service._normalize_price("10.50")
+        self.assertEqual(price, Decimal("10.50"))
+        price, _ = self.service._normalize_price("€10.50")
+        self.assertEqual(price, Decimal("10.50"))
+        price, _ = self.service._normalize_price("$10")
+        self.assertEqual(price, Decimal("10.00"))
+        price, _ = self.service._normalize_price("10")
+        self.assertEqual(price, Decimal("10.00"))
+
+    def test_price_parsing_and_validation_handles_commas(self):
+        price, corrected = self.service._normalize_price("8,90€")
+        self.assertEqual(price, Decimal("8.90"))
+        self.assertFalse(corrected)
+
+    def test_price_correction_for_missing_decimal(self):
+        price, corrected = self.service._normalize_price("890")
+        self.assertEqual(price, Decimal("8.90"))
+        self.assertTrue(corrected)
+
+    def test_extreme_price_corrects_or_logs(self):
+        price, corrected = self.service._normalize_price("120")
+        self.assertEqual(price, Decimal("1.20"))
+        self.assertTrue(corrected)
+
+    def test_logo_colors_override_other_sources(self):
+        text_data = {
+            "foodtruck": {"name": "Text Truck"},
+            "menu": [],
+            "branding": {"primary_color": {"name": "pale", "hex": ""}, "secondary_color": "#111111"}
+        }
+        menu_data = {
+            "foodtruck": {},
+            "menu": [],
+            "branding": {"primary_color": "#222222", "secondary_color": "#333333"}
+        }
+        logo_data = {
+            "branding": {"primary_color": "#ABCDEF", "secondary_color": "#123456"}
+        }
+
+        merged = self.service._merge_data(text_data, menu_data, logo_data)
+
+        self.assertEqual(merged['branding']['primary_color'], '#ABCDEF')
+        self.assertEqual(merged['branding']['secondary_color'], '#123456')
+
+    def test_normalize_colors_maps_names_and_hex(self):
+        branding = {
+            'primary_color': 'dark red',
+            'secondary_color': {'name': 'beige', 'hex': ''},
+            'style': 'Vintage'
+        }
+
+        colors = self.service.normalize_colors(branding)
+
+        self.assertEqual(colors['primary_color'], '#8B0000')
+        self.assertEqual(colors['secondary_color'], '#F5F5DC')
+        self.assertEqual(colors['style'], 'Vintage')
+
+    def test_normalize_colors_invalid_values_fallback_defaults(self):
+        branding = {
+            'primary_color': '#GGGGGG',
+            'secondary_color': 'mystery color'
+        }
+
+        colors = self.service.normalize_colors(branding)
+
+        self.assertEqual(colors['primary_color'], self.service.DEFAULT_PRIMARY_COLOR)
+        self.assertEqual(colors['secondary_color'], self.service.DEFAULT_SECONDARY_COLOR)
 
     def test_merge_data_combines_text_and_image(self):
         text_data = {

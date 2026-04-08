@@ -28,3 +28,29 @@ class FoodTruckSerializer(serializers.ModelSerializer):
             'created_at',
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class CreateWithMenuSerializer(serializers.Serializer):
+    """
+    Serializer for creating foodtruck with menu.
+    """
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField()
+    menu = serializers.ListField(child=serializers.DictField())
+
+    def validate_menu(self, value):
+        if not value:
+            raise serializers.ValidationError("Menu cannot be empty")
+
+        for category in value:
+            if not category.get('category'):
+                raise serializers.ValidationError("Category name is required")
+            if not category.get('items'):
+                raise serializers.ValidationError("Category must have items")
+            for item in category['items']:
+                if not item.get('name'):
+                    raise serializers.ValidationError("Item name is required")
+                if not isinstance(item.get('price'), (int, float)) or item['price'] <= 0:
+                    raise serializers.ValidationError("Item price must be positive")
+
+        return value

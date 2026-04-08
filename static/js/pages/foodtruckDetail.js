@@ -20,6 +20,7 @@ const pickupSlotHelp = document.getElementById('pickup-slot-help');
 const pageContainer = document.querySelector('[data-foodtruck-slug]');
 const foodtruckSlug = pageContainer?.dataset.foodtruckSlug;
 const userAuthenticated = pageContainer?.dataset.userAuthenticated === 'true';
+const categoryShortcuts = document.getElementById('category-shortcuts');
 let slotSelector = null;
 
 function createLoadingState() {
@@ -31,8 +32,28 @@ function createLoadingState() {
     `;
 }
 
+function renderCategoryShortcuts(categories) {
+    if (!categoryShortcuts) {
+        return;
+    }
+
+    if (!categories || !categories.length) {
+        categoryShortcuts.innerHTML = '';
+        return;
+    }
+
+    categoryShortcuts.innerHTML = categories
+        .map((category) => `
+            <a href="#category-${category.id}" class="btn btn-outline-primary btn-sm flex-shrink-0">
+                ${category.name}
+            </a>
+        `)
+        .join('');
+}
+
 function renderMenu(menu) {
-    if (!menu.categories.length) {
+    if (!menu || !menu.categories || !menu.categories.length) {
+        categoryShortcuts?.classList.add('d-none');
         menuContainer.innerHTML = `
             <div class="text-center text-muted py-5">
                 <p class="mb-2">No menu items are available right now.</p>
@@ -42,6 +63,8 @@ function renderMenu(menu) {
         return;
     }
 
+    categoryShortcuts?.classList.remove('d-none');
+    renderCategoryShortcuts(menu.categories);
     menuContainer.innerHTML = menu.categories
         .map((category, index) => renderCategory(category, index * 10))
         .join('');

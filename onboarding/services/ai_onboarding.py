@@ -1,8 +1,15 @@
 import json
 import logging
-from typing import Dict, List, Any, Optional
-from django.db import transaction
+import mimetypes
+import os
+import base64
+import re
+from decimal import Decimal, InvalidOperation
+from typing import Dict, List, Any, Optional, Tuple
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
+from django.db import transaction
 from config.services.openai_client import OpenAIService
 from onboarding.models import OnboardingImport
 from foodtrucks.models import FoodTruck
@@ -14,6 +21,30 @@ logger = logging.getLogger(__name__)
 
 class AIOnboardingService:
     """Service for AI-powered onboarding data processing and entity creation."""
+
+    COLOR_NAME_TO_HEX = {
+        'red': '#FF0000',
+        'dark red': '#8B0000',
+        'light red': '#FF7F7F',
+        'beige': '#F5F5DC',
+        'black': '#000000',
+        'white': '#FFFFFF',
+        'navy': '#000080',
+        'blue': '#0000FF',
+        'green': '#008000',
+        'olive': '#808000',
+        'yellow': '#FFFF00',
+        'orange': '#FFA500',
+        'purple': '#800080',
+        'brown': '#654321',
+        'gray': '#808080',
+        'grey': '#808080',
+        'pink': '#FFC0CB',
+        'teal': '#008080',
+    }
+    HEX_COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
+    DEFAULT_PRIMARY_COLOR = '#000000'
+    DEFAULT_SECONDARY_COLOR = '#FFFFFF'
 
     def __init__(self):
         self.openai_service = OpenAIService()
@@ -48,12 +79,12 @@ class AIOnboardingService:
             text_data = self._extract_from_text(cleaned_text)
 
             # Step 3: Call OpenAI for image analysis if images exist
-            image_data = {}
-            if import_instance.images:
-                image_data = self._analyze_images(import_instance.images)
+            menu_images = import_instance.image_files.filter(image_type__in=['menu', 'other'])
+            logo_images = import_instance.image_files.filter(image_type='logo')
+            image_data, logo_data = self.analyze_images(menu_images, logo_images)
 
             # Step 4: Merge results
-            merged_data = self._merge_data(text_data, image_data)
+            merged_data = self._merge_data(text_data, image_data, logo_data)
 
             # Step 5: Normalize data
             normalized_data = self._normalize_data(merged_data)
@@ -99,95 +130,308 @@ class AIOnboardingService:
         try:
             response = self.openai_service.generate(
                 prompt=prompt,
-                model="gpt-4",  # Use GPT-4 for better JSON handling
+                model="gpt-4o",  # Use GPT-4o for consistency
                 max_tokens=2000
             )
 
+            # Clean the response - sometimes OpenAI returns markdown code blocks
+            cleaned_response = response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+
             # Parse JSON response
-            data = json.loads(response.strip())
+            data = json.loads(cleaned_response)
             return data
 
         except (json.JSONDecodeError, ValueError) as e:
             logger.warning(f"Failed to parse OpenAI response: {e}")
+            logger.warning(f"Raw response was: {response}")
             return self._get_empty_structure()
 
-    def _analyze_images(self, images: List[str]) -> Dict[str, Any]:
-        """Analyze images using OpenAI Vision."""
+    def analyze_images(self, menu_images, logo_images):
+        """Analyze menu and logo images separately."""
+        menu_paths = [img.image.path for img in menu_images if img.image]
+        logo_paths = [img.image.path for img in logo_images if img.image]
+
+        return self._analyze_menu_images(menu_paths), self._analyze_logo_images(logo_paths)
+
+    def _analyze_menu_images(self, images: List[str]) -> Dict[str, Any]:
+        """Analyze menu images using OpenAI Vision and extract structured menu data."""
         if not images:
             return {}
 
-        # For simplicity, analyze the first image
-        # In production, you might want to analyze multiple images
-        image_path = images[0] if images else None
+        logger.info("Analyzing %d menu images for pricing/data", len(images))
+        image_inputs = self._build_image_inputs(images)
 
-        if not image_path:
+        if not image_inputs:
+            logger.warning("No valid menu image references available")
             return {}
-
-        prompt = self._build_image_analysis_prompt()
 
         try:
-            # Note: This assumes OpenAI Vision API integration
-            # You may need to adjust based on actual OpenAI client implementation
-            response = self.openai_service.generate(
-                prompt=prompt,
-                model="gpt-4-vision-preview",  # Assuming vision model
-                max_tokens=1000
+            response = self.openai_service.generate_with_images(
+                prompt=self._build_menu_image_prompt(),
+                image_inputs=image_inputs,
+                model="gpt-4o",
+                max_tokens=1800
             )
 
-            data = json.loads(response.strip())
+            logger.info("Menu image analysis raw response: %r", response)
+            data = self._parse_image_response(response)
             return data
-
         except Exception as e:
-            logger.warning(f"Failed to analyze images: {e}")
+            logger.error("Menu image analysis failed: %s", e)
             return {}
 
-    def _merge_data(self, text_data: Dict, image_data: Dict) -> Dict:
-        """Merge text and image analysis results."""
-        merged = text_data.copy()
+    def _analyze_logo_images(self, images: List[str]) -> Dict[str, Any]:
+        """Extract branding colors from logo images."""
+        if not images:
+            return {}
 
-        # Merge menu items from images
-        if 'menu' in image_data and image_data['menu']:
-            for img_category in image_data['menu']:
-                # Find matching category or add new
-                existing_category = None
-                for cat in merged.get('menu', []):
-                    if cat.get('category', '').lower() == img_category.get('category', '').lower():
-                        existing_category = cat
-                        break
+        logger.info("Analyzing %d logo images for branding colors", len(images))
+        image_inputs = self._build_image_inputs(images)
 
-                if existing_category:
-                    # Merge items
-                    existing_items = existing_category.get('items', [])
-                    img_items = img_category.get('items', [])
-                    existing_items.extend(img_items)
-                    existing_category['items'] = existing_items
+        if not image_inputs:
+            logger.warning("No valid logo image references available")
+            return {}
+
+        try:
+            response = self.openai_service.generate_with_images(
+                prompt=self._build_logo_analysis_prompt(),
+                image_inputs=image_inputs,
+                model="gpt-4o",
+                max_tokens=600
+            )
+
+            logger.info("Logo analysis raw response: %r", response)
+            data = self._parse_image_response(response)
+            return {'branding': data} if data else {}
+        except Exception as e:
+            logger.error("Logo analysis failed: %s", e)
+            return {}
+
+    def _build_image_inputs(self, image_paths: List[str]) -> List[Dict[str, Any]]:
+        """Prepare OpenAI-compatible references for uploaded files."""
+        image_inputs = []
+        for image_path in image_paths:
+            input_reference = self._build_image_input_reference(image_path)
+            if input_reference:
+                image_inputs.append(input_reference)
+        return image_inputs
+
+    def _parse_image_response(self, response: str) -> Dict[str, Any]:
+        """Parse and clean OpenAI's image analysis response."""
+        if not response or not response.strip():
+            return {}
+
+        cleaned_response = response.strip()
+        if cleaned_response.startswith('```json'):
+            cleaned_response = cleaned_response[7:]
+        if cleaned_response.endswith('```'):
+            cleaned_response = cleaned_response[:-3]
+        cleaned_response = cleaned_response.strip()
+
+        try:
+            data = json.loads(cleaned_response)
+            if isinstance(data, dict):
+                return data
+        except (json.JSONDecodeError, ValueError) as exc:
+            logger.warning("Failed to parse image response: %s", exc)
+            logger.warning("Raw response: %r", response)
+
+        return {}
+
+    def _build_image_input_reference(self, image_path: str) -> Optional[Dict[str, Any]]:
+        """Create an OpenAI-compatible image input reference from a path or URL."""
+        if not image_path:
+            return None
+
+        # Validate file exists
+        if not os.path.exists(image_path):
+            logger.warning("Image file does not exist: %s", image_path)
+            return None
+
+        try:
+            # Encode image to base64
+            base64_data = self._encode_image_to_base64(image_path)
+            mime_type = mimetypes.guess_type(image_path)[0] or 'image/jpeg'
+
+            return {
+                "type": "image_url",
+                "image_url": {
+                    "url": f"data:{mime_type};base64,{base64_data}"
+                }
+            }
+        except Exception as exc:
+            logger.warning("Failed to prepare image reference for %s: %s", image_path, exc)
+            return None
+
+    def _encode_image_to_base64(self, image_path: str) -> str:
+        """Encode an image file to base64 string."""
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+
+    def _merge_data(self, text_data: Dict, image_data: Dict, logo_data: Dict = None) -> Dict:
+        """Merge text and image analysis results with priority rules."""
+        merged = self._get_empty_structure()
+
+        merged['foodtruck'].update(text_data.get('foodtruck', {}))
+        merged['branding'].update(text_data.get('branding', {}))
+        merged['menu'] = [
+            {
+                'category': self._normalize_category(category.get('category')),
+                'items': category.get('items', []) or []
+            }
+            for category in text_data.get('menu', [])
+        ]
+
+        for key, value in image_data.get('foodtruck', {}).items():
+            if value and not merged['foodtruck'].get(key):
+                merged['foodtruck'][key] = value
+
+        for img_category in image_data.get('menu', []):
+            category_name = self._normalize_category(img_category.get('category'))
+            existing_category = next(
+                (cat for cat in merged['menu'] if cat.get('category', '').lower() == category_name.lower()),
+                None
+            )
+
+            if not existing_category:
+                existing_category = {
+                    'category': category_name,
+                    'items': []
+                }
+                merged['menu'].append(existing_category)
+
+            for img_item in img_category.get('items', []):
+                img_name = self._normalize_item_name(img_item.get('name'))
+                if not img_name:
+                    continue
+
+                existing_item = next(
+                    (item for item in existing_category['items']
+                     if self._normalize_item_name(item.get('name')) == img_name),
+                    None
+                )
+
+                if existing_item:
+                    if img_item.get('price') is not None:
+                        existing_item['price'] = img_item.get('price')
+                        if img_item.get('currency'):
+                            existing_item['currency'] = img_item.get('currency')
+                        if not existing_item.get('description') and img_item.get('description'):
+                            existing_item['description'] = img_item.get('description')
                 else:
-                    merged.setdefault('menu', []).append(img_category)
+                    existing_category['items'].append({
+                        'name': img_item.get('name', '').strip(),
+                        'description': img_item.get('description', '') or '',
+                        'price': img_item.get('price'),
+                        'currency': img_item.get('currency', '') or '',
+                        'options': img_item.get('options', []) or []
+                    })
 
-        # Merge branding from images
-        if 'branding' in image_data:
-            merged.setdefault('branding', {}).update(image_data['branding'])
+        for key, value in image_data.get('branding', {}).items():
+            if value and not merged['branding'].get(key):
+                merged['branding'][key] = value
+
+        if logo_data:
+            for key, value in logo_data.get('branding', {}).items():
+                if value:
+                    merged['branding'][key] = value
 
         return merged
 
     def _normalize_data(self, data: Dict) -> Dict:
         """Normalize and clean the extracted data."""
-        normalized = data.copy()
+        normalized = self._get_empty_structure()
+        normalized['foodtruck'].update(data.get('foodtruck', {}))
+        normalized['branding'] = self.normalize_colors(data.get('branding', {}))
+        normalized['menu'] = data.get('menu', []) or []
 
-        # Normalize preferences
         if 'foodtruck' in normalized and 'preferences' in normalized['foodtruck']:
             normalized['foodtruck']['preferences'] = self._normalize_preferences(
                 normalized['foodtruck']['preferences']
             )
 
-        # Normalize menu prices and categories
-        if 'menu' in normalized:
-            for category in normalized['menu']:
-                if 'items' in category:
-                    for item in category['items']:
-                        if 'price' in item:
-                            item['price'] = self._normalize_price(item['price'])
+        for category in normalized['menu']:
+            category['category'] = self._normalize_category(category.get('category'))
+            items = []
+            seen = set()
 
+            for item in category.get('items', []) or []:
+                name = item.get('name', '')
+                normalized_name = self._normalize_item_name(name)
+                if not normalized_name:
+                    continue
+
+                raw_currency = item.get('currency') or self._detect_currency(str(item.get('price', '') or ''))
+                currency = self._normalize_currency(raw_currency)
+                price, corrected = self._normalize_price(item.get('price'))
+                description = (item.get('description') or '').strip()
+                options = item.get('options', []) or []
+
+                normalized_item = {
+                    'name': name.strip(),
+                    'description': description,
+                    'price': float(price) if price is not None else None,
+                    'currency': currency,
+                    'options': options,
+                    'corrected': corrected
+                }
+
+                item_key = (normalized_name, normalized_item['price'], currency)
+                if item_key in seen:
+                    continue
+
+                seen.add(item_key)
+                items.append(normalized_item)
+
+            category['items'] = items
+
+        return normalized
+
+    def normalize_colors(self, branding_data: Dict[str, Any]) -> Dict[str, Optional[str]]:
+        """Normalize branding colors into HEX strings ready for the frontend."""
+        normalized = {
+            'primary_color': self._resolve_color_value(branding_data.get('primary_color')) or self.DEFAULT_PRIMARY_COLOR,
+            'secondary_color': self._resolve_color_value(branding_data.get('secondary_color')) or self.DEFAULT_SECONDARY_COLOR,
+            'style': branding_data.get('style', '')
+        }
+        return normalized
+
+    def _resolve_color_value(self, raw_value: Any) -> Optional[str]:
+        """Resolve various color representations into a validated HEX string."""
+        name = None
+        hex_candidate = None
+
+        if isinstance(raw_value, dict):
+            hex_candidate = raw_value.get('hex') or raw_value.get('HEX')
+            name = raw_value.get('name')
+        else:
+            if isinstance(raw_value, str):
+                hex_candidate = raw_value
+                name = raw_value
+
+        if isinstance(hex_candidate, str) and hex_candidate.strip():
+            if not hex_candidate.startswith('#') and len(hex_candidate.strip()) == 6:
+                hex_candidate = f"#{hex_candidate.strip()}"
+            if self.HEX_COLOR_RE.match(hex_candidate):
+                return self._normalize_hex(hex_candidate)
+
+        if name:
+            mapped = self.COLOR_NAME_TO_HEX.get(name.strip().lower())
+            if mapped:
+                return mapped
+
+        return None
+
+    def _normalize_hex(self, value: str) -> str:
+        """Normalize hex representation to upper-case with leading #."""
+        normalized = value.strip().upper()
+        if not normalized.startswith('#'):
+            normalized = f'#{normalized}'
         return normalized
 
     def _normalize_preferences(self, preferences: List[str]) -> List[str]:
@@ -213,20 +457,101 @@ class AIOnboardingService:
 
         return list(set(normalized))  # Remove duplicates
 
-    def _normalize_price(self, price: Any) -> Optional[float]:
-        """Normalize price to float, handling various formats."""
+    def _normalize_price(self, price: Any) -> Tuple[Optional[Decimal], bool]:
+        """Normalize raw price values and apply validation/corrections."""
+        decimal_price = self._parse_price_value(price)
+        if decimal_price is None:
+            return None, False
+
+        try:
+            normalized, corrected = self.validate_price(decimal_price)
+            return normalized, corrected
+        except ValidationError as exc:
+            logger.warning("Price validation failed (%s): %s", price, exc)
+            return None, False
+
+    def _parse_price_value(self, price: Any) -> Optional[Decimal]:
+        """Parse a raw price representation into Decimal."""
         if price is None or price == "":
             return None
 
         try:
-            # Remove currency symbols and convert to float
             if isinstance(price, str):
-                # Remove common currency symbols and commas
-                cleaned = price.replace('$', '').replace('€', '').replace('£', '').replace(',', '')
-                return float(cleaned.strip())
-            return float(price)
-        except (ValueError, TypeError):
-            return None
+                cleaned = price.strip()
+                cleaned = re.sub(r'[€$£]', '', cleaned)
+                cleaned = cleaned.replace(' ', '')
+                if ',' in cleaned and '.' not in cleaned and re.match(r'^[0-9]+,[0-9]{1,2}$', cleaned):
+                    cleaned = cleaned.replace(',', '.')
+                else:
+                    cleaned = cleaned.replace(',', '')
+                if cleaned == '':
+                    return None
+                return Decimal(cleaned)
+
+            if isinstance(price, (int, float, Decimal)):
+                return Decimal(str(price))
+        except (InvalidOperation, ValueError, TypeError) as exc:
+            logger.warning("Failed to parse price '%s': %s", price, exc)
+
+        return None
+
+    def validate_price(self, price: Decimal) -> Tuple[Decimal, bool]:
+        """Enforce business rules for prices and auto-correct obvious OCR issues."""
+        corrected = False
+        if price >= Decimal('100'):
+            if (price % 10) == 0:
+                corrected_price = price / Decimal('100')
+                logger.warning("Auto-corrected price %s -> %s", price, corrected_price)
+                price = corrected_price
+                corrected = True
+            else:
+                raise ValidationError("Price %s exceeds allowed maximum for a menu item" % price)
+
+        if price > Decimal('50'):
+            logger.warning("Suspiciously high price detected: %s", price)
+
+        return price, corrected
+
+    def _normalize_category(self, category: Any) -> str:
+        """Normalize or default a category name."""
+        if not category:
+            return 'Main dishes'
+        normalized = str(category).strip()
+        return normalized if normalized else 'Main dishes'
+
+    def _normalize_item_name(self, name: Any) -> str:
+        """Normalize item names for duplicate detection."""
+        if not name:
+            return ''
+        return str(name).strip().lower()
+
+    def _detect_currency(self, raw_value: str) -> str:
+        """Detect a common currency symbol or keyword from a string."""
+        if not raw_value:
+            return ''
+
+        lower_value = raw_value.lower()
+        if '€' in raw_value or 'eur' in lower_value or 'euro' in lower_value:
+            return '€'
+        if '$' in raw_value or 'usd' in lower_value or 'dollar' in lower_value:
+            return '$'
+        if '£' in raw_value or 'gbp' in lower_value or 'pound' in lower_value:
+            return '£'
+
+        return ''
+
+    def _normalize_currency(self, currency: Any) -> str:
+        """Normalize currency values to supported symbols."""
+        symbol = str(currency).strip() if currency is not None else ''
+        if not symbol:
+            return ''
+        if '€' in symbol or symbol.lower() in ['eur', 'euro']:
+            return '€'
+        if '$' in symbol or symbol.lower() in ['usd', 'dollar']:
+            return '$'
+        if '£' in symbol or symbol.lower() in ['gbp', 'pound']:
+            return '£'
+        return ''
 
     def create_foodtruck_from_import(self, import_instance: OnboardingImport) -> Dict[str, Any]:
         """
@@ -236,6 +561,9 @@ class AIOnboardingService:
         Does NOT overwrite existing data.
         Allows partial creation.
         """
+        if import_instance.status != 'completed':
+            raise ValidationError("Import must be completed before creating a food truck")
+
         if not import_instance.parsed_data:
             raise ValidationError("No parsed data available")
 
@@ -329,6 +657,11 @@ class AIOnboardingService:
 
     def _get_empty_structure(self) -> Dict[str, Any]:
         """Return empty JSON structure."""
+        branding_defaults = {
+            "primary_color": {"name": "", "hex": ""},
+            "secondary_color": {"name": "", "hex": ""},
+            "style": ""
+        }
         return {
             "foodtruck": {
                 "name": "",
@@ -338,11 +671,7 @@ class AIOnboardingService:
                 "preferences": []
             },
             "menu": [],
-            "branding": {
-                "primary_color": "",
-                "secondary_color": "",
-                "style": ""
-            }
+            "branding": self.normalize_colors(branding_defaults)
         }
 
     def _build_text_extraction_prompt(self, text: str) -> str:
@@ -376,28 +705,227 @@ Return JSON in this exact format:
           "name": "",
           "description": "",
           "price": null,
+          "currency": "",
           "options": []
         }}
       ]
     }}
   ],
   "branding": {{
-    "primary_color": "",
-    "secondary_color": "",
+    "primary_color": {{"name": "", "hex": ""}},
+    "secondary_color": {{"name": "", "hex": ""}},
     "style": ""
   }}
 }}
 """
 
-    def _build_image_analysis_prompt(self) -> str:
-        """Build the OpenAI prompt for image analysis."""
+    def _build_menu_image_prompt(self) -> str:
+        """Build the OpenAI prompt for menu image analysis."""
         return """
-Analyze this food truck related image and extract relevant information.
+You are analyzing a food menu image.
 
-Return JSON in the same format as text extraction, focusing on:
-- Menu items visible in the image
-- Any branding elements (colors, style)
-- Food truck name if visible
+Extract ALL visible structured data.
 
-If no relevant information is found, return empty structure.
+Rules:
+- Do NOT guess missing values
+- Do NOT invent items
+- Use null for missing prices
+- Group items by category if visible
+- Extract colors if dominant colors are visible
+- Detect currency (€,$,£)
+- Return ONLY valid JSON
+
+Return JSON in this exact format:
+{
+  "menu": [
+    {
+      "category": "",
+      "items": [
+        {
+          "name": "",
+          "description": "",
+          "price": null,
+          "currency": ""
+        }
+      ]
+    }
+  ],
+  "branding": {
+    "primary_color": {"name": "", "hex": ""},
+    "secondary_color": {"name": "", "hex": ""}
+  }
+}
 """
+
+    def _build_logo_analysis_prompt(self) -> str:
+        """Build the OpenAI prompt for logo color extraction."""
+        return """
+Extract dominant brand colors from this logo.
+
+Rules:
+- Return 1 or 2 main colors
+- Provide HEX values only
+- Ignore background noise
+- Prefer high contrast / visible colors
+- Return ONLY valid JSON
+
+Return:
+{
+  "primary_color": "#XXXXXX",
+  "secondary_color": "#XXXXXX"
+}
+"""
+
+    def generate_foodtruck(self, concept_prompt: str) -> Dict[str, Any]:
+        """
+        Generate a complete foodtruck concept from a user prompt.
+
+        Args:
+            concept_prompt: User's description of their foodtruck idea
+
+        Returns:
+            Dict containing generated foodtruck data with name, description, and menu
+        """
+        if not concept_prompt or not concept_prompt.strip():
+            raise ValidationError("Concept prompt cannot be empty")
+
+        prompt = self._build_foodtruck_generation_prompt(concept_prompt.strip())
+
+        try:
+            response = self.openai_service.generate(
+                prompt=prompt,
+                model="gpt-4o",
+                max_tokens=3000
+            )
+
+            # Clean the response - sometimes OpenAI returns markdown code blocks
+            cleaned_response = response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]
+            cleaned_response = cleaned_response.strip()
+
+            # Parse JSON response
+            data = json.loads(cleaned_response)
+
+            # Validate the response structure
+            if not self._validate_generated_data(data):
+                logger.warning("Generated data failed validation, using fallback")
+                return self._get_fallback_foodtruck(concept_prompt)
+
+            return data
+
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Failed to parse OpenAI response for foodtruck generation: {e}")
+            logger.error(f"Raw response was: {response}")
+            return self._get_fallback_foodtruck(concept_prompt)
+        except Exception as e:
+            logger.error(f"Error generating foodtruck: {e}")
+            return self._get_fallback_foodtruck(concept_prompt)
+
+    def _build_foodtruck_generation_prompt(self, concept: str) -> str:
+        """Build the OpenAI prompt for foodtruck generation."""
+        return f"""
+You are a creative food truck business consultant. Generate a complete food truck concept based on the user's idea.
+
+USER CONCEPT: {concept}
+
+Create a compelling food truck concept with:
+1. A catchy, memorable name
+2. An engaging description that captures the essence
+3. A complete menu with 3-5 categories and 2-4 items per category
+4. Realistic pricing appropriate for the concept
+5. Dietary preferences that fit the concept
+
+IMPORTANT RULES:
+- Return ONLY valid JSON
+- Make the concept unique and marketable
+- Ensure prices are reasonable (most items $5-15)
+- Include variety in menu items
+- Consider the target audience from the concept
+- Keep descriptions concise but appealing
+
+Return JSON in this exact format:
+{{
+  "foodtruck": {{
+    "name": "Catchy Food Truck Name",
+    "description": "Engaging 2-3 sentence description",
+    "cuisine_type": "Primary cuisine style",
+    "preferences": ["Vegan", "Gluten-Free", "Halal", "Kosher", "Dairy-Free"]
+  }},
+  "menu": [
+    {{
+      "category": "Appetizers",
+      "items": [
+        {{
+          "name": "Item Name",
+          "description": "Brief description",
+          "price": 8.99,
+          "options": []
+        }}
+      ]
+    }}
+  ]
+}}
+"""
+
+    def _validate_generated_data(self, data: Dict) -> bool:
+        """Validate the structure of generated foodtruck data."""
+        try:
+            # Check required top-level keys
+            if 'foodtruck' not in data or 'menu' not in data:
+                return False
+
+            # Check foodtruck structure
+            ft = data['foodtruck']
+            if not all(key in ft for key in ['name', 'description', 'cuisine_type', 'preferences']):
+                return False
+
+            if not ft['name'] or not ft['description']:
+                return False
+
+            # Check menu structure
+            if not isinstance(data['menu'], list) or len(data['menu']) == 0:
+                return False
+
+            for category in data['menu']:
+                if 'category' not in category or 'items' not in category:
+                    return False
+                if not isinstance(category['items'], list) or len(category['items']) == 0:
+                    return False
+
+                for item in category['items']:
+                    if not all(key in item for key in ['name', 'description', 'price']):
+                        return False
+                    if not item['name'] or item['price'] is None:
+                        return False
+
+            return True
+
+        except Exception:
+            return False
+
+    def _get_fallback_foodtruck(self, concept: str) -> Dict[str, Any]:
+        """Return a basic fallback foodtruck structure when generation fails."""
+        return {
+            "foodtruck": {
+                "name": "My Food Truck",
+                "description": f"A delicious food truck serving {concept.lower() if concept else 'great food'}.",
+                "cuisine_type": "American",
+                "preferences": ["Vegetarian"]
+            },
+            "menu": [
+                {
+                    "category": "Main Dishes",
+                    "items": [
+                        {
+                            "name": "Signature Dish",
+                            "description": "Our most popular item",
+                            "price": 12.99,
+                            "options": []
+                        }
+                    ]
+                }
+            ]
+        }

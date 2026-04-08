@@ -1,0 +1,28 @@
+<!-- Branding Preview Partial -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">Branding</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Primary Color</label>
+                <div class="d-flex align-items-center">
+                    <div class="color-preview" id="primary-color-preview" style="background-color: {{ branding.primary_color|default:'#000000' }}"></div>
+                    <input type="color" class="form-control form-control-color" id="primary-color" value="{{ branding.primary_color|default:'#000000' }}">
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">Secondary Color</label>
+                <div class="d-flex align-items-center">
+                    <div class="color-preview" id="secondary-color-preview" style="background-color: {{ branding.secondary_color|default:'#ffffff' }}"></div>
+                    <input type="color" class="form-control form-control-color" id="secondary-color" value="{{ branding.secondary_color|default:'#ffffff' }}">
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-bold">Style</label>
+            <div class="editable-field" data-field="branding.style" contenteditable="true">{{ branding.style|default:"Classic" }}</div>
+        </div>
+    </div>
+</div>

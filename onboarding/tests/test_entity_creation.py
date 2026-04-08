@@ -2,7 +2,8 @@ import json
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, TransactionTestCase
 from django.core.exceptions import ValidationError
-from onboarding.models import OnboardingImport
+from django.core.files.base import ContentFile
+from onboarding.models import OnboardingImport, OnboardingImage
 from onboarding.services.ai_onboarding import AIOnboardingService
 from onboarding.tests.fixtures import OnboardingTestFixtures
 from foodtrucks.models import FoodTruck
@@ -201,8 +202,9 @@ class ResilienceTests(OnboardingTestFixtures):
         import_instance = OnboardingImport.objects.create(
             user=self.user,
             raw_text="",  # No text
-            images=["image1.jpg", "image2.jpg"]
         )
+        OnboardingImage.objects.create(import_instance=import_instance, image=ContentFile(b"menu", name="menu.jpg"))
+        OnboardingImage.objects.create(import_instance=import_instance, image=ContentFile(b"logo", name="logo.jpg"))
 
         service = AIOnboardingService()
         result = service.process_import(import_instance.id)

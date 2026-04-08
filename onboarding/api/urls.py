@@ -7,4 +7,5 @@ router.register(r'imports', views.OnboardingImportViewSet, basename='onboarding-
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('generate-foodtruck/', views.GenerateFoodtruckView.as_view(), name='generate-foodtruck'),
 ]

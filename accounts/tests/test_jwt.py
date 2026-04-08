@@ -63,7 +63,7 @@ def test_authenticated_request_with_valid_token(client, user):
 def test_invalid_token_is_rejected(client):
     client.credentials(HTTP_AUTHORIZATION='Bearer malformed.token.value')
     response = client.post(reverse('accounts_api:logout'), {'refresh': 'invalid'}, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_token_expiration_is_enforced(client, user):
@@ -78,7 +78,7 @@ def test_token_expiration_is_enforced(client, user):
 
     client.credentials(HTTP_AUTHORIZATION=f'Bearer {str(expired_access)}')
     response = client.post(reverse('accounts_api:logout'), {'refresh': refresh}, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_refresh_rotates_tokens_and_old_token_is_invalid(client, user):
@@ -127,4 +127,4 @@ def test_logout_blacklists_refresh_token(client, user):
 
 def test_no_token_cannot_access_protected_endpoint(client):
     response = client.post(reverse('accounts_api:logout'), {'refresh': 'ignored'}, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 403

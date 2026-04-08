@@ -63,8 +63,10 @@ export class SlotSelector {
                 .join('')}
         `;
         this.selectElement.disabled = false;
-        this.helpElement?.classList.remove('text-danger');
-        this.helpElement?.textContent = 'Select a pickup slot before checkout.';
+        if (this.helpElement) {
+            this.helpElement.classList.remove('text-danger');
+            this.helpElement.textContent = 'Select a pickup slot before checkout.';
+        }
     }
 
     setLoadingState() {
@@ -73,8 +75,10 @@ export class SlotSelector {
         }
         this.selectElement.disabled = true;
         this.selectElement.innerHTML = '<option value="">Loading available slots…</option>';
-        this.helpElement?.classList.remove('text-danger');
-        this.helpElement?.textContent = 'Loading available slots…';
+        if (this.helpElement) {
+            this.helpElement.classList.remove('text-danger');
+            this.helpElement.textContent = 'Loading available slots…';
+        }
     }
 
     setEmptyState() {
@@ -83,7 +87,9 @@ export class SlotSelector {
         }
         this.selectElement.disabled = true;
         this.selectElement.innerHTML = '<option value="">No pickup slots available.</option>';
-        this.helpElement?.textContent = 'No pickup slots are currently available.';
+        if (this.helpElement) {
+            this.helpElement.textContent = 'No pickup slots are currently available.';
+        }
     }
 
     setErrorState() {
@@ -93,8 +99,10 @@ export class SlotSelector {
 
         this.selectElement.disabled = true;
         this.selectElement.innerHTML = '<option value="">Unable to load pickup slots.</option>';
-        this.helpElement?.classList.add('text-danger');
-        this.helpElement?.textContent = 'Unable to load pickup slots.';
+        if (this.helpElement) {
+            this.helpElement.classList.add('text-danger');
+            this.helpElement.textContent = 'Unable to load pickup slots.';
+        }
     }
 
     reset(message = 'Select a pickup slot before checkout.') {
@@ -104,8 +112,10 @@ export class SlotSelector {
 
         this.selectElement.innerHTML = '<option value="">Choose a pickup slot</option>';
         this.selectElement.disabled = true;
-        this.helpElement?.textContent = message;
-        this.helpElement?.classList.remove('text-danger');
+        if (this.helpElement) {
+            this.helpElement.textContent = message;
+            this.helpElement.classList.remove('text-danger');
+        }
     }
 
     getSelectedSlotId() {

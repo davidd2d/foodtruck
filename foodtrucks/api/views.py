@@ -1,8 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
-from rest_framework.permissions import AllowAny
-from .serializers import FoodTruckSerializer
+from rest_framework import viewsets, filters, status
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from .serializers import FoodTruckSerializer, CreateWithMenuSerializer
 from ..models import FoodTruck
+from menu.models import Menu, Category, Item
 
 
 class FoodTruckViewSet(viewsets.ReadOnlyModelViewSet):
@@ -52,3 +55,35 @@ class FoodTruckViewSet(viewsets.ReadOnlyModelViewSet):
                 pass  # Ignore invalid parameters
 
         return queryset
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def create_with_menu(self, request):
+        """
+        Create foodtruck with menu from AI-generated data.
+        """
+        serializer = CreateWithMenuSerializer(data=request.data)
+        if serializer.is_valid():
+            # Create foodtruck
+            foodtruck = FoodTruck.objects.create(
+                owner=request.user,
+                name=serializer.validated_data['name'],
+                description=serializer.validated_data['description']
+            )
+
+            # Create menu
+            menu = Menu.objects.create(food_truck=foodtruck, name=f"{foodtruck.name} Menu")
+
+            for category_data in serializer.validated_data['menu']:
+                category = Category.objects.create(menu=menu, name=category_data['category'])
+
+                for item_data in category_data['items']:
+                    Item.objects.create(
+                        category=category,
+                        name=item_data['name'],
+                        base_price=item_data['price']
+                    )
+
+            response_serializer = FoodTruckSerializer(foodtruck)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Preview Your Foodtruck - FoodTruck SaaS{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+.editable-field {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 2px 4px;
+    transition: border-color 0.2s;
+}
+.editable-field:hover {
+    border-color: #dee2e6;
+}
+.editable-field:focus {
+    border-color: #0d6efd;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
+.tag-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    min-width: 100px;
+}
+.tag {
+    display: inline-flex;
+    align-items: center;
+    background: #e9ecef;
+    border-radius: 20px;
+    padding: 4px 12px;
+    margin: 2px;
+    font-size: 0.875rem;
+}
+.tag-remove {
+    margin-left: 8px;
+    cursor: pointer;
+    color: #6c757d;
+}
+.tag-remove:hover {
+    color: #dc3545;
+}
+.menu-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #fff;
+}
+.menu-item:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.color-preview {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    display: inline-block;
+    margin-right: 10px;
+}
+.add-item-btn {
+    border: 2px dashed #dee2e6;
+    background: transparent;
+    color: #6c757d;
+}
+.add-item-btn:hover {
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">Preview Your Foodtruck</h1>
+                <p class="lead text-muted">Review and edit the AI-generated content before creating your foodtruck</p>
+            </div>
+
+            <!-- Preview Content -->
+            <div id="preview-content">
+                <!-- Foodtruck Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">Foodtruck Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Name</label>
+                                <div class="editable-field" data-field="foodtruck.name" contenteditable="true"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cuisine Type</label>
+                                <div class="editable-field" data-field="foodtruck.cuisine_type" contenteditable="true"></div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Description</label>
+                            <div class="editable-field" data-field="foodtruck.description" contenteditable="true"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Preferences</label>
+                            <div id="preferences-tags" class="d-flex flex-wrap align-items-center">
+                                <input type="text" class="tag-input" placeholder="Add preference..." id="preference-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Menu Section -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Menu</h3>
+                        <button class="btn btn-outline-primary btn-sm" id="add-category-btn">
+                            <i class="bi bi-plus-circle me-1"></i>Add Category
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="menu-content">
+                            <!-- Menu categories will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branding Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">Branding</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Primary Color</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="color-preview" id="primary-color-preview"></div>
+                                    <input type="color" class="form-control form-control-color" id="primary-color" value="#000000">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Secondary Color</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="color-preview" id="secondary-color-preview"></div>
+                                    <input type="color" class="form-control form-control-color" id="secondary-color" value="#ffffff">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Style</label>
+                            <div class="editable-field" data-field="branding.style" contenteditable="true">Classic</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mb-5">
+                    <button class="btn btn-secondary me-3" id="back-btn">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Import
+                    </button>
+                    <button class="btn btn-success btn-lg px-5" id="create-btn">
+                        <i class="bi bi-check-circle me-2"></i>Create My Foodtruck
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="d-none">
+                <div class="card border-info">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h4>Creating your foodtruck...</h4>
+                        <p class="text-muted">This will only take a moment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="success-state" class="d-none">
+                <div class="card border-success">
+                    <div class="card-body text-center py-5">
+                        <div class="text-success mb-3">
+                            <i class="bi bi-check-circle-fill" style="font-size: 4rem;"></i>
+                        </div>
+                        <h3 class="text-success mb-3">Foodtruck Created Successfully!</h3>
+                        <p class="mb-4">Your foodtruck has been created and is ready to use.</p>
+                        <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-eye me-2"></i>View My Foodtrucks
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for CSRF -->
+<form id="csrf-form">{% csrf_token %}</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'onboarding/js/preview.js' %}"></script>
+{% endblock %}

@@ -27,7 +27,6 @@ class OnboardingAPITests(JWTAPITestCase):
         url = reverse('onboarding-import-list')
         data = {
             'raw_text': 'Sample menu text',
-            'images': ['image1.jpg'],
             'source_url': 'https://example.com'
         }
 
@@ -136,8 +135,7 @@ class OnboardingAPITests(JWTAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     @patch('onboarding.api.views.AIOnboardingService')
-    def test_create_from_import_success(self, mock_service_class):
-        # Mock the service
+    def test_create_foodtruck_action_success(self, mock_service_class):
         mock_service = MagicMock()
         mock_service.create_foodtruck_from_import.return_value = {
             'status': 'success',
@@ -153,24 +151,23 @@ class OnboardingAPITests(JWTAPITestCase):
         )
 
         self.authenticate_user(self.user)
-        url = reverse('onboarding-import-create-from-import')
-        data = {'import_id': import_instance.id}
+        url = reverse('onboarding-import-create', kwargs={'pk': import_instance.id})
 
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_service.create_foodtruck_from_import.assert_called_once_with(import_instance)
 
-    def test_create_from_import_fails_for_incomplete_import(self):
+    def test_create_foodtruck_action_fails_for_incomplete_import(self):
         import_instance = OnboardingImport.objects.create(
             user=self.user,
             status='pending'
         )
 
         self.authenticate_user(self.user)
-        url = reverse('onboarding-import-create-from-import')
-        data = {'import_id': import_instance.id}
+        url = reverse('onboarding-import-create', kwargs={'pk': import_instance.id})
 
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)

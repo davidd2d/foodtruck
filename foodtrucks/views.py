@@ -23,6 +23,9 @@ def foodtruck_detail(request, slug):
         is_active=True,
     )
 
-    return render(request, 'foodtrucks/detail.html', {
+    # Check if debug mode is requested
+    use_debug = request.GET.get('debug') == '1'
+
+    return render(request, 'foodtrucks/detail_debug.html' if use_debug else 'foodtrucks/detail.html', {
         'foodtruck': foodtruck,
     })

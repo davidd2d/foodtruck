@@ -5,6 +5,40 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
+def onboarding_upload_path(instance, filename):
+    """Generate upload path for onboarding images."""
+    return f"onboarding/user_{instance.import_instance.user_id}/import_{instance.import_instance.id}/raw/{filename}"
+
+
+class OnboardingImage(models.Model):
+    """Model for storing uploaded images for onboarding imports."""
+
+    import_instance = models.ForeignKey(
+        "OnboardingImport",
+        related_name="image_files",
+        on_delete=models.CASCADE
+    )
+    image = models.ImageField(upload_to=onboarding_upload_path)
+    image_type = models.CharField(
+        max_length=20,
+        choices=[
+            ("menu", "Menu"),
+            ("logo", "Logo"),
+            ("other", "Other"),
+        ],
+        default="menu"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Onboarding Image')
+        verbose_name_plural = _('Onboarding Images')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Image for {self.import_instance} - {self.image.name}"
+
+
 class OnboardingImport(models.Model):
     """Model for storing user-provided data for AI-powered onboarding."""
 
@@ -25,10 +59,11 @@ class OnboardingImport(models.Model):
         blank=True,
         help_text=_('Raw text input from user (e.g., copied from Instagram, website)')
     )
-    images = models.JSONField(
-        default=list,
+    images = models.ManyToManyField(
+        "OnboardingImage",
         blank=True,
-        help_text=_('List of uploaded image file paths or URLs')
+        related_name="imports",
+        help_text=_('Uploaded images for AI processing')
     )
     source_url = models.URLField(
         blank=True,
@@ -58,3 +93,14 @@ class OnboardingImport(models.Model):
 
     def __str__(self):
         return f"Onboarding Import for {self.user.email} - {self.status}"
+
+    def cleanup_files(self):
+        """Delete all associated uploaded files."""
+        for image_file in self.image_files.all():
+            try:
+                image_file.image.delete(save=False)
+            except Exception:
+                # Log but don't fail if file deletion fails
+                pass
+        # Clear the many-to-many relationship
+        self.images.clear()

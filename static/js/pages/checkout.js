@@ -14,8 +14,10 @@ export function createCheckoutHandler({
         }
 
         if (!userAuthenticated) {
-            checkoutHelp?.classList.remove('d-none');
-            checkoutHelp?.textContent = 'Please log in before submitting an order.';
+            if (checkoutHelp) {
+                checkoutHelp.classList.remove('d-none');
+                checkoutHelp.textContent = 'Please log in before submitting an order.';
+            }
             return;
         }
 
@@ -27,10 +29,12 @@ export function createCheckoutHandler({
 
         checkoutButton.disabled = true;
         checkoutButton.textContent = 'Processing...';
-        checkoutHelp?.classList.remove('text-danger');
-        checkoutHelp?.classList.remove('text-success');
-        checkoutHelp?.classList.remove('d-none');
-        checkoutHelp?.textContent = 'Finalizing your order…';
+        if (checkoutHelp) {
+            checkoutHelp.classList.remove('text-danger');
+            checkoutHelp.classList.remove('text-success');
+            checkoutHelp.classList.remove('d-none');
+            checkoutHelp.textContent = 'Finalizing your order…';
+        }
 
         try {
             const { order_id } = await checkoutCart();
@@ -38,15 +42,19 @@ export function createCheckoutHandler({
             await submitOrder(order_id);
             await refreshCart();
 
-            checkoutHelp?.classList.remove('text-danger');
-            checkoutHelp?.classList.add('text-success');
-            checkoutHelp?.textContent = `Order submitted (#${order_id}).`;
+            if (checkoutHelp) {
+                checkoutHelp.classList.remove('text-danger');
+                checkoutHelp.classList.add('text-success');
+                checkoutHelp.textContent = `Order submitted (#${order_id}).`;
+            }
             slotSelector?.reset('Add items to your cart to continue.');
             setCheckoutState(false, 'Add items to your cart to continue.');
         } catch (error) {
-            checkoutHelp?.classList.remove('text-success');
-            checkoutHelp?.classList.add('text-danger');
-            checkoutHelp?.textContent = error.message || 'Unable to complete checkout.';
+            if (checkoutHelp) {
+                checkoutHelp.classList.remove('text-success');
+                checkoutHelp.classList.add('text-danger');
+                checkoutHelp.textContent = error.message || 'Unable to complete checkout.';
+            }
         } finally {
             checkoutButton.disabled = false;
             checkoutButton.textContent = 'Checkout';

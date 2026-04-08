@@ -14,7 +14,7 @@
                 </div>
                 {% if user.is_authenticated %}
                 <div>
-                    <a href="#" class="btn btn-success">
+                    <a href="{% url 'onboarding:import' %}" class="btn btn-success">
                         <i class="bi bi-plus-circle"></i> Add Foodtruck
                     </a>
                 </div>

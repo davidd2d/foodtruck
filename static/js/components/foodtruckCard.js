@@ -27,7 +27,7 @@ export function createFoodtruckCard(foodtruck) {
     } = foodtruck;
 
     // Use logo if available, otherwise fallback to image or placeholder
-    const displayImage = logo || image || '/static/images/foodtruck-placeholder.jpg';
+    const displayImage = logo || image || '/static/images/foodtruck-placeholder.svg';
 
     // Truncate description if too long
     const shortDescription = description && description.length > 120
@@ -47,7 +47,7 @@ export function createFoodtruckCard(foodtruck) {
                          class="card-img-top"
                          alt="${name}"
                          style="width: 100%; height: 100%; object-fit: cover;"
-                         onerror="this.src='/static/images/foodtruck-placeholder.jpg'">
+                         onerror="this.src='/static/images/foodtruck-placeholder.svg'">
                 </div>
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start mb-2">

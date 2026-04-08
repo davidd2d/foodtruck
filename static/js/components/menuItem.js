@@ -72,9 +72,9 @@ export function renderCategory(category, itemIndexStart = 0) {
     const itemsMarkup = category.items.map((item, index) => renderMenuItem(item, itemIndexStart + index)).join('');
 
     return `
-        <section class="mb-4">
+        <section class="mb-4" id="category-${category.id}">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="h6 mb-0">${category.name}</h4>
+                <h3 class="h6 mb-0">${category.name}</h3>
                 <span class="badge bg-secondary">${category.items.length} items</span>
             </div>
             ${itemsMarkup}
