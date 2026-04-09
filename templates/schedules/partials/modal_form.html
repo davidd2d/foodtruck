@@ -1,0 +1,34 @@
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleModalLabel">{% trans "Add time window" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="schedule-form" novalidate>
+                <div class="modal-body">
+                    <div class="alert alert-danger d-none" id="schedule-form-errors"></div>
+                    <input type="hidden" name="schedule_id" id="schedule-id-field">
+                    <input type="hidden" name="day_of_week" id="schedule-day-field">
+
+                    <div class="mb-3">
+                        <label for="start-time" class="form-label">{% trans "Start time" %}</label>
+                        <input type="time" class="form-control" id="start-time" name="start_time" required step="300">
+                    </div>
+                    <div class="mb-3">
+                        <label for="end-time" class="form-label">{% trans "End time" %}</label>
+                        <input type="time" class="form-control" id="end-time" name="end_time" required step="300">
+                    </div>
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">{% trans "Capacity per slot" %}</label>
+                        <input type="number" min="1" class="form-control" id="capacity" name="capacity_per_slot" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary" id="schedule-submit-btn">{% trans "Save" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -68,6 +68,7 @@ A SaaS platform for food trucks allowing:
 
 - **Menu visibility:** always shown (Free + Pro)
 - **Ordering UI:** visible only for active Pro plan
+- **Pickup slot recommendation:** the foodtruck detail page now selects the best available pickup window automatically using immediate pickup first, then current schedule slots, then the next active schedule.
 - **Frontend JS:** separates menu loading from ordering UI
 - **Tests:**
 - Menu HTML and JS rendering
@@ -107,7 +108,17 @@ A SaaS platform for food trucks allowing:
 - Ordering gated
 - Description toggle
 - Colors applied correctly
-- **Logging:** all critical errors
+-- **Logging:** all critical errors
+
+---
+
+## 🔟 Location Management
+
+- **Owner URLs:** `/orders/foodtruck/<slug>/locations/`, `/create/`, `/<id>/edit/`, `/<id>/delete/` expose location CRUD for owners tied to schedules.
+- **Data:** each location stores address lines, city, postal code, country, GPS coordinates, notes, and an `is_active` flag for soft deletion while linking back to its `ServiceSchedule` for future slot scoring.
+- **Fallback:** if no custom location exists for a given schedule, the food truck’s base latitude/longitude serve as the administrative fallback.
+- **UI:** a “Locations” link now appears in the foodtruck owner dropdown; the list page hints at the base fallback and shows actions to edit/delete.
+- **Tests:** backend coverage includes `orders.tests.test_locations` (model validation) and `orders.tests.test_location_views` (CRUD + permissions), ensuring owner-only access.
 
 ---
 

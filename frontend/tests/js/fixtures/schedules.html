@@ -1,0 +1,39 @@
+<div class="container">
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <button type="button" data-preset="lunch">Add Lunch</button>
+    <button type="button" data-preset="dinner">Add Dinner</button>
+  </div>
+  <div class="row g-3" id="day-card-grid">
+    <div class="col" data-day-card="0">
+      <div id="schedule-windows-0"></div>
+      <p id="day-summary-0"></p>
+      <div id="empty-state-0"></div>
+    </div>
+    <div class="col" data-day-card="1">
+      <div id="schedule-windows-1"></div>
+      <p id="day-summary-1"></p>
+      <div id="empty-state-1"></div>
+    </div>
+  </div>
+  <button id="refresh-schedules">Refresh</button>
+</div>
+<div id="scheduleModal" class="modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="schedule-form">
+        <h5 class="modal-title" id="scheduleModalLabel">Add time window</h5>
+        <input type="hidden" id="schedule-id-field" />
+        <input type="hidden" id="schedule-day-field" />
+        <label for="start-time">Start time</label>
+        <input type="time" id="start-time" />
+        <label for="end-time">End time</label>
+        <input type="time" id="end-time" />
+        <label for="capacity">Capacity</label>
+        <input type="number" id="capacity" />
+        <div id="schedule-form-errors"></div>
+        <button id="schedule-submit-btn" type="submit"></button>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="toast-container-custom" id="toast-container"></div>

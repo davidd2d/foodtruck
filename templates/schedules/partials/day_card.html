@@ -1,0 +1,19 @@
+<div class="col-12 col-md-6 col-lg-4 mb-4" data-day-card="{{ day_index }}">
+    <div class="card h-100 schedule-day-card shadow-sm border-0">
+        <div class="card-body d-flex flex-column">
+            <div class="d-flex align-items-start justify-content-between mb-3">
+                <div>
+                    <h5 class="mb-1 fw-semibold">{{ day_label|trans }}</h5>
+                    <p class="text-muted small mb-0" id="day-summary-{{ day_index }}">{% trans "Loading time windows…" %}</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary add-window-btn" data-day-index="{{ day_index }}">
+                    + {% trans "Add" %}
+                </button>
+            </div>
+            <div id="schedule-windows-{{ day_index }}" class="schedule-windows flex-grow-1"></div>
+            <div class="empty-state text-center text-muted mt-3 d-none" id="empty-state-{{ day_index }}">
+                <p class="mb-1">{% trans "No working hours defined" %}</p>
+            </div>
+        </div>
+    </div>
+</div>

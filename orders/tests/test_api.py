@@ -1,4 +1,6 @@
+from datetime import timedelta
 from decimal import Decimal
+from django.utils import timezone
 from rest_framework.test import APITestCase
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -158,6 +160,31 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data[0]['id'], self.pickup_slot.id)
         self.assertTrue(response.data[0]['is_available'])
         self.assertEqual(response.data[0]['remaining_capacity'], self.pickup_slot.remaining_capacity())
+
+    def test_fetch_available_pickup_slots_falls_back_to_next_available_schedule(self):
+        from datetime import timedelta
+        from orders.models import ServiceSchedule
+
+        self.pickup_slot.delete()
+        tomorrow = timezone.localdate() + timedelta(days=1)
+        service_start = timezone.localtime(timezone.now()).replace(hour=10, minute=0, second=0, microsecond=0)
+        service_end = service_start.replace(hour=12, minute=0, second=0, microsecond=0)
+        next_schedule = ServiceSchedule.objects.create(
+            food_truck=self.foodtruck,
+            day_of_week=tomorrow.weekday(),
+            start_time=service_start.time(),
+            end_time=service_end.time(),
+            capacity_per_slot=5,
+            is_active=True,
+        )
+
+        url = reverse('foodtruck-pickup-slots', kwargs={'slug': self.foodtruck.slug})
+        response = self.client.get(url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(response.data) > 0)
+        self.assertEqual(response.data[0]['service_schedule'], next_schedule.id)
+        self.assertTrue(response.data[0]['is_available'])
 
     def test_set_slot_endpoint_assigns_slot(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=None)

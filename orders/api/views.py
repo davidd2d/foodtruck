@@ -1,6 +1,10 @@
+from datetime import datetime, timedelta
+import logging
+
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
+from datetime import datetime
 
 from rest_framework import viewsets, status
 from rest_framework import permissions
@@ -8,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from .serializers import (
     OrderSerializer,
@@ -21,11 +26,15 @@ from .serializers import (
     PickupSlotManageSerializer,
     OrderSlotAssignmentSerializer,
     OrderSubmissionSerializer,
+    ServiceScheduleSerializer,
 )
-from ..models import Order, PickupSlot
+from ..models import Order, PickupSlot, ServiceSchedule, PARIS_TZ
+from menu.models import Item
 from ..services.cart_service import CartService
 from ..services.order_service import OrderService
-from menu.models import Item
+from ..services.schedule_service import generate_slots_for_date
+from foodtrucks.models import FoodTruck
+import logging
 
 
 class IsFoodTruckOwner(BasePermission):
@@ -239,26 +248,178 @@ class PickupSlotListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, slug):
-        slots = (
-            PickupSlot.objects.filter(
-                food_truck__slug=slug,
-                start_time__gte=timezone.now(),
-            )
-            .select_related('food_truck')
-            .annotate(
-                reserved_orders=Count(
-                    'orders',
-                    filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
+        date_param = request.query_params.get('date')
+        if date_param:
+            try:
+                target_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({'detail': 'Invalid date format. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            target_date = timezone.localdate()
+        logger = logging.getLogger(__name__)
+        try:
+            food_truck = FoodTruck.objects.get(slug=slug, is_active=True)
+            generate_slots_for_date(food_truck, target_date)
+
+            slots = (
+                PickupSlot.objects.filter(
+                    food_truck=food_truck,
+                    end_time__gt=timezone.localtime(timezone.now(), PARIS_TZ),
                 )
+                .select_related('food_truck')
+                .annotate(
+                    reserved_orders=Count(
+                        'orders',
+                        filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
+                    )
+                )
+                .order_by('start_time')
             )
-            .order_by('start_time')
-        )
+
+            if date_param is None and not slots.exists():
+                next_schedule = food_truck.get_next_available_service_schedule()
+                if next_schedule:
+                    now = timezone.localtime(timezone.now(), PARIS_TZ)
+                    schedule_weekday = next_schedule.day_of_week
+                    current_weekday = now.weekday()
+
+                    if schedule_weekday >= current_weekday:
+                        target_date = now.date() + timedelta(days=schedule_weekday - current_weekday)
+                    else:
+                        target_date = now.date() + timedelta(days=7 - current_weekday + schedule_weekday)
+
+                    generate_slots_for_date(food_truck, target_date)
+                    slots = (
+                        PickupSlot.objects.filter(
+                            food_truck=food_truck,
+                            end_time__gt=timezone.localtime(timezone.now(), PARIS_TZ),
+                        )
+                        .select_related('food_truck')
+                        .annotate(
+                            reserved_orders=Count(
+                                'orders',
+                                filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
+                            )
+                        )
+                        .order_by('start_time')
+                    )
+        except FoodTruck.DoesNotExist:
+            logger.warning("Requested slots for unknown food truck slug=%s", slug)
+            return Response({'detail': 'Food truck not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = PickupSlotSerializer(slots, many=True)
+        logger.info("Returning %s slots for food truck %s on %s", len(slots), food_truck.slug, target_date)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class PickupSlotViewSet(viewsets.ModelViewSet):
+class ServiceScheduleViewSet(viewsets.ModelViewSet):
+    """Allow owners to manage their service schedules."""
+
+    serializer_class = ServiceScheduleSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ServiceSchedule.objects.filter(
+            food_truck__owner=self.request.user
+        ).select_related('food_truck', 'location')
+
+    def list(self, request, *args, **kwargs):
+        logger = logging.getLogger(__name__)
+        date_param = request.query_params.get('date')
+        if date_param:
+            try:
+                target_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+            except ValueError:
+                logger.warning('Invalid date "%s" for schedule list', date_param)
+                return Response({'detail': 'Invalid date format. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            target_date = timezone.localdate()
+
+        queryset = self.filter_queryset(self.get_queryset())
+        schedules = queryset.select_related('food_truck')
+        processed = set()
+        for schedule in schedules:
+            target = self._resolve_target_date_for_schedule(schedule, target_date)
+            generate_slots_for_date(schedule.food_truck, target)
+            processed.add((schedule.food_truck.id, target))
+        logger.info('Triggered slot generation for %s schedule instances on %s', len(processed), target_date)
+        return super().list(request, *args, **kwargs)
+
+    def _resolve_target_date_for_schedule(self, schedule, reference_date):
+        days_ahead = (schedule.day_of_week - reference_date.weekday() + 7) % 7
+        return reference_date + timedelta(days=days_ahead)
+
+    def perform_create(self, serializer):
+        food_truck = self._get_owner_food_truck()
+        schedule = serializer.save(food_truck=food_truck)
+        target_date = self._next_target_date(schedule.day_of_week)
+        logger = logging.getLogger(__name__)
+        logger.info('Auto-generating slots for schedule %s on %s', schedule.id, target_date)
+        generate_slots_for_date(food_truck, target_date)
+
+    def _next_target_date(self, day_of_week):
+        today = timezone.localdate()
+        days_ahead = (day_of_week - today.weekday() + 7) % 7
+        if days_ahead == 0:
+            days_ahead = 7
+        return today + timedelta(days=days_ahead)
+    def _get_owner_food_truck(self):
+        from foodtrucks.models import FoodTruck
+
+        food_truck = FoodTruck.objects.filter(owner=self.request.user, is_active=True).first()
+        if not food_truck:
+            raise DRFValidationError({'food_truck': 'No active food truck found for this user.'})
+        return food_truck
+
+
+class PickupSlotViewSet(viewsets.ReadOnlyModelViewSet):
+    """Expose generated pickup slots for a food truck."""
+
+    serializer_class = PickupSlotSerializer
+    permission_classes = [AllowAny]
+    queryset = PickupSlot.objects.select_related('food_truck').all()
+    def list(self, request, *args, **kwargs):
+        self._food_truck = self._get_food_truck(request)
+        self._target_date = self._get_target_date(request)
+        generate_slots_for_date(self._food_truck, self._target_date)
+        return super().list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not hasattr(self, '_food_truck'):
+            return queryset.none()
+
+        return queryset.filter(
+            food_truck=self._food_truck,
+            start_time__date=self._target_date
+        ).annotate(
+            reserved=Count(
+                'orders',
+                filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
+            )
+        ).order_by('start_time')
+
+    def _get_food_truck(self, request):
+        slug = request.query_params.get('foodtruck_slug')
+        if not slug:
+            raise DRFValidationError({'foodtruck_slug': 'This parameter is required.'})
+
+        try:
+            return FoodTruck.objects.get(slug=slug, is_active=True)
+        except FoodTruck.DoesNotExist:
+            raise DRFValidationError({'foodtruck_slug': 'Food truck not found.'})
+
+    def _get_target_date(self, request):
+        date_param = request.query_params.get('date')
+        if date_param:
+            try:
+                return datetime.strptime(date_param, '%Y-%m-%d').date()
+            except ValueError:
+                raise DRFValidationError({'date': 'Invalid date format. Use YYYY-MM-DD.'})
+        return timezone.localdate()
+
+
+class PickupSlotManageViewSet(viewsets.ModelViewSet):
     """Allow food truck owners to manage their pickup slots."""
 
     serializer_class = PickupSlotManageSerializer

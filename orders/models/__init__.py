@@ -1,4 +1,10 @@
+
+# -*- coding: utf-8 -*-
+from datetime import timedelta
 from decimal import Decimal
+import math
+from typing import Optional
+
 import pytz
 
 from django.core.exceptions import ValidationError
@@ -10,6 +16,173 @@ from menu.models import Item, Option
 
 PARIS_TZ = pytz.timezone('Europe/Paris')
 
+
+class ServiceSchedule(models.Model):
+    """
+    Defines the recurring working windows for a food truck.
+    """
+    DAY_CHOICES = [
+        (0, _("Monday")),
+        (1, _("Tuesday")),
+        (2, _("Wednesday")),
+        (3, _("Thursday")),
+        (4, _("Friday")),
+        (5, _("Saturday")),
+        (6, _("Sunday")),
+    ]
+
+    food_truck = models.ForeignKey(
+        'foodtrucks.FoodTruck',
+        on_delete=models.CASCADE,
+        related_name='service_schedules',
+        help_text=_("The food truck this schedule belongs to")
+    )
+    day_of_week = models.IntegerField(choices=DAY_CHOICES, help_text=_("Day of week (0=Monday)"))
+    start_time = models.TimeField(help_text=_("Window start time"))
+    end_time = models.TimeField(help_text=_("Window end time"))
+    capacity_per_slot = models.PositiveIntegerField(help_text=_("Capacity per generated slot"))
+    slot_duration_minutes = models.PositiveIntegerField(default=10, help_text=_("Duration of each slot in minutes"))
+    is_active = models.BooleanField(default=True, help_text=_("Whether this schedule is currently active"))
+    location = models.ForeignKey(
+        'Location',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='service_schedules',
+        help_text=_('Optional location this schedule takes place at')
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Service Schedule")
+        verbose_name_plural = _("Service Schedules")
+        ordering = ['food_truck', 'day_of_week', 'start_time']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['food_truck', 'day_of_week', 'start_time', 'end_time'],
+                name='unique_service_schedule_window'
+            ),
+        ]
+
+    def get_effective_location(self):
+        if self.has_custom_location():
+            return self.location
+        return self.food_truck
+
+    def has_custom_location(self) -> bool:
+        return self.location is not None and self.location.is_active
+
+    def clean(self):
+        if self.end_time <= self.start_time:
+            raise ValidationError(_("Schedule end time must be after start time."))
+
+        overlapping = ServiceSchedule.objects.filter(
+            food_truck=self.food_truck,
+            day_of_week=self.day_of_week,
+            is_active=True
+        )
+        if self.pk:
+            overlapping = overlapping.exclude(pk=self.pk)
+
+        for other in overlapping:
+            if (self.start_time < other.end_time) and (self.end_time > other.start_time):
+                raise ValidationError(_("This schedule overlaps with another window on the same day."))
+
+        if self.location and self.location.food_truck_id != self.food_truck_id:
+            raise ValidationError(_("Selected location must belong to this food truck."))
+
+
+class Location(models.Model):
+    """Represents a defined pickup location owned by a food truck."""
+
+    food_truck = models.ForeignKey(
+        'foodtrucks.FoodTruck',
+        on_delete=models.CASCADE,
+        related_name='locations',
+        help_text=_('Food truck this location belongs to')
+    )
+    name = models.CharField(max_length=200, blank=True, help_text=_('Optional spot name'))
+    address_line_1 = models.CharField(max_length=255, blank=True, help_text=_('Street address'))
+    address_line_2 = models.CharField(max_length=255, blank=True, null=True)
+    postal_code = models.CharField(max_length=20, help_text=_('Postal / ZIP code'))
+    city = models.CharField(max_length=100, help_text=_('City'))
+    country = models.CharField(max_length=100, help_text=_('Country'))
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, db_index=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, db_index=True)
+    notes = models.TextField(blank=True, help_text=_('Pickup instructions'))
+    is_active = models.BooleanField(default=True, help_text=_('Whether this location is currently in use'))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('Location')
+        verbose_name_plural = _('Locations')
+        indexes = [
+            models.Index(fields=['food_truck']),
+            models.Index(fields=['latitude', 'longitude']),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(latitude__gte=-90, latitude__lte=90, longitude__gte=-180, longitude__lte=180),
+                name='location_valid_coordinates'
+            ),
+        ]
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        return f"{self.city} ({self.postal_code})"
+
+    def clean(self):
+        if hasattr(self, 'latitude') and self.latitude is not None and hasattr(self, 'longitude') and self.longitude is not None:
+            lat = float(self.latitude)
+            lng = float(self.longitude)
+            if not (-90 <= lat <= 90):
+                raise ValidationError(_('Latitude must be between -90 and 90.'))
+            if not (-180 <= lng <= 180):
+                raise ValidationError(_('Longitude must be between -180 and 180.'))
+        if not self.has_address() and not self.has_coordinates():
+            raise ValidationError(_('Provide either an address or GPS coordinates.'))
+
+    def get_full_address(self) -> str:
+        parts = [self.address_line_1]
+        if self.address_line_2:
+            parts.append(self.address_line_2)
+        parts.append(f"{self.postal_code} {self.city}")
+        parts.append(self.country)
+        return ', '.join(part for part in parts if part)
+
+    def get_coordinates(self) -> tuple:
+        return (float(self.latitude), float(self.longitude))
+
+    def distance_to(self, lat: float, lng: float) -> float:
+        return _haversine_distance(*self.get_coordinates(), float(lat), float(lng))
+
+    def is_same_as_base_location(self) -> bool:
+        if not hasattr(self.food_truck, 'latitude') or not hasattr(self.food_truck, 'longitude'):
+            return False
+        base_lat = float(self.food_truck.latitude)
+        base_lng = float(self.food_truck.longitude)
+        lat, lng = self.get_coordinates()
+        return math.isclose(base_lat, lat, abs_tol=1e-6) and math.isclose(base_lng, lng, abs_tol=1e-6)
+
+    def has_address(self) -> bool:
+        return bool(self.address_line_1)
+
+    def has_coordinates(self) -> bool:
+        return self.latitude is not None and self.longitude is not None
+
+
+def _haversine_distance(lat1, lng1, lat2, lng2):
+    R = 6371
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    delta_lat = math.radians(lat2 - lat1)
+    delta_lng = math.radians(lng2 - lng1)
+    a = math.sin(delta_lat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lng / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 class PickupSlotQuerySet(models.QuerySet):
     """QuerySet helpers for pickup slots."""
@@ -48,6 +221,14 @@ class PickupSlot(models.Model):
     start_time = models.DateTimeField(help_text=_("Start time of the pickup slot"))
     end_time = models.DateTimeField(help_text=_("End time of the pickup slot"))
     capacity = models.PositiveIntegerField(help_text=_("Maximum number of orders for this slot"))
+    service_schedule = models.ForeignKey(
+        'ServiceSchedule',
+        on_delete=models.SET_NULL,
+        related_name='pickup_slots',
+        null=True,
+        blank=True,
+        help_text=_("Originating service schedule, if any"),
+    )
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the slot was created"))
     updated_at = models.DateTimeField(auto_now=True, help_text=_("When the slot was last updated"))
 
@@ -299,7 +480,8 @@ class Order(models.Model):
         if slot.food_truck_id != self.food_truck_id:
             return False
 
-        if slot.start_time <= timezone.now():
+        now = timezone.localtime(timezone.now(), PARIS_TZ)
+        if slot.start_time <= now:
             return False
 
         if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
@@ -334,7 +516,8 @@ class Order(models.Model):
         if slot.food_truck_id != self.food_truck_id:
             raise ValidationError('Pickup slot does not belong to this food truck.')
 
-        if slot.start_time <= timezone.now():
+        now = timezone.localtime(timezone.now(), PARIS_TZ)
+        if slot.start_time <= now:
             raise ValidationError('Pickup slot is in the past.')
 
         if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
@@ -354,12 +537,34 @@ class Order(models.Model):
 
     @transaction.atomic
     def submit(self):
-        """Atomically validate the order and reserve the pickup slot."""
+        """Atomically validate and reserve the pickup slot."""
 
         try:
             self.validate()
 
-            slot = PickupSlot.objects.select_for_update().get(pk=self.pickup_slot_id)
+            if self.status != 'draft':
+                raise ValidationError('Only draft orders may be submitted.')
+
+            if not self.pickup_slot_id:
+                raise ValidationError('Pickup slot must be selected before submission.')
+
+            try:
+                slot = PickupSlot.objects.select_for_update().select_related('food_truck').get(
+                    pk=self.pickup_slot_id
+                )
+            except PickupSlot.DoesNotExist:
+                raise ValidationError('Pickup slot does not exist.')
+
+            if slot.food_truck_id != self.food_truck_id:
+                raise ValidationError('Pickup slot does not belong to this food truck.')
+
+            now = timezone.localtime(timezone.now(), PARIS_TZ)
+            if slot.start_time <= now:
+                raise ValidationError('Pickup slot is in the past.')
+
+            if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
+                raise ValidationError('Pickup slot is no longer available.')
+
             slot.assign_order(self, include_drafts=False)
 
             self.status = 'submitted'

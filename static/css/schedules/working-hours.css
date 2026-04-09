@@ -1,0 +1,26 @@
+.schedule-day-card {
+    border-top: 4px solid var(--bs-primary);
+}
+.schedule-day-card .card-header {
+    background-color: var(--bs-body-bg);
+}
+.schedule-window {
+    padding: 0.75rem;
+    border-radius: .5rem;
+    background: rgba(13, 110, 253, 0.05);
+}
+.schedule-window strong {
+    font-size: 1rem;
+}
+.schedule-window small {
+    font-size: 0.85rem;
+}
+.category-nav .btn {
+    flex-shrink: 0;
+}
+.toast-container-custom {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 2000;
+}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Working Hours" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/schedules/working-hours.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
+        <div>
+            <h1 class="mb-1">{% trans "Working Hours" %}</h1>
+            <p class="text-muted mb-0">{% trans "Define the days and time windows when your foodtruck is available." %}</p>
+        </div>
+        <div class="ms-md-3">
+            <button type="button" class="btn btn-outline-primary" id="refresh-schedules">
+                {% trans "Refresh" %}
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-3" id="day-card-grid">
+        {% for day in "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"|split:"," %}
+            {% include "schedules/partials/day_card.html" with day_label=day day_index=forloop.counter0 %}
+        {% endfor %}
+    </div>
+</div>
+
+{% include "schedules/partials/modal_form.html" %}
+
+<div class="toast-container-custom" aria-live="polite" aria-atomic="true" id="toast-container"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/schedules/main.js' %}"></script>
+{% endblock %}

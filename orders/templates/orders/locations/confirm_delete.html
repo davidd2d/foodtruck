@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Delete location" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-sm">
+        <div class="card-body text-center">
+            <h1 class="h4 mb-3">{% trans "Delete location" %}</h1>
+            <p class="mb-4">{% trans "Are you sure you want to mark this location as inactive?" %}</p>
+            <p class="text-muted small">{{ object.get_full_address }}</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="submit" class="btn btn-danger">{% trans "Confirm" %}</button>
+                    <a href="{% url 'orders:location-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

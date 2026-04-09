@@ -13,34 +13,35 @@
                     data-show-text="{% trans 'Show description' %}"
                     data-hide-text="{% trans 'Hide description' %}"
                 >
-                <small>{% trans "Show description" %}</small>
-            </button>
+                    <small>{% trans "Show description" %}</small>
+                </button>
 
-                        <div class="dropdown ms-2">
-            <button class="btn btn-light dropdown-toggle" type="button" id="foodtruck-user-menu" data-bs-toggle="dropdown" aria-expanded="false">
-                ☰
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="foodtruck-user-menu">
-                {% if user.is_authenticated %}
-                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">{% trans "Profile" %}</a></li>
-                    <li><a class="dropdown-item" href="{% url 'orders:history' %}">{% trans "Orders" %}</a></li>
-                    {% if user.is_staff %}
-                        <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
-                    {% endif %}
-                    <li>                        
-                        {% if user.is_superuser or foodtruck.owner_id == user.id %}
-                            <a href="{% url 'orders:manage-pickup-slots' slug=foodtruck.slug %}"
-                               class="dropdown-item">
-                                {% trans "Manage time slots" %}
-                            </a>
-                        {% endif %}</li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a></li>
-                {% else %}
-                    <li><a class="dropdown-item" href="{% url 'accounts:login' %}">{% trans "Login" %}</a></li>
-                {% endif %}
-            </ul>
-        </div>
+                <div class="dropdown ms-2">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="foodtruck-user-menu" data-bs-toggle="dropdown" aria-expanded="false">
+                        ☰
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="foodtruck-user-menu">
+                        {% if user.is_authenticated %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">{% trans "Profile" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'orders:history' %}">{% trans "Orders" %}</a></li>
+                            {% if user.is_staff %}
+                                <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
+                            {% endif %}
+                            {% if user.is_superuser or foodtruck.owner_id == user.id %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'orders:working-hours' slug=foodtruck.slug %}">{% trans "Working hours" %}</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'orders:location-list' slug=foodtruck.slug %}">{% trans "Locations" %}</a>
+                            </li>
+                        {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a></li>
+                        {% else %}
+                            <li><a class="dropdown-item" href="{% url 'accounts:login' %}">{% trans "Login" %}</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
         </div>
 

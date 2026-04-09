@@ -22,10 +22,16 @@
             </div>
             <div class="mb-3">
                 <label for="pickup-slot-select" class="form-label small mb-2">{% trans "Pickup window" %}</label>
-                <select id="pickup-slot-select" class="form-select form-select-sm" disabled>
+                <select id="pickup-slot-select" class="form-select form-select-sm" disabled data-default-slot="{{ default_pickup_slot_id|default:'' }}">
                     <option value="">{% trans "Loading available slots…" %}</option>
                 </select>
-                <div id="pickup-slot-help" class="form-text text-muted small">{% trans "Choose an available slot before checkout." %}</div>
+                <div id="pickup-slot-help" class="form-text text-muted small">
+                    {% if default_pickup_slot_id %}
+                        {% trans "Recommended pickup time selected automatically." %}
+                    {% else %}
+                        {% trans "Choose an available slot before checkout." %}
+                    {% endif %}
+                </div>
             </div>
             <button id="checkout-button" type="button" class="btn btn-primary w-100" disabled>
                 {% trans "Checkout" %}

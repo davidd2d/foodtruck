@@ -1,0 +1,13 @@
+{
+  "name": "foodtruck-ui-tests",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:js": "vitest"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^8.0.0",
+    "jsdom": "^29.0.2",
+    "vitest": "^4.1.4"
+  }
+}

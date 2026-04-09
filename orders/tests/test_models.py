@@ -1,11 +1,15 @@
 import threading
 from decimal import Decimal
+from datetime import timedelta, time
+import math
+
 from django.db import connections
 from django.test import TestCase, TransactionTestCase
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import timedelta
-from orders.models import Order, PickupSlot
+
+from orders.models import Order, PickupSlot, ServiceSchedule, Location, PARIS_TZ
+from orders.services.schedule_service import generate_slots_for_date
 from .factories import (
     UserFactory,
     FoodTruckFactory,
@@ -107,6 +111,57 @@ class OrderModelTests(TestCase):
 
         with self.assertRaises(ValidationError):
             order.add_item(self.item, quantity=-1)
+
+    def test_submit_order_with_generated_slot(self):
+        schedule = ServiceSchedule.objects.create(
+            food_truck=self.foodtruck,
+            day_of_week=(timezone.localdate() + timedelta(days=1)).weekday(),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            capacity_per_slot=2,
+        )
+        target_date = timezone.localdate() + timedelta(days=1)
+        slot = self.foodtruck.get_available_slots(target_date).first()
+        self.assertIsNotNone(slot)
+
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        order.add_item(self.item, quantity=1)
+        order.submit()
+        self.assertEqual(order.status, 'submitted')
+
+    def test_submit_order_fails_when_slot_full(self):
+        schedule = ServiceSchedule.objects.create(
+            food_truck=self.foodtruck,
+            day_of_week=(timezone.localdate() + timedelta(days=1)).weekday(),
+            start_time=time(9, 0),
+            end_time=time(9, 20),
+            capacity_per_slot=1,
+        )
+        target_date = timezone.localdate() + timedelta(days=1)
+        slot = self.foodtruck.get_available_slots(target_date).first()
+        self.assertIsNotNone(slot)
+
+        order1 = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        order1.add_item(self.item, quantity=1)
+        order1.submit()
+
+        order2 = OrderFactory(user=UserFactory(), food_truck=self.foodtruck, pickup_slot=slot)
+        order2.add_item(self.item, quantity=1)
+        with self.assertRaises(ValidationError):
+            order2.submit()
+
+    def test_submit_rejects_past_slot(self):
+        past_start = timezone.localtime(timezone.now(), PARIS_TZ) - timedelta(hours=1)
+        past_end = past_start + timedelta(minutes=10)
+        slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=past_start,
+            end_time=past_end,
+        )
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
+        order.add_item(self.item, quantity=1)
+        with self.assertRaises(ValidationError):
+            order.submit()
 
 
 class OrderConcurrencyTests(TransactionTestCase):

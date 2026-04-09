@@ -89,7 +89,7 @@ def OptionFactory(group=None, name='Large', price_modifier=Decimal('2.00'), is_a
     )
 
 
-def PickupSlotFactory(food_truck=None, capacity=5, start_time=None, end_time=None):
+def PickupSlotFactory(food_truck=None, capacity=5, start_time=None, end_time=None, service_schedule=None):
     food_truck = food_truck or FoodTruckFactory()
     start_time = start_time or timezone.now() + timedelta(hours=1)
     end_time = end_time or (start_time + timedelta(hours=1))
@@ -97,7 +97,23 @@ def PickupSlotFactory(food_truck=None, capacity=5, start_time=None, end_time=Non
         food_truck=food_truck,
         start_time=start_time,
         end_time=end_time,
-        capacity=capacity
+        capacity=capacity,
+        service_schedule=service_schedule,
+    )
+
+
+def ServiceScheduleFactory(food_truck=None, day_of_week=0, start_time=None, end_time=None, capacity_per_slot=5, is_active=True):
+    from orders.models import ServiceSchedule
+    food_truck = food_truck or FoodTruckFactory()
+    start_time = start_time or timezone.now().time().replace(hour=10, minute=0, second=0, microsecond=0)
+    end_time = end_time or timezone.now().time().replace(hour=18, minute=0, second=0, microsecond=0)
+    return ServiceSchedule.objects.create(
+        food_truck=food_truck,
+        day_of_week=day_of_week,
+        start_time=start_time,
+        end_time=end_time,
+        capacity_per_slot=capacity_per_slot,
+        is_active=is_active
     )
 
 

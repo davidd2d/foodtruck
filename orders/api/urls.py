@@ -10,11 +10,15 @@ from .views import (
     SetOrderPickupSlotView,
     SubmitOrderView,
     PickupSlotViewSet,
+    PickupSlotManageViewSet,
+    ServiceScheduleViewSet,
 )
 
 router = DefaultRouter()
 router.register(r'orders', OrderViewSet)
-router.register(r'pickup-slots', PickupSlotViewSet, basename='pickup-slot')
+router.register(r'schedules', ServiceScheduleViewSet, basename='service-schedule')
+router.register(r'pickup-slots', PickupSlotManageViewSet, basename='pickup-slot')
+router.register(r'slots', PickupSlotViewSet, basename='pickup-slot-generated')
 
 urlpatterns = [
     path('cart/', CartView.as_view(), name='cart-detail'),

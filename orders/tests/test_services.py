@@ -155,14 +155,21 @@ class OrderServiceTests(TestCase):
 
     def test_create_order_rejects_foodtruck_without_pro_subscription(self):
         free_truck = FoodTruckFactory(owner=self.user, name='Free Truck')
+        free_truck.subscription.status = 'inactive'
+        free_truck.subscription.save(update_fields=['status'])
+
+        free_menu = MenuFactory(food_truck=free_truck)
+        free_category = CategoryFactory(menu=free_menu)
+        free_item = ItemFactory(category=free_category, base_price=Decimal('1.00'))
+
         session = DummySession()
         session[CartService.SESSION_KEY] = {
             'foodtruck_slug': free_truck.slug,
             'items': [
                 {
                     'line_key': '1',
-                    'item_id': 1,
-                    'item_name': 'Placeholder',
+                    'item_id': free_item.id,
+                    'item_name': free_item.name,
                     'quantity': 1,
                     'unit_price': '1.00',
                     'total_price': '1.00',

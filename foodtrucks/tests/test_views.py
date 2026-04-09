@@ -1,6 +1,11 @@
+from datetime import timedelta
+
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from foodtrucks.tests.factories import FoodTruckFactory
+from orders.models import PARIS_TZ
+from orders.tests.factories import ServiceScheduleFactory, PickupSlotFactory
 
 
 class FoodTruckViewTests(TestCase):
@@ -35,3 +40,55 @@ class FoodTruckViewTests(TestCase):
         detail_response = self.client.get(foodtruck.get_absolute_url())
         self.assertEqual(detail_response.status_code, 200)
         self.assertContains(detail_response, foodtruck.name)
+
+    def test_foodtruck_detail_view_includes_pickup_slot_context(self):
+        foodtruck = FoodTruckFactory()
+        now = timezone.localtime(timezone.now(), PARIS_TZ)
+        schedule = ServiceScheduleFactory(
+            food_truck=foodtruck,
+            day_of_week=now.weekday(),
+            start_time=(now - timedelta(hours=1)).time(),
+            end_time=(now + timedelta(hours=2)).time(),
+            is_active=True
+        )
+        slot = PickupSlotFactory(
+            food_truck=foodtruck,
+            service_schedule=schedule,
+            start_time=now + timedelta(minutes=30),
+            end_time=now + timedelta(hours=1, minutes=30),
+            capacity=5
+        )
+
+        response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': foodtruck.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('available_pickup_slots', response.context)
+        self.assertIn('default_pickup_slot_id', response.context)
+        self.assertTrue(len(response.context['available_pickup_slots']) > 0)
+        self.assertIn(
+            response.context['default_pickup_slot_id'],
+            [slot_item.id for slot_item in response.context['available_pickup_slots']]
+        )
+
+    def test_foodtruck_detail_view_renders_default_pickup_slot_data_attribute(self):
+        foodtruck = FoodTruckFactory()
+        now = timezone.localtime(timezone.now(), PARIS_TZ)
+        schedule = ServiceScheduleFactory(
+            food_truck=foodtruck,
+            day_of_week=now.weekday(),
+            start_time=(now - timedelta(hours=1)).time(),
+            end_time=(now + timedelta(hours=2)).time(),
+            is_active=True
+        )
+        slot = PickupSlotFactory(
+            food_truck=foodtruck,
+            service_schedule=schedule,
+            start_time=now + timedelta(minutes=30),
+            end_time=now + timedelta(hours=1, minutes=30),
+            capacity=5
+        )
+
+        response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': foodtruck.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'data-default-slot="{response.context["default_pickup_slot_id"]}"')

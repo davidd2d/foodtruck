@@ -34,11 +34,22 @@ def foodtruck_detail(request, slug):
     except Http404:
         categories = []
 
+    # Get available pickup slots and default recommendation
+    available_slots = []
+    default_slot_id = None
+    if foodtruck.can_accept_orders():
+        available_slots = foodtruck.get_available_slots()
+        default_slot = foodtruck.get_best_default_pickup_slot()
+        if default_slot:
+            default_slot_id = default_slot.id
+
     return render(
         request,
         'foodtrucks/detail_debug.html' if use_debug else 'foodtrucks/detail.html',
         {
             'foodtruck': foodtruck,
             'categories': categories,
+            'available_pickup_slots': available_slots,
+            'default_pickup_slot_id': default_slot_id,
         }
     )

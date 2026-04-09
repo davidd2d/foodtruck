@@ -13,11 +13,36 @@ function formatSlotLabel(slot) {
     })}`;
 }
 
+function formatSlotTime(slot) {
+    const start = new Date(slot.start_time);
+    return start.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+export function buildRecommendedMessage(slot) {
+    if (!slot) {
+        return 'Recommended pickup time selected automatically.';
+    }
+
+    const now = new Date();
+    const start = new Date(slot.start_time);
+    const end = new Date(slot.end_time);
+
+    if (start <= now && end > now) {
+        return 'Retrait conseillé : dès maintenant';
+    }
+
+    return `Prochain créneau disponible : ${formatSlotTime(slot)}`;
+}
+
 export class SlotSelector {
     constructor({ selectElement, helpElement, onSelectionChange } = {}) {
         this.selectElement = selectElement;
         this.helpElement = helpElement;
         this.onSelectionChange = onSelectionChange;
+        this.defaultSlotId = selectElement?.dataset?.defaultSlot ? parseInt(selectElement.dataset.defaultSlot, 10) : null;
 
         this.selectElement?.addEventListener('change', () => {
             if (typeof this.onSelectionChange === 'function') {
@@ -52,20 +77,27 @@ export class SlotSelector {
             return;
         }
 
+        const defaultSlot = slots.find((slot) => slot.is_available && this.defaultSlotId === slot.id);
+
         this.selectElement.innerHTML = `
             <option value="">Choose a pickup slot</option>
             ${slots
                 .map((slot) => `
-                    <option value="${slot.id}" ${slot.is_available ? '' : 'disabled'}>
+                    <option value="${slot.id}" ${slot.is_available ? '' : 'disabled'} ${defaultSlot && defaultSlot.id === slot.id ? 'selected' : ''}>
                         ${formatSlotLabel(slot)}${slot.is_available ? '' : ' (unavailable)'}
                     </option>
                 `)
                 .join('')}
         `;
         this.selectElement.disabled = false;
+
+        if (defaultSlot && typeof this.onSelectionChange === 'function') {
+            this.onSelectionChange(defaultSlot.id);
+        }
+
         if (this.helpElement) {
             this.helpElement.classList.remove('text-danger');
-            this.helpElement.textContent = 'Select a pickup slot before checkout.';
+            this.helpElement.textContent = buildRecommendedMessage(defaultSlot);
         }
     }
 

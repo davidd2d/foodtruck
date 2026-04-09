@@ -1,9 +1,10 @@
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 import pytz
 
-from ..models import Order, OrderItem, OrderItemOption, PickupSlot
+from ..models import Order, OrderItem, OrderItemOption, PickupSlot, ServiceSchedule
 
 PARIS_TZ = pytz.timezone('Europe/Paris')
 
@@ -26,10 +27,72 @@ class OrderItemSerializer(serializers.ModelSerializer):
         ]
 
 
+class ServiceScheduleSerializer(serializers.ModelSerializer):
+    """Serializer for ServiceSchedule model."""
+
+    location_label = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ServiceSchedule
+        fields = [
+            'id',
+            'day_of_week',
+            'start_time',
+            'end_time',
+            'capacity_per_slot',
+            'slot_duration_minutes',
+            'is_active',
+            'location',
+            'location_label',
+        ]
+
+    def get_location_label(self, obj):
+        if obj.location:
+            return obj.location.name or obj.location.get_full_address()
+        return _('Base location')
+
+    def validate(self, attrs):
+        start = attrs.get('start_time', getattr(self.instance, 'start_time', None))
+        end = attrs.get('end_time', getattr(self.instance, 'end_time', None))
+        food_truck = attrs.get('food_truck', getattr(self.instance, 'food_truck', None))
+        day_of_week = attrs.get('day_of_week', getattr(self.instance, 'day_of_week', None))
+
+        if food_truck is None:
+            request = self.context.get('request')
+            if request:
+                from foodtrucks.models import FoodTruck
+
+                food_truck = FoodTruck.objects.filter(owner=request.user, is_active=True).first()
+
+        if start is None or end is None or food_truck is None or day_of_week is None:
+            return attrs
+
+        if start >= end:
+            raise serializers.ValidationError({'end_time': 'end_time must be after start_time.'})
+
+        if food_truck is None:
+            raise serializers.ValidationError({'food_truck': 'Food truck must be set.'})
+
+        overlapping = ServiceSchedule.objects.filter(
+            food_truck=food_truck,
+            day_of_week=day_of_week,
+            is_active=True,
+        )
+        if self.instance:
+            overlapping = overlapping.exclude(pk=self.instance.pk)
+
+        for other in overlapping:
+            if start < other.end_time and end > other.start_time:
+                raise serializers.ValidationError("This schedule overlaps with an existing one.")
+
+        return attrs
+
+
 class PickupSlotSerializer(serializers.ModelSerializer):
     """Serializer for PickupSlot model."""
     remaining_capacity = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
+    reserved = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = PickupSlot
@@ -40,10 +103,12 @@ class PickupSlotSerializer(serializers.ModelSerializer):
             'capacity',
             'remaining_capacity',
             'is_available',
+            'reserved',
+            'service_schedule',
         ]
 
     def get_remaining_capacity(self, obj):
-        reserved = getattr(obj, 'reserved_orders', None)
+        reserved = getattr(obj, 'reserved', None)
         if reserved is not None:
             return max(0, obj.capacity - reserved)
         return obj.remaining_capacity()
