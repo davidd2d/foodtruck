@@ -264,6 +264,7 @@ class PickupSlotListView(APIView):
             slots = (
                 PickupSlot.objects.filter(
                     food_truck=food_truck,
+                    start_time__date=target_date,
                     end_time__gt=timezone.localtime(timezone.now(), PARIS_TZ),
                 )
                 .select_related('food_truck')
@@ -292,6 +293,7 @@ class PickupSlotListView(APIView):
                     slots = (
                         PickupSlot.objects.filter(
                             food_truck=food_truck,
+                            start_time__date=target_date,
                             end_time__gt=timezone.localtime(timezone.now(), PARIS_TZ),
                         )
                         .select_related('food_truck')

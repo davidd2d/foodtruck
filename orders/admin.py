@@ -31,7 +31,7 @@ class OrderItemOptionInline(admin.TabularInline):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ('item', 'quantity', 'unit_price', 'total_price', 'selected_options')
+    readonly_fields = ('item', 'quantity', 'unit_price', 'total_price')
     inlines = [OrderItemOptionInline]
 
 

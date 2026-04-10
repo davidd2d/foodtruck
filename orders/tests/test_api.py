@@ -186,6 +186,23 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data[0]['service_schedule'], next_schedule.id)
         self.assertTrue(response.data[0]['is_available'])
 
+    def test_fetch_available_pickup_slots_prefers_today_over_future_days(self):
+        now = timezone.localtime(timezone.now())
+        tomorrow_start = now + timedelta(days=1, hours=1)
+        tomorrow_end = tomorrow_start + timedelta(minutes=30)
+        PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=tomorrow_start,
+            end_time=tomorrow_end,
+        )
+
+        url = reverse('foodtruck-pickup-slots', kwargs={'slug': self.foodtruck.slug})
+        response = self.client.get(url, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], self.pickup_slot.id)
+
     def test_set_slot_endpoint_assigns_slot(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=None)
 
