@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.core.exceptions import ValidationError
-from menu.models import Item, Option
+from menu.models import Combo, Item, Option
 
 
 class CartService:
@@ -20,10 +20,10 @@ class CartService:
         self.session.modified = True
 
     @staticmethod
-    def _line_key(item_id, selected_options):
+    def _line_key(line_type, object_id, selected_options=None):
         selected_options = selected_options or []
         sorted_options = sorted(int(option_id) for option_id in selected_options)
-        return f"{item_id}:{','.join(str(option_id) for option_id in sorted_options)}"
+        return f"{line_type}:{object_id}:{','.join(str(option_id) for option_id in sorted_options)}"
 
     def get_cart(self):
         option_map = self._build_option_map()
@@ -40,6 +40,9 @@ class CartService:
             ]
 
             items.append({
+                'line_type': item.get('line_type', 'item'),
+                'item_id': item.get('item_id'),
+                'combo_id': item.get('combo_id'),
                 **item,
                 'selected_options': selected_options,
             })
@@ -89,7 +92,7 @@ class CartService:
 
         item.validate_options(selected_options)
         unit_price = item.get_price_with_options(selected_options)
-        line_key = self._line_key(item_id, selected_options)
+        line_key = self._line_key('item', item_id, selected_options)
 
         existing_item = next((line for line in self.cart['items'] if line['line_key'] == line_key), None)
         if existing_item:
@@ -98,12 +101,56 @@ class CartService:
         else:
             self.cart['items'].append({
                 'line_key': line_key,
+                'line_type': 'item',
                 'item_id': item.id,
+                'combo_id': None,
                 'item_name': item.name,
                 'quantity': quantity,
                 'unit_price': str(unit_price),
                 'total_price': str(unit_price * quantity),
                 'selected_options': [int(option_id) for option_id in selected_options],
+            })
+
+        self.cart['foodtruck_slug'] = foodtruck_slug
+        self._save()
+
+    def add_combo(self, foodtruck_slug, combo_id, quantity=1):
+        if quantity <= 0:
+            raise ValidationError('Quantity must be greater than zero.')
+
+        combo = Combo.objects.select_related('category__menu__food_truck').prefetch_related('combo_items').get(id=combo_id)
+
+        if not combo.is_available:
+            raise ValidationError(f"Combo '{combo.name}' is not available.")
+
+        if combo.category.menu.food_truck.slug != foodtruck_slug:
+            raise ValidationError('Combo does not belong to the requested foodtruck.')
+
+        if self.cart['foodtruck_slug'] and self.cart['foodtruck_slug'] != foodtruck_slug:
+            raise ValidationError('Cart cannot mix items from different foodtrucks.')
+
+        unit_price = combo.get_effective_price()
+        if unit_price is None:
+            raise ValidationError(f"Combo '{combo.name}' needs a confirmed price before ordering.")
+
+        line_key = self._line_key('combo', combo_id)
+        existing_item = next((line for line in self.cart['items'] if line['line_key'] == line_key), None)
+        if existing_item:
+            existing_item['quantity'] += quantity
+            existing_item['total_price'] = str(Decimal(existing_item['unit_price']) * existing_item['quantity'])
+        else:
+            component_summary = ', '.join(combo.combo_items.order_by('display_order').values_list('display_name', flat=True))
+            self.cart['items'].append({
+                'line_key': line_key,
+                'line_type': 'combo',
+                'item_id': None,
+                'combo_id': combo.id,
+                'item_name': combo.name,
+                'component_summary': component_summary,
+                'quantity': quantity,
+                'unit_price': str(unit_price),
+                'total_price': str(unit_price * quantity),
+                'selected_options': [],
             })
 
         self.cart['foodtruck_slug'] = foodtruck_slug

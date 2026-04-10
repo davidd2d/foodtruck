@@ -1,7 +1,9 @@
 export function renderCartItem(item) {
-    const optionSummary = item.selected_options && item.selected_options.length
-        ? item.selected_options.map((option) => option.name || `Option ${option.option_id}`).join(', ')
-        : 'No extras selected';
+    const optionSummary = item.line_type === 'combo'
+        ? (item.component_summary || 'Combo')
+        : item.selected_options && item.selected_options.length
+            ? item.selected_options.map((option) => option.name || `Option ${option.option_id}`).join(', ')
+            : 'No extras selected';
 
     return `
         <li class="list-group-item d-flex justify-content-between align-items-start">

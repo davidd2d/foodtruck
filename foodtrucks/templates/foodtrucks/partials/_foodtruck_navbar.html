@@ -34,6 +34,12 @@
                             <li>
                                 <a class="dropdown-item" href="{% url 'orders:location-list' slug=foodtruck.slug %}">{% trans "Locations" %}</a>
                             </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}">{% trans "AI Menu" %}</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'ai_menu:combo-list' slug=foodtruck.slug %}">{% trans "Manage combos" %}</a>
+                            </li>
                         {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a></li>

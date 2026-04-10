@@ -10,6 +10,8 @@ from orders.services.cart_service import CartService
 from .factories import (
     UserFactory,
     FoodTruckFactory,
+    ComboFactory,
+    ComboItemFactory,
     ItemFactory,
     PickupSlotFactory,
     OrderFactory,
@@ -27,6 +29,8 @@ class OrderAPITests(APITestCase):
         self.pickup_slot = PickupSlotFactory(food_truck=self.foodtruck)
         self.category = CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck), name='Pizza')
         self.item = ItemFactory(category=self.category, base_price=Decimal('12.00'))
+        self.combo = ComboFactory(category=self.category, combo_price=Decimal('17.00'))
+        ComboItemFactory(combo=self.combo, item=self.item, display_name=self.item.name)
         self.client.force_authenticate(user=self.user)
 
     def test_create_order(self):
@@ -268,3 +272,22 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data['status'], 'order created')
         self.assertTrue(response.data['order_id'])
         self.assertTrue(Order.objects.filter(id=response.data['order_id'], user=self.user).exists())
+
+    def test_cart_add_combo_and_checkout(self):
+        add_response = self.client.post(
+            reverse('cart-add'),
+            {
+                'foodtruck_slug': self.foodtruck.slug,
+                'combo_id': self.combo.id,
+                'quantity': 1,
+            },
+            format='json'
+        )
+        self.assertEqual(add_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(add_response.data['items'][0]['line_type'], 'combo')
+
+        response = self.client.post(reverse('cart-checkout'), {'pickup_slot': self.pickup_slot.id}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order = Order.objects.get(id=response.data['order_id'])
+        self.assertEqual(order.items.first().combo_id, self.combo.id)

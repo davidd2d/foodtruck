@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "AI Menu" %}{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-dashboard-category {
+        scroll-margin-top: 110px;
+    }
+
+    .ai-dashboard-item-card {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if foodtruck %}
+    {% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
+{% endif %}
+
+<div class="container py-5" id="ai-menu-dashboard-app">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="mb-1">{% trans "AI Menu Analysis" %}</h1>
+            <p class="text-muted mb-0">{% trans "Launch AI analysis for each menu item and review upsell opportunities without leaving the dashboard." %}</p>
+        </div>
+        <a href="{% url 'ai_menu:combo-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Manage combos" %}</a>
+    </div>
+
+    {% if categories %}
+        {% for category in categories %}
+            <section class="mb-5 ai-dashboard-category" id="category-{{ category.id }}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h4 mb-0">{{ category.name }}</h2>
+                    <span class="badge text-bg-light">{{ category.dashboard_items|length }} {% trans "items" %}</span>
+                </div>
+                <div class="row g-4">
+                    {% for item in category.dashboard_items %}
+                        <div class="col-12">
+                            <div class="card shadow-sm h-100 ai-dashboard-item-card">
+                                <div class="card-body">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-3">
+                                        <div>
+                                            <h3 class="h5 mb-1">{{ item.name }}</h3>
+                                            <p class="text-muted mb-2">{{ item.description|default:_('No description provided yet.') }}</p>
+                                            <div class="small text-muted">
+                                                {% trans "Base price" %}: €{{ item.base_price|floatformat:2 }}
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary js-ai-analyze-button"
+                                            data-analyze-url="{% url 'ai_menu:analyze-item' item_id=item.id %}"
+                                            data-panel-target="ai-panel-{{ item.id }}"
+                                            data-loading-label="{% trans 'Analyzing...' %}"
+                                            data-default-label="✨ {% trans 'Analyze this dish' %}">
+                                            ✨ {% trans "Analyze this dish" %}
+                                        </button>
+                                    </div>
+
+                                    <div id="ai-panel-{{ item.id }}">
+                                        {% include 'ai_menu/partials/recommendations_panel.html' with item=item recommendations=item.ai_recommendations_grouped only %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info mb-0">{% trans "No active menu was found for this food truck." %}</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/ai_menu/item_ai_recommendations.js' %}"></script>
+{% endblock %}

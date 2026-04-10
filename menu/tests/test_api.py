@@ -6,6 +6,8 @@ from menu.tests.factories import (
     MenuFactory,
     CategoryFactory,
     ItemFactory,
+    ComboFactory,
+    ComboItemFactory,
     OptionGroupFactory,
     OptionFactory,
 )
@@ -22,6 +24,9 @@ class MenuAPITests(APITestCase):
         self.item_margherita = ItemFactory(category=self.category_pizza, name='Margherita', base_price=12.50)
         self.item_pepperoni = ItemFactory(category=self.category_pizza, name='Pepperoni', base_price=13.75)
         self.item_cola = ItemFactory(category=self.category_drinks, name='Cola', base_price=3.25)
+        self.combo_lunch = ComboFactory(category=self.category_pizza, name='Lunch Combo')
+        ComboItemFactory(combo=self.combo_lunch, item=self.item_margherita, display_name='Margherita')
+        ComboItemFactory(combo=self.combo_lunch, item=self.item_cola, display_name='Cola', display_order=1)
 
         self.size_options = OptionGroupFactory(item=self.item_margherita, name='Size')
         self.size_small = OptionFactory(group=self.size_options, name='Small', price_modifier=0)
@@ -46,6 +51,11 @@ class MenuAPITests(APITestCase):
         self.assertEqual(margherita['option_groups'][0]['name'], 'Size')
         self.assertEqual(len(margherita['option_groups'][0]['options']), 2)
 
+        pizza_category = next(cat for cat in response.data['categories'] if cat['name'] == 'Pizza')
+        self.assertEqual(len(pizza_category['combos']), 1)
+        self.assertEqual(pizza_category['combos'][0]['name'], 'Lunch Combo')
+        self.assertEqual(len(pizza_category['combos'][0]['combo_items']), 2)
+
     def test_search_menu_items_by_name(self):
         url = reverse('menu-detail', kwargs={'pk': self.menu.id}) + '?item_search=cola'
         response = self.client.get(url)
@@ -53,6 +63,16 @@ class MenuAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['categories']), 1)
         self.assertEqual(response.data['categories'][0]['name'], 'Drinks')
+
+    def test_search_menu_combos_by_name(self):
+        url = reverse('menu-detail', kwargs={'pk': self.menu.id}) + '?item_search=lunch'
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['categories']), 1)
+        self.assertEqual(response.data['categories'][0]['name'], 'Pizza')
+        self.assertEqual(len(response.data['categories'][0]['items']), 0)
+        self.assertEqual(len(response.data['categories'][0]['combos']), 1)
 
     def test_menu_not_found_for_invalid_id(self):
         url = reverse('menu-detail', kwargs={'pk': 999999})

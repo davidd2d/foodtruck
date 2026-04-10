@@ -19,11 +19,13 @@ class OrderItemOptionSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     """Serializer for OrderItem model."""
     selected_options = OrderItemOptionSerializer(many=True, read_only=True)
+    line_type = serializers.CharField(read_only=True)
+    product_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = OrderItem
         fields = [
-            'id', 'item', 'quantity', 'unit_price', 'total_price', 'selected_options'
+            'id', 'item', 'combo', 'line_type', 'product_name', 'quantity', 'unit_price', 'total_price', 'selected_options'
         ]
 
 
@@ -229,7 +231,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
 class AddItemSerializer(serializers.Serializer):
     """Serializer for adding items to order."""
-    item_id = serializers.IntegerField()
+    item_id = serializers.IntegerField(required=False)
+    combo_id = serializers.IntegerField(required=False)
     quantity = serializers.IntegerField(min_value=1)
     selected_options = serializers.ListField(
         child=serializers.IntegerField(),
@@ -237,12 +240,24 @@ class AddItemSerializer(serializers.Serializer):
         allow_empty=True
     )
 
+    def validate(self, attrs):
+        item_id = attrs.get('item_id')
+        combo_id = attrs.get('combo_id')
+        if bool(item_id) == bool(combo_id):
+            raise serializers.ValidationError('Provide exactly one of item_id or combo_id.')
+        if combo_id and attrs.get('selected_options'):
+            raise serializers.ValidationError('Combos do not support selected_options.')
+        return attrs
+
 
 class CartItemSerializer(serializers.Serializer):
     """Serializer for cart item payload."""
     line_key = serializers.CharField()
-    item_id = serializers.IntegerField()
+    line_type = serializers.CharField()
+    item_id = serializers.IntegerField(required=False, allow_null=True)
+    combo_id = serializers.IntegerField(required=False, allow_null=True)
     item_name = serializers.CharField()
+    component_summary = serializers.CharField(required=False, allow_blank=True)
     quantity = serializers.IntegerField()
     unit_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
@@ -260,13 +275,23 @@ class CartSerializer(serializers.Serializer):
 class AddCartItemSerializer(serializers.Serializer):
     """Serializer for adding an item to the cart."""
     foodtruck_slug = serializers.SlugField()
-    item_id = serializers.IntegerField()
+    item_id = serializers.IntegerField(required=False)
+    combo_id = serializers.IntegerField(required=False)
     quantity = serializers.IntegerField(min_value=1)
     selected_options = serializers.ListField(
         child=serializers.IntegerField(),
         required=False,
         allow_empty=True
     )
+
+    def validate(self, attrs):
+        item_id = attrs.get('item_id')
+        combo_id = attrs.get('combo_id')
+        if bool(item_id) == bool(combo_id):
+            raise serializers.ValidationError('Provide exactly one of item_id or combo_id.')
+        if combo_id and attrs.get('selected_options'):
+            raise serializers.ValidationError('Combos do not support selected_options.')
+        return attrs
 
 
 class RemoveCartItemSerializer(serializers.Serializer):

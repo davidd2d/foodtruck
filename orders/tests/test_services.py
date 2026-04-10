@@ -11,6 +11,8 @@ from orders.tests.factories import (
     FoodTruckFactory,
     MenuFactory,
     CategoryFactory,
+    ComboFactory,
+    ComboItemFactory,
     ItemFactory,
     OptionGroupFactory,
     OptionFactory,
@@ -36,6 +38,8 @@ class CartServiceTests(TestCase):
         self.menu = MenuFactory(food_truck=self.foodtruck)
         self.category = CategoryFactory(menu=self.menu)
         self.item = ItemFactory(category=self.category, base_price=Decimal('10.00'))
+        self.combo = ComboFactory(category=self.category, combo_price=Decimal('14.00'))
+        ComboItemFactory(combo=self.combo, item=self.item, display_name=self.item.name)
         self.session = self.client.session
         self.session.save()
         self.cart_service = CartService(self.session)
@@ -98,6 +102,19 @@ class CartServiceTests(TestCase):
         self.assertEqual(cart['item_count'], 0)
         self.assertEqual(cart['total_price'], '0.00')
 
+    def test_add_combo_adds_to_session_cart(self):
+        self.cart_service.add_combo(
+            foodtruck_slug=self.foodtruck.slug,
+            combo_id=self.combo.id,
+            quantity=2,
+        )
+
+        cart = self.cart_service.get_cart()
+        self.assertEqual(cart['item_count'], 2)
+        self.assertEqual(cart['items'][0]['line_type'], 'combo')
+        self.assertEqual(cart['items'][0]['combo_id'], self.combo.id)
+        self.assertEqual(cart['total_price'], '28.00')
+
 
 class OrderServiceTests(TestCase):
     def setUp(self):
@@ -106,6 +123,8 @@ class OrderServiceTests(TestCase):
         self.slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=2)
         self.category = CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck), name='Pizza')
         self.item = ItemFactory(category=self.category, base_price=Decimal('11.00'))
+        self.combo = ComboFactory(category=self.category, combo_price=Decimal('16.00'))
+        ComboItemFactory(combo=self.combo, item=self.item, display_name=self.item.name)
         pro_plan = PlanFactory(code='pro', allows_ordering=True)
         subscription = self.foodtruck.subscription
         subscription.plan = pro_plan
@@ -180,3 +199,28 @@ class OrderServiceTests(TestCase):
 
         with self.assertRaises(ValidationError):
             OrderService.create_order_from_cart(self.user, session)
+
+    def test_create_order_from_cart_with_combo(self):
+        session = DummySession()
+        session[CartService.SESSION_KEY] = {
+            'foodtruck_slug': self.foodtruck.slug,
+            'items': [
+                {
+                    'line_key': f'combo:{self.combo.id}:',
+                    'line_type': 'combo',
+                    'item_id': None,
+                    'combo_id': self.combo.id,
+                    'item_name': self.combo.name,
+                    'quantity': 1,
+                    'unit_price': '16.00',
+                    'total_price': '16.00',
+                    'selected_options': [],
+                }
+            ],
+        }
+
+        order = OrderService.create_order_from_cart(self.user, session, pickup_slot_id=self.slot.id)
+
+        self.assertEqual(order.items.count(), 1)
+        self.assertEqual(order.items.first().combo_id, self.combo.id)
+        self.assertEqual(order.total_price, Decimal('16.00'))

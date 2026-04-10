@@ -12,7 +12,7 @@ from django.db import models, transaction, OperationalError
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from menu.models import Item, Option
+from menu.models import Combo, Item, Option
 
 PARIS_TZ = pytz.timezone('Europe/Paris')
 
@@ -438,6 +438,36 @@ class Order(models.Model):
         self.total_price = self.calculate_total()
         self.save(update_fields=['total_price'])
 
+    def add_combo(self, combo, quantity):
+        """Add a combo to the order as a priced snapshot line."""
+        if self.status != 'draft':
+            raise ValidationError("Cannot modify order after submission")
+
+        if combo.category.menu.food_truck_id != self.food_truck_id:
+            raise ValidationError('Combo belongs to another food truck')
+
+        if not combo.is_available:
+            raise ValidationError(f"Combo '{combo.name}' is not available")
+
+        if quantity <= 0:
+            raise ValidationError("Quantity must be positive")
+
+        unit_price = combo.get_effective_price()
+        if unit_price is None:
+            raise ValidationError(f"Combo '{combo.name}' needs a confirmed price before ordering")
+
+        OrderItem.objects.create(
+            order=self,
+            combo=combo,
+            quantity=quantity,
+            unit_price=unit_price,
+            total_price=unit_price * quantity,
+            options=[],
+        )
+
+        self.total_price = self.calculate_total()
+        self.save(update_fields=['total_price'])
+
     def calculate_total(self):
         """
         Calculate the total price from all order items.
@@ -487,9 +517,20 @@ class Order(models.Model):
         if not slot.has_capacity_for(exclude_order=self, include_drafts=False):
             return False
 
-        for order_item in self.items.select_related('item__category__menu__food_truck'):
-            item = order_item.item
-            if not item.is_available_now() or item.category.menu.food_truck_id != self.food_truck_id:
+        for order_item in self.items.select_related(
+            'item__category__menu__food_truck',
+            'combo__category__menu__food_truck',
+        ):
+            if order_item.item_id:
+                item = order_item.item
+                if not item.is_available_now() or item.category.menu.food_truck_id != self.food_truck_id:
+                    return False
+                continue
+
+            combo = order_item.combo
+            if not combo or not combo.is_available or combo.category.menu.food_truck_id != self.food_truck_id:
+                return False
+            if combo.get_effective_price() is None:
                 return False
 
         return True
@@ -524,12 +565,25 @@ class Order(models.Model):
             raise ValidationError('Pickup slot is no longer available.')
 
         invalid_items = []
-        for order_item in self.items.select_related('item__category__menu__food_truck'):
-            item = order_item.item
-            if not item.is_available_now():
-                invalid_items.append(item.name)
-            elif item.category.menu.food_truck_id != self.food_truck_id:
+        for order_item in self.items.select_related(
+            'item__category__menu__food_truck',
+            'combo__category__menu__food_truck',
+        ):
+            if order_item.item_id:
+                item = order_item.item
+                if not item.is_available_now():
+                    invalid_items.append(item.name)
+                elif item.category.menu.food_truck_id != self.food_truck_id:
+                    raise ValidationError('Order contains items from multiple food trucks.')
+                continue
+
+            combo = order_item.combo
+            if not combo or not combo.is_available:
+                invalid_items.append(getattr(combo, 'name', 'Combo'))
+            elif combo.category.menu.food_truck_id != self.food_truck_id:
                 raise ValidationError('Order contains items from multiple food trucks.')
+            elif combo.get_effective_price() is None:
+                invalid_items.append(combo.name)
 
         if invalid_items:
             message = ', '.join(invalid_items)
@@ -628,7 +682,17 @@ class OrderItem(models.Model):
     item = models.ForeignKey(
         'menu.Item',
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         help_text=_("The menu item")
+    )
+    combo = models.ForeignKey(
+        'menu.Combo',
+        on_delete=models.CASCADE,
+        related_name='order_items',
+        null=True,
+        blank=True,
+        help_text=_("The menu combo")
     )
     options = models.JSONField(
         default=list,
@@ -652,6 +716,13 @@ class OrderItem(models.Model):
         verbose_name_plural = _("Order Items")
         constraints = [
             models.CheckConstraint(
+                check=(
+                    (models.Q(item__isnull=False) & models.Q(combo__isnull=True)) |
+                    (models.Q(item__isnull=True) & models.Q(combo__isnull=False))
+                ),
+                name='order_item_exactly_one_product'
+            ),
+            models.CheckConstraint(
                 check=models.Q(quantity__gt=0),
                 name='order_item_quantity_positive'
             ),
@@ -666,7 +737,19 @@ class OrderItem(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.item.name} x{self.quantity}"
+        return f"{self.product_name} x{self.quantity}"
+
+    @property
+    def line_type(self):
+        return 'combo' if self.combo_id else 'item'
+
+    @property
+    def product_name(self):
+        if self.item_id:
+            return self.item.name
+        if self.combo_id:
+            return self.combo.name
+        return 'Unknown product'
 
     def save(self, *args, **kwargs):
         """Ensure total_price consistency."""

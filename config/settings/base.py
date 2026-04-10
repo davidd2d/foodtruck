@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'payments.apps.PaymentsConfig',
     'preferences.apps.PreferencesConfig',
     'onboarding.apps.OnboardingConfig',
+    'ai_menu.apps.AiMenuConfig',
 ]
 
 MIDDLEWARE = [

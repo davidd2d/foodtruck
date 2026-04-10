@@ -1,6 +1,6 @@
 from django.contrib import admin
 from common.admin import OwnerRestrictedAdminMixin
-from .models import Menu, Category, Item, OptionGroup, Option
+from .models import Menu, Category, Item, Combo, ComboItem, OptionGroup, Option
 
 
 class OptionInline(admin.TabularInline):
@@ -21,6 +21,47 @@ class ItemInline(admin.TabularInline):
     extra = 0
     fields = ('name', 'base_price', 'is_available', 'display_order')
     autocomplete_fields = ('compatible_preferences',)
+
+
+class ComboItemInline(admin.TabularInline):
+    model = ComboItem
+    extra = 0
+    fields = ('display_name', 'item', 'quantity', 'display_order')
+
+
+@admin.register(Combo)
+class ComboAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
+    list_display = ('name', 'category', 'combo_price', 'is_available')
+    search_fields = ('name', 'category__name', 'category__menu__food_truck__name')
+    list_filter = ('is_available', 'category__menu')
+    inlines = [ComboItemInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('category__menu__food_truck').prefetch_related('combo_items__item')
+
+    def _filter_by_food_trucks(self, qs, truck_ids):
+        return qs.filter(category__menu__food_truck_id__in=truck_ids)
+
+    def _object_belongs_to_trucks(self, obj, truck_ids):
+        return obj.category.menu.food_truck_id in truck_ids
+
+
+@admin.register(ComboItem)
+class ComboItemAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
+    list_display = ('display_name', 'combo', 'item', 'quantity')
+    search_fields = ('display_name', 'combo__name', 'combo__category__menu__food_truck__name', 'item__name')
+    list_filter = ('combo__category__menu',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('combo__category__menu__food_truck', 'item')
+
+    def _filter_by_food_trucks(self, qs, truck_ids):
+        return qs.filter(combo__category__menu__food_truck_id__in=truck_ids)
+
+    def _object_belongs_to_trucks(self, obj, truck_ids):
+        return obj.combo.category.menu.food_truck_id in truck_ids
 
 
 class CategoryInline(admin.TabularInline):

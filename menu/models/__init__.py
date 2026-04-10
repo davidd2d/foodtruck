@@ -189,6 +189,100 @@ class Item(models.Model):
                 )
 
 
+class Combo(models.Model):
+    """
+    Represents a purchasable or displayable combo within a menu category.
+
+    Combos group several menu items into a curated offer. They are modeled
+    separately from regular items so their composition can evolve without
+    overloading the existing item/options domain.
+    """
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='combos',
+        help_text=_("The category this combo belongs to")
+    )
+    name = models.CharField(max_length=200, help_text=_("Name of the combo"))
+    description = models.TextField(blank=True, help_text=_("Description of the combo"))
+    combo_price = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_("Explicit combo price when known")
+    )
+    is_available = models.BooleanField(default=True, help_text=_("Whether the combo is available"))
+    display_order = models.PositiveIntegerField(default=0, help_text=_("Order for display"))
+
+    class Meta:
+        verbose_name = _("Combo")
+        verbose_name_plural = _("Combos")
+        ordering = ['display_order', 'name']
+        indexes = [
+            models.Index(fields=['category']),
+            models.Index(fields=['is_available']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def get_effective_price(self):
+        """Return the explicit combo price, or infer one from resolved component items."""
+        if self.combo_price is not None:
+            return self.combo_price
+
+        combo_items = list(self.combo_items.select_related('item'))
+        if not combo_items:
+            return None
+
+        total = Decimal('0.00')
+        resolved_items = 0
+        for combo_item in combo_items:
+            if combo_item.item_id:
+                total += combo_item.item.base_price * combo_item.quantity
+                resolved_items += 1
+
+        if resolved_items != len(combo_items):
+            return None
+
+        return total
+
+
+class ComboItem(models.Model):
+    """
+    Represents one component inside a combo.
+
+    `display_name` preserves the intended component label even when no exact
+    `menu.Item` match is available in the current menu.
+    """
+    combo = models.ForeignKey(
+        Combo,
+        on_delete=models.CASCADE,
+        related_name='combo_items',
+        help_text=_("The combo this component belongs to")
+    )
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='combo_memberships',
+        help_text=_("Resolved menu item for this combo component when available")
+    )
+    display_name = models.CharField(max_length=200, help_text=_("Display name of the combo component"))
+    quantity = models.PositiveIntegerField(default=1, help_text=_("Quantity of this component in the combo"))
+    display_order = models.PositiveIntegerField(default=0, help_text=_("Order for display"))
+
+    class Meta:
+        verbose_name = _("Combo Item")
+        verbose_name_plural = _("Combo Items")
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        return f"{self.combo.name} - {self.display_name}"
+
+
 class OptionGroup(models.Model):
     """
     Represents a group of options for item customization (e.g., Size, Extras).

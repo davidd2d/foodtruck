@@ -230,11 +230,15 @@ async function handleAddToCart(event) {
         return;
     }
 
-    const itemCard = button.closest('.menu-item');
-    const itemId = Number(button.dataset.itemId);
-    const quantityField = itemCard.querySelector('.menu-item-quantity');
+    const itemCard = button.closest('.menu-item, .js-orderable-entry, .card');
+    const itemId = button.dataset.itemId ? Number(button.dataset.itemId) : null;
+    const comboId = button.dataset.comboId ? Number(button.dataset.comboId) : null;
+    const quantityField = itemCard?.querySelector('.menu-item-quantity');
     const quantity = Math.max(1, Number(quantityField?.value || 1));
-    const selectedOptions = Array.from(itemCard.querySelectorAll('.menu-option:checked')).map((input) => Number(input.dataset.optionId));
+    const selectedOptions = itemId
+        ? Array.from(itemCard.querySelectorAll('.menu-option:checked')).map((input) => Number(input.dataset.optionId))
+        : [];
+    const defaultLabel = button.dataset.defaultLabel || 'Add to cart';
 
     button.disabled = true;
     button.textContent = 'Adding...';
@@ -242,7 +246,8 @@ async function handleAddToCart(event) {
     try {
         const cart = await addCartItem({
             foodtruck_slug: foodtruckSlug,
-            item_id: itemId,
+            ...(itemId ? { item_id: itemId } : {}),
+            ...(comboId ? { combo_id: comboId } : {}),
             quantity,
             selected_options: selectedOptions,
         });
@@ -252,7 +257,7 @@ async function handleAddToCart(event) {
         console.error(error);
     } finally {
         button.disabled = false;
-        button.textContent = 'Add to cart';
+        button.textContent = defaultLabel;
     }
 }
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Menu, Category, Item, OptionGroup, Option
+from ..models import Menu, Category, Item, Combo, ComboItem, OptionGroup, Option
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -31,13 +31,40 @@ class ItemSerializer(serializers.ModelSerializer):
         ]
 
 
+class ComboItemSerializer(serializers.ModelSerializer):
+    """Serializer for ComboItem model."""
+    item_id = serializers.IntegerField(source='item.id', read_only=True)
+
+    class Meta:
+        model = ComboItem
+        fields = ['id', 'item_id', 'display_name', 'quantity', 'display_order']
+
+
+class ComboSerializer(serializers.ModelSerializer):
+    """Serializer for Combo model."""
+    combo_items = ComboItemSerializer(many=True, read_only=True)
+    effective_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Combo
+        fields = [
+            'id', 'name', 'description', 'combo_price', 'effective_price',
+            'is_available', 'display_order', 'combo_items'
+        ]
+
+    def get_effective_price(self, obj):
+        price = obj.get_effective_price()
+        return price
+
+
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model."""
     items = ItemSerializer(many=True, read_only=True)
+    combos = ComboSerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'display_order', 'items']
+        fields = ['id', 'name', 'display_order', 'items', 'combos']
 
 
 class MenuSerializer(serializers.ModelSerializer):
@@ -60,8 +87,13 @@ class MenuSerializer(serializers.ModelSerializer):
                     item for item in category.get('items', [])
                     if normalized_search in item.get('name', '').lower()
                 ]
-                if filtered_items:
+                filtered_combos = [
+                    combo for combo in category.get('combos', [])
+                    if normalized_search in combo.get('name', '').lower()
+                ]
+                if filtered_items or filtered_combos:
                     category['items'] = filtered_items
+                    category['combos'] = filtered_combos
                     categories.append(category)
             data['categories'] = categories
         return data

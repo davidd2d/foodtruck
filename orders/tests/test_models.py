@@ -12,6 +12,8 @@ from orders.models import Order, PickupSlot, ServiceSchedule, Location, PARIS_TZ
 from orders.services.schedule_service import generate_slots_for_date
 from .factories import (
     UserFactory,
+    ComboFactory,
+    ComboItemFactory,
     FoodTruckFactory,
     ItemFactory,
     PickupSlotFactory,
@@ -30,6 +32,8 @@ class OrderModelTests(TestCase):
         self.pickup_slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=2)
         self.category = CategoryFactory(menu=MenuFactory(food_truck=self.foodtruck), name='Pizza')
         self.item = ItemFactory(category=self.category, base_price=Decimal('12.00'))
+        self.combo = ComboFactory(category=self.category, combo_price=Decimal('18.00'))
+        ComboItemFactory(combo=self.combo, item=self.item, display_name=self.item.name)
 
     def test_add_item_adds_order_item_and_updates_total(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
@@ -111,6 +115,17 @@ class OrderModelTests(TestCase):
 
         with self.assertRaises(ValidationError):
             order.add_item(self.item, quantity=-1)
+
+    def test_add_combo_adds_order_item_and_updates_total(self):
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+
+        order.add_combo(self.combo, quantity=2)
+
+        self.assertEqual(order.items.count(), 1)
+        order_item = order.items.first()
+        self.assertEqual(order_item.combo_id, self.combo.id)
+        self.assertEqual(order_item.total_price, Decimal('36.00'))
+        self.assertEqual(order.total_price, Decimal('36.00'))
 
     def test_submit_order_with_generated_slot(self):
         schedule = ServiceSchedule.objects.create(

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Manage combos" %}{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{% trans "Manage combos" %}</h1>
+            <p class="text-muted mb-0">{% trans "Review generated combos, confirm pricing and adjust their components before they are ordered." %}</p>
+        </div>
+        <a href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Back to AI Menu" %}</a>
+    </div>
+
+    {% if combos %}
+        <div class="row g-4">
+            {% for combo in combos %}
+                <div class="col-12 col-lg-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <div class="small text-muted">{{ combo.category.name }}</div>
+                                    <h2 class="h5 mb-1">{{ combo.name }}</h2>
+                                    <p class="text-muted mb-2">{{ combo.description|default:_('No description yet.') }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-semibold">
+                                        {% with price=combo.get_effective_price %}
+                                            {% if price %}€{{ price|floatformat:2 }}{% else %}{% trans "Price to confirm" %}{% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <span class="badge {% if combo.is_available %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+                                        {% if combo.is_available %}{% trans "Available" %}{% else %}{% trans "Hidden" %}{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <ul class="small text-muted ps-3 mb-3">
+                                {% for combo_item in combo.combo_items.all %}
+                                    <li>{{ combo_item.quantity }}x {{ combo_item.display_name }}</li>
+                                {% empty %}
+                                    <li>{% trans "No components yet." %}</li>
+                                {% endfor %}
+                            </ul>
+                            <a href="{% url 'ai_menu:combo-edit' slug=foodtruck.slug combo_id=combo.id %}" class="btn btn-primary">{% trans "Edit combo" %}</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mb-0">{% trans "No combos exist for this food truck yet." %}</div>
+    {% endif %}
+</div>
+{% endblock %}

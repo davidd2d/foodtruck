@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from foodtrucks.models import FoodTruck
-from menu.models import Item
+from menu.models import Combo, Item
 from orders.models import Order, PickupSlot
 from orders.services.cart_service import CartService
 
@@ -60,6 +60,20 @@ class OrderService:
             )
 
             for item_line in cart['items']:
+                line_type = item_line.get('line_type', 'item')
+
+                if line_type == 'combo':
+                    combo = Combo.objects.select_related('category__menu__food_truck').get(id=item_line['combo_id'])
+
+                    if combo.category.menu.food_truck.slug != cart['foodtruck_slug']:
+                        raise ValidationError('Combo does not belong to the cart food truck.')
+
+                    order.add_combo(
+                        combo=combo,
+                        quantity=item_line['quantity'],
+                    )
+                    continue
+
                 item = Item.objects.select_related('category__menu__food_truck').get(id=item_line['item_id'])
 
                 if item.category.menu.food_truck.slug != cart['foodtruck_slug']:

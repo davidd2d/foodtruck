@@ -122,7 +122,130 @@ A SaaS platform for food trucks allowing:
 
 ---
 
-## 9️⃣ Documentation
+## 9️⃣ AI Menu Intelligence
+
+**Phase 1: MVP Foundation (Rules-Based)**
+
+- **Module:** `ai_menu` app — AI recommendation engine for menu items
+- **Model:** `AIRecommendation` stores structured suggestions
+  - Fields: `item` (FK), `recommendation_type` (free_option, paid_option, bundle, pricing), `payload` (JSON), `status` (pending, accepted, rejected)
+  - Manager methods: `pending()`, `accepted()`, `for_foodtruck()`, `for_item()`
+  - Business methods: `is_pending()`, `accept()`, `reject()`
+- **Service:** `MenuAnalyzerService` — rules-based item analysis
+  - Method: `analyze_item(item)` → returns structured suggestions
+  - Rule engine detects item category (burger, bowl, taco, other)
+  - Generates free & paid option suggestions + bundle recommendations
+  - Extensible for future LLM integration (same interface)
+- **Backend:**
+  - Indexes: `(item, status)`, `(recommendation_type, status)`, `(status, -created_at)`
+  - Admin interface with actions to accept/reject bulk recommendations
+  - Full test suite: 21 tests (model, queryset, service)
+
+**Phase 2: LLM Integration (OpenAI)**
+
+- **Service:** `AIRecommendationGeneratorService` — intelligent recommendation generation
+  - Main method: `generate_and_store_for_item(item)` — generates & persists recommendations
+  - Workflow:
+    1. Prepares item context (name, description, category, foodtruck cuisine type)
+    2. Builds structured prompt asking OpenAI to generate:
+       - Detected item category (burger, bowl, taco, salad, pizza, etc.)
+       - 3-4 free options (enhance value perception)
+       - 3-4 paid upsells (realistic pricing €0.50-€4.00)
+       - 2-3 bundle suggestions (increase AOV)
+    3. Calls OpenAI API via centralized `OpenAIService`
+    4. Parses JSON response with robust error handling
+    5. Validates response structure
+    6. Persists recommendations as `AIRecommendation` records (status: pending)
+    7. Falls back to `MenuAnalyzerService` if API fails/returns invalid JSON
+  - Prompt constraints:
+    - English prompt optimized for GPT-4o
+    - Forces strict JSON output format
+    - Requests realistic, actionable suggestions
+    - Domain-aware (food truck pricing/operations)
+  - Error handling:
+    - API timeout/errors → automatic fallback to MVP rules
+    - Invalid JSON → fallback (logged)
+    - Database errors → caught and returned as error status
+    - Empty descriptions → handled gracefully
+  - Database management:
+    - Clears old pending recommendations before creating new ones
+    - Preserves accepted/rejected history
+    - Uses atomic transactions for data consistency
+  - Logging: DEBUG (calls), INFO (success), WARNING (API errors), ERROR (exceptions)
+
+- **Backend:**
+  - Full test suite: 20 tests covering:
+    - Context preparation (with/without description)
+    - OpenAI response parsing (JSON with/without markdown)
+    - Response validation (structure, types, required fields)
+    - Successful generation flow
+    - Fallback scenarios (invalid JSON, API errors)
+    - Database persistence (correct types, payloads)
+    - Error handling (invalid items, database errors, cleanup)
+    - Recommendation history preservation (accepted/rejected)
+  - Uses mocking for OpenAI tests (no API calls in CI/CD)
+  - RecommendationType payloads:
+    - `free_option`: `{name, reason}`
+    - `paid_option`: `{name, suggested_price, reason}`
+    - `bundle`: `{name, items[], reason}`
+
+- **Deployment:**
+  - Requires: `OPENAI_API_KEY` environment variable
+  - Uses OpenAI client from `config.services.openai_client`
+  - Caching disabled for recommendations (always fresh)
+  - Model: GPT-4o, max_tokens: 1500
+
+- **Future Phases:**
+  - Phase 3: Owner dashboard analysis workflow
+  - Phase 4: Recommendation scoring + ranking
+  - Phase 5: Owner review UI + auto-acceptance rules
+  - Phase 6: A/B testing recommendations effectiveness
+
+**Phase 3: Owner Dashboard Workflow (AJAX)**
+
+- **Owner dashboard:** new route to review AI recommendations per menu item
+  - Page: `/dashboard/foodtruck/<slug>/menu-ai/`
+  - Uses existing owner navbar conventions
+  - Lists active menu categories and items with a per-item AI action button
+- **Secure endpoint:** `POST /dashboard/menu/items/<id>/analyze-ai/`
+  - Authentication required
+  - Strict tenant isolation via `item -> menu -> foodtruck -> owner`
+  - CSRF protected
+  - JSON response contains grouped recommendations plus rendered HTML partial
+- **Thin views / service orchestration:**
+  - `AIRecommendationDashboardService` handles:
+    - active menu loading for dashboard display
+    - per-item rate limiting (basic abuse protection)
+    - orchestration of `AIRecommendationGeneratorService`
+    - grouping recommendations into UI sections (`free_options`, `paid_options`, `bundles`)
+  - Views only validate access, call service, and return HTML/JSON
+- **UI integration:**
+  - New reusable partial: `templates/ai_menu/partials/recommendations_panel.html`
+  - New JS module: `static/js/ai_menu/item_ai_recommendations.js`
+  - Loading state, error state, and fallback state handled without page reload
+  - Owners can accept or reject pending recommendations directly from the dashboard
+  - Accepted and rejected recommendations remain visible in dashboard history with an undo action
+- **Menu linkage:**
+  - Accepting a `free_option` recommendation auto-creates a `menu.Option` inside `AI Free Customizations`
+  - Accepting a `paid_option` recommendation auto-creates a `menu.Option` inside `AI Paid Add-ons`
+  - Accepting a `bundle` recommendation now auto-creates a real `menu.Combo` with `ComboItem` rows in a dedicated `Combos` category
+  - Resetting an accepted recommendation back to pending removes the generated option and deletes the empty group if needed
+  - Generated combos can be reviewed and edited from an owner-facing combo management screen
+  - Combos with a confirmed effective price are now orderable through the cart and checkout flow
+- **Backend tests:**
+  - owner dashboard access
+  - non-owner isolation
+  - AJAX analysis success path
+  - CSRF handling
+  - rate limiting
+  - accept / reject actions from dashboard
+  - reset accepted/rejected recommendations to pending
+  - automatic creation/removal of `OptionGroup` and `Option`
+  - graceful AI error handling
+
+---
+
+## 🔟 Documentation
 
 - README should include:
 - AI Onboarding
@@ -131,3 +254,5 @@ A SaaS platform for food trucks allowing:
 - Free vs Pro plan
 - Frontend + backend tests
 - Feature gating guarantees
+- AI Menu Intelligence (Phase 1 & Phase 2)
+- AI Menu dashboard workflow (Phase 3)

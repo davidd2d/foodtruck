@@ -21,7 +21,8 @@ class MenuService:
             Menu.objects.filter(food_truck=foodtruck, is_active=True)
             .prefetch_related(
                 'categories__items__option_groups__options',
-                'categories__items__compatible_preferences'
+                'categories__items__compatible_preferences',
+                'categories__combos__combo_items__item',
             )
             .order_by('-created_at')
             .first()

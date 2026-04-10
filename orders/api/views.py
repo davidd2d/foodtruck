@@ -29,7 +29,7 @@ from .serializers import (
     ServiceScheduleSerializer,
 )
 from ..models import Order, PickupSlot, ServiceSchedule, PARIS_TZ
-from menu.models import Item
+from menu.models import Combo, Item
 from ..services.cart_service import CartService
 from ..services.order_service import OrderService
 from ..services.schedule_service import generate_slots_for_date
@@ -101,15 +101,22 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             try:
-                item = Item.objects.get(id=serializer.validated_data['item_id'])
-                order.add_item(
-                    item=item,
-                    quantity=serializer.validated_data['quantity'],
-                    selected_options=serializer.validated_data.get('selected_options', [])
-                )
+                if serializer.validated_data.get('combo_id'):
+                    combo = Combo.objects.get(id=serializer.validated_data['combo_id'])
+                    order.add_combo(
+                        combo=combo,
+                        quantity=serializer.validated_data['quantity'],
+                    )
+                else:
+                    item = Item.objects.get(id=serializer.validated_data['item_id'])
+                    order.add_item(
+                        item=item,
+                        quantity=serializer.validated_data['quantity'],
+                        selected_options=serializer.validated_data.get('selected_options', [])
+                    )
                 return Response({'status': 'item added'}, status=status.HTTP_200_OK)
-            except Item.DoesNotExist:
-                return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+            except (Item.DoesNotExist, Combo.DoesNotExist):
+                return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -147,12 +154,20 @@ class CartAddView(APIView):
         serializer = AddCartItemSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                CartService(request.session).add_item(
-                    foodtruck_slug=serializer.validated_data['foodtruck_slug'],
-                    item_id=serializer.validated_data['item_id'],
-                    quantity=serializer.validated_data['quantity'],
-                    selected_options=serializer.validated_data.get('selected_options', []),
-                )
+                cart_service = CartService(request.session)
+                if serializer.validated_data.get('combo_id'):
+                    cart_service.add_combo(
+                        foodtruck_slug=serializer.validated_data['foodtruck_slug'],
+                        combo_id=serializer.validated_data['combo_id'],
+                        quantity=serializer.validated_data['quantity'],
+                    )
+                else:
+                    cart_service.add_item(
+                        foodtruck_slug=serializer.validated_data['foodtruck_slug'],
+                        item_id=serializer.validated_data['item_id'],
+                        quantity=serializer.validated_data['quantity'],
+                        selected_options=serializer.validated_data.get('selected_options', []),
+                    )
                 cart = CartService(request.session).get_cart()
                 return Response(cart, status=status.HTTP_200_OK)
             except ValidationError as ex:

@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.utils import timezone
 from datetime import timedelta
 from foodtrucks.tests.factories import FoodTruckFactory
-from menu.models import Menu, Category, Item, OptionGroup, Option
+from menu.models import Menu, Category, Item, Combo, ComboItem, OptionGroup, Option
 
 
 def MenuFactory(food_truck=None, name=None, is_active=True):
@@ -32,6 +32,30 @@ def ItemFactory(category=None, name='Item', description='Item description', base
         description=description,
         base_price=base_price,
         is_available=is_available,
+        display_order=display_order,
+    )
+
+
+def ComboFactory(category=None, name='Combo', description='Combo description', combo_price=None, is_available=True, display_order=0):
+    category = category or CategoryFactory()
+    return Combo.objects.create(
+        category=category,
+        name=name,
+        description=description,
+        combo_price=combo_price,
+        is_available=is_available,
+        display_order=display_order,
+    )
+
+
+def ComboItemFactory(combo=None, item=None, display_name='Combo Item', quantity=1, display_order=0):
+    combo = combo or ComboFactory()
+    item = item or ItemFactory(category=combo.category, name=display_name)
+    return ComboItem.objects.create(
+        combo=combo,
+        item=item,
+        display_name=display_name,
+        quantity=quantity,
         display_order=display_order,
     )
 
