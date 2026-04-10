@@ -1,3 +1,19 @@
+import { interpolate } from '../i18n.js';
+
+const defaultTranslations = {
+    priceToConfirmLabel: 'Price to confirm',
+    addComboLabel: 'Add combo',
+    comboBadgeLabel: 'Combo',
+    requiredLabel: 'Required',
+    optionalLabel: 'Optional',
+    minLabel: 'min',
+    maxLabel: 'max',
+    priceLabel: 'Price',
+    quantityLabel: 'Quantity',
+    addToCartLabel: 'Add to cart',
+    itemsCountLabel: '{count} items',
+};
+
 export function buildOptionControl(group, itemIndex) {
     const inputName = `group-${group.id}-${itemIndex}`;
     const isRadio = group.max_choices === 1 && group.min_choices <= 1;
@@ -22,7 +38,8 @@ export function buildOptionControl(group, itemIndex) {
     }).join('');
 }
 
-export function renderComboItem(combo, orderingEnabled = true) {
+export function renderComboItem(combo, orderingEnabled = true, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     const comboItems = (combo.combo_items || []).map((comboItem) => {
         const quantity = comboItem.quantity > 1 ? `${comboItem.quantity}x ` : '';
         return `<li>${quantity}${comboItem.display_name}</li>`;
@@ -32,12 +49,12 @@ export function renderComboItem(combo, orderingEnabled = true) {
     const canOrder = orderingEnabled && effectivePrice !== null && effectivePrice !== undefined;
     const priceMarkup = effectivePrice !== null && effectivePrice !== undefined
         ? `€${parseFloat(effectivePrice).toFixed(2)}`
-        : 'Price to confirm';
+        : labels.priceToConfirmLabel;
     const orderingMarkup = canOrder ? `
         <div class="d-flex align-items-center gap-2 mt-3 js-orderable-entry">
             <input type="number" min="1" value="1" class="form-control form-control-sm menu-item-quantity" style="width: 84px;">
-            <button type="button" class="btn btn-sm btn-warning add-to-cart" data-combo-id="${combo.id}" data-default-label="Add combo">
-                Add combo
+            <button type="button" class="btn btn-sm btn-warning add-to-cart" data-combo-id="${combo.id}" data-default-label="${labels.addComboLabel}">
+                ${labels.addComboLabel}
             </button>
         </div>
     ` : '';
@@ -49,7 +66,7 @@ export function renderComboItem(combo, orderingEnabled = true) {
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h4 class="h6 mb-0">${combo.name}</h4>
-                            <span class="badge text-bg-warning">Combo</span>
+                            <span class="badge text-bg-warning">${labels.comboBadgeLabel}</span>
                         </div>
                         <p class="text-muted mb-2">${combo.description || ''}</p>
                         ${comboItems ? `<ul class="small text-muted ps-3 mb-0">${comboItems}</ul>` : ''}
@@ -64,16 +81,17 @@ export function renderComboItem(combo, orderingEnabled = true) {
     `;
 }
 
-export function renderMenuItem(item, itemIndex, orderingEnabled = true) {
+export function renderMenuItem(item, itemIndex, orderingEnabled = true, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     const optionGroupsMarkup = item.option_groups.map((group) => {
         return `
             <div class="mb-3">
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <strong>${group.name}</strong>
                     <small class="text-muted">
-                        ${group.required ? 'Required' : 'Optional'}
-                        ${group.min_choices ? `• min ${group.min_choices}` : ''}
-                        ${group.max_choices ? `• max ${group.max_choices}` : ''}
+                        ${group.required ? labels.requiredLabel : labels.optionalLabel}
+                        ${group.min_choices ? `• ${labels.minLabel} ${group.min_choices}` : ''}
+                        ${group.max_choices ? `• ${labels.maxLabel} ${group.max_choices}` : ''}
                     </small>
                 </div>
                 ${buildOptionControl(group, itemIndex)}
@@ -89,7 +107,7 @@ export function renderMenuItem(item, itemIndex, orderingEnabled = true) {
                         <h4 class="h6 mb-1">${item.name}</h4>
                         <p class="text-muted mb-2">${item.description || ''}</p>
                         <div class="mb-3">
-                            <strong>Price:</strong> €${parseFloat(item.base_price).toFixed(2)}
+                            <strong>${labels.priceLabel}:</strong> €${parseFloat(item.base_price).toFixed(2)}
                         </div>
                         <div class="menu-item-options">
                             ${optionGroupsMarkup}
@@ -98,11 +116,11 @@ export function renderMenuItem(item, itemIndex, orderingEnabled = true) {
                     <div class="col-md-4 text-md-end">
                         ${orderingEnabled ? `
                         <div class="mb-3">
-                            <label class="form-label small mb-1" for="quantity-${item.id}">Quantity</label>
+                            <label class="form-label small mb-1" for="quantity-${item.id}">${labels.quantityLabel}</label>
                             <input type="number" class="form-control form-control-sm menu-item-quantity" id="quantity-${item.id}" value="1" min="1" />
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm add-to-cart" data-item-id="${item.id}">
-                            Ajouter
+                        <button type="button" class="btn btn-primary btn-sm add-to-cart" data-item-id="${item.id}" data-default-label="${labels.addToCartLabel}">
+                            ${labels.addToCartLabel}
                         </button>
                         ` : ''}
                     </div>
@@ -112,14 +130,15 @@ export function renderMenuItem(item, itemIndex, orderingEnabled = true) {
     `;
 }
 
-export function renderCategory(category, itemIndexStart = 0, orderingEnabled = true) {
+export function renderCategory(category, itemIndexStart = 0, orderingEnabled = true, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     const items = category.items || [];
     const combos = category.combos || [];
     const itemsMarkup = items
-        .map((item, index) => renderMenuItem(item, itemIndexStart + index, orderingEnabled))
+        .map((item, index) => renderMenuItem(item, itemIndexStart + index, orderingEnabled, labels))
         .join('');
     const combosMarkup = combos
-        .map((combo) => renderComboItem(combo, orderingEnabled))
+        .map((combo) => renderComboItem(combo, orderingEnabled, labels))
         .join('');
     const totalEntries = items.length + combos.length;
 
@@ -127,7 +146,7 @@ export function renderCategory(category, itemIndexStart = 0, orderingEnabled = t
         <section class="mb-4" id="category-${category.id}">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="h6 mb-0">${category.name}</h3>
-                <span class="badge bg-secondary">${totalEntries} items</span>
+                <span class="badge bg-secondary">${interpolate(labels.itemsCountLabel, { count: totalEntries })}</span>
             </div>
             ${itemsMarkup}
             ${combosMarkup}

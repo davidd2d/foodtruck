@@ -11,6 +11,13 @@ class SlotManager {
         this.loadingMessage = this.app.dataset.loadingMessage || 'Loading slots...';
         this.editLabel = this.app.dataset.editLabel || 'Edit slot';
         this.createLabel = this.app.dataset.createLabel || 'Create pickup slot';
+        this.availableLabel = this.app.dataset.availableLabel || 'Available';
+        this.closedLabel = this.app.dataset.closedLabel || 'Closed';
+        this.deleteLabel = this.app.dataset.deleteLabel || 'Delete';
+        this.loadErrorMessage = this.app.dataset.loadErrorMessage || 'Unable to load slots';
+        this.deleteConfirmMessage = this.app.dataset.deleteConfirmMessage || 'Are you sure you want to delete this slot?';
+        this.deleteErrorMessage = this.app.dataset.deleteErrorMessage || 'Unable to delete slot.';
+        this.loadingAriaLabel = this.app.dataset.loadingAriaLabel || 'Loading';
 
         this.tableBody = this.app.querySelector('#slot-table-body');
         this.modal = new bootstrap.Modal(document.querySelector('#slotModal'));
@@ -59,7 +66,7 @@ class SlotManager {
     async loadSlots() {
         const placeholder = document.getElementById('slot-loading-placeholder');
         if (placeholder) {
-            placeholder.innerHTML = `<div class="spinner-border spinner-border-sm me-2" role="status"><span class="visually-hidden">Loading</span></div>${this.loadingMessage}`;
+            placeholder.innerHTML = `<div class="spinner-border spinner-border-sm me-2" role="status"><span class="visually-hidden">${this.loadingAriaLabel}</span></div>${this.loadingMessage}`;
         }
 
         try {
@@ -68,7 +75,7 @@ class SlotManager {
                 credentials: 'include',
             });
             if (!response.ok) {
-                throw new Error('Unable to load slots');
+                throw new Error(this.loadErrorMessage);
             }
             const slots = await response.json();
             this.renderSlots(slots);
@@ -87,7 +94,7 @@ class SlotManager {
     }
 
     buildRow(slot) {
-        const status = slot.is_available ? 'Available' : 'Closed';
+        const status = slot.is_available ? this.availableLabel : this.closedLabel;
         const start = this.formatParis(slot.start_time);
         const end = this.formatParis(slot.end_time);
         const payload = encodeURIComponent(JSON.stringify(slot));
@@ -102,10 +109,10 @@ class SlotManager {
                 <td>${status}</td>
                 <td class="text-end actions">
                     <button type="button" class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-slot-id="${slot.id}" data-slot="${payload}">
-                        Edit
+                        ${this.editLabel}
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-slot-id="${slot.id}">
-                        Delete
+                        ${this.deleteLabel}
                     </button>
                 </td>
             </tr>
@@ -209,7 +216,7 @@ class SlotManager {
     }
 
     async deleteSlot(slotId) {
-        if (!confirm('Are you sure you want to delete this slot?')) {
+        if (!confirm(this.deleteConfirmMessage)) {
             return;
         }
 
@@ -222,7 +229,7 @@ class SlotManager {
             });
 
             if (!response.ok) {
-                throw new Error('Unable to delete slot.');
+                throw new Error(this.deleteErrorMessage);
             }
 
             this.loadSlots();

@@ -1,4 +1,5 @@
 import { checkoutCart, setPickupSlot, submitOrder } from '../api/order.js';
+import { interpolate } from '../i18n.js';
 
 export function createCheckoutHandler({
     slotSelector,
@@ -7,7 +8,20 @@ export function createCheckoutHandler({
     refreshCart,
     setCheckoutState,
     userAuthenticated,
+    translations = {},
 }) {
+    const labels = {
+        loginRequiredMessage: 'Please log in before submitting an order.',
+        selectSlotMessage: 'Select a pickup slot before checkout.',
+        processingLabel: 'Processing...',
+        finalizingMessage: 'Finalizing your order...',
+        orderSubmittedMessage: 'Order submitted (#{orderId}).',
+        cartContinueMessage: 'Add items to your cart to continue.',
+        checkoutErrorMessage: 'Unable to complete checkout.',
+        checkoutLabel: checkoutButton?.textContent?.trim() || 'Checkout',
+        ...translations,
+    };
+
     return async function handleCheckout() {
         if (!checkoutButton) {
             return;
@@ -16,24 +30,24 @@ export function createCheckoutHandler({
         if (!userAuthenticated) {
             if (checkoutHelp) {
                 checkoutHelp.classList.remove('d-none');
-                checkoutHelp.textContent = 'Please log in before submitting an order.';
+                checkoutHelp.textContent = labels.loginRequiredMessage;
             }
             return;
         }
 
         const slotId = slotSelector?.getSelectedSlotId();
         if (!slotId) {
-            setCheckoutState(false, 'Select a pickup slot before checkout.');
+            setCheckoutState(false, labels.selectSlotMessage);
             return;
         }
 
         checkoutButton.disabled = true;
-        checkoutButton.textContent = 'Processing...';
+        checkoutButton.textContent = labels.processingLabel;
         if (checkoutHelp) {
             checkoutHelp.classList.remove('text-danger');
             checkoutHelp.classList.remove('text-success');
             checkoutHelp.classList.remove('d-none');
-            checkoutHelp.textContent = 'Finalizing your order…';
+            checkoutHelp.textContent = labels.finalizingMessage;
         }
 
         try {
@@ -45,19 +59,19 @@ export function createCheckoutHandler({
             if (checkoutHelp) {
                 checkoutHelp.classList.remove('text-danger');
                 checkoutHelp.classList.add('text-success');
-                checkoutHelp.textContent = `Order submitted (#${order_id}).`;
+                checkoutHelp.textContent = interpolate(labels.orderSubmittedMessage, { orderId: order_id });
             }
-            slotSelector?.reset('Add items to your cart to continue.');
-            setCheckoutState(false, 'Add items to your cart to continue.');
+            slotSelector?.reset(labels.cartContinueMessage);
+            setCheckoutState(false, labels.cartContinueMessage);
         } catch (error) {
             if (checkoutHelp) {
                 checkoutHelp.classList.remove('text-success');
                 checkoutHelp.classList.add('text-danger');
-                checkoutHelp.textContent = error.message || 'Unable to complete checkout.';
+                checkoutHelp.textContent = error.message || labels.checkoutErrorMessage;
             }
         } finally {
             checkoutButton.disabled = false;
-            checkoutButton.textContent = 'Checkout';
+            checkoutButton.textContent = labels.checkoutLabel;
         }
     };
 }

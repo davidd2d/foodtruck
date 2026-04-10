@@ -122,6 +122,16 @@ A SaaS platform for food trucks allowing:
 
 ---
 
+## 1️⃣1️⃣ Automatic Pickup Selection
+
+- **Page:** `/foodtrucks/<slug>/` now recommends the best pickup window automatically.
+- **Priority:** immediate pickup > remaining slots in the current service > first slot of the next available service.
+- **Backend:** `FoodTruck.get_current_service_schedule()`, `FoodTruck.get_next_available_service_schedule()`, `FoodTruck.get_recommended_pickup_slots()`, and `FoodTruck.get_best_default_pickup_slot()` centralize the selection logic.
+- **Frontend:** the cart pickup selector receives `default_pickup_slot_id` and preselects the recommended slot on load.
+- **Fallback UX:** if no slot is available, the selector stays disabled and displays a clear unavailable message.
+
+---
+
 ## 9️⃣ AI Menu Intelligence
 
 **Phase 1: MVP Foundation (Rules-Based)**

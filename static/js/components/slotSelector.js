@@ -1,4 +1,19 @@
-function formatSlotLabel(slot) {
+import { interpolate } from '../i18n.js';
+
+const defaultTranslations = {
+    recommendedPickupMessage: 'Recommended pickup time selected automatically.',
+    pickupNowMessage: 'Recommended pickup: right now',
+    nextPickupMessage: 'Next available slot: {time}',
+    choosePickupSlotLabel: 'Choose a pickup slot',
+    unavailableSuffix: 'unavailable',
+    loadingSlotsLabel: 'Loading available slots...',
+    noSlotsOptionLabel: 'No pickup slots available.',
+    noSlotsMessage: 'No pickup slots are currently available.',
+    loadSlotsErrorLabel: 'Unable to load pickup slots.',
+    selectSlotMessage: 'Select a pickup slot before checkout.',
+};
+
+function formatSlotLabel(slot, translations) {
     const start = new Date(slot.start_time);
     const end = new Date(slot.end_time);
 
@@ -10,7 +25,7 @@ function formatSlotLabel(slot) {
     })} – ${end.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
-    })}`;
+    })}${slot.is_available ? '' : ` (${translations.unavailableSuffix})`}`;
 }
 
 function formatSlotTime(slot) {
@@ -21,9 +36,11 @@ function formatSlotTime(slot) {
     });
 }
 
-export function buildRecommendedMessage(slot) {
+export function buildRecommendedMessage(slot, customTranslations = {}) {
+    const translations = { ...defaultTranslations, ...customTranslations };
+
     if (!slot) {
-        return 'Recommended pickup time selected automatically.';
+        return translations.recommendedPickupMessage;
     }
 
     const now = new Date();
@@ -31,17 +48,18 @@ export function buildRecommendedMessage(slot) {
     const end = new Date(slot.end_time);
 
     if (start <= now && end > now) {
-        return 'Retrait conseillé : dès maintenant';
+        return translations.pickupNowMessage;
     }
 
-    return `Prochain créneau disponible : ${formatSlotTime(slot)}`;
+    return interpolate(translations.nextPickupMessage, { time: formatSlotTime(slot) });
 }
 
 export class SlotSelector {
-    constructor({ selectElement, helpElement, onSelectionChange } = {}) {
+    constructor({ selectElement, helpElement, onSelectionChange, translations = {} } = {}) {
         this.selectElement = selectElement;
         this.helpElement = helpElement;
         this.onSelectionChange = onSelectionChange;
+        this.translations = { ...defaultTranslations, ...translations };
         this.defaultSlotId = selectElement?.dataset?.defaultSlot ? parseInt(selectElement.dataset.defaultSlot, 10) : null;
 
         this.selectElement?.addEventListener('change', () => {
@@ -77,14 +95,16 @@ export class SlotSelector {
             return;
         }
 
-        const defaultSlot = slots.find((slot) => slot.is_available && this.defaultSlotId === slot.id);
+        const defaultSlot = slots.find((slot) => slot.is_available && this.defaultSlotId === slot.id)
+            || slots.find((slot) => slot.is_available)
+            || null;
 
         this.selectElement.innerHTML = `
-            <option value="">Choose a pickup slot</option>
+            <option value="">${this.translations.choosePickupSlotLabel}</option>
             ${slots
                 .map((slot) => `
                     <option value="${slot.id}" ${slot.is_available ? '' : 'disabled'} ${defaultSlot && defaultSlot.id === slot.id ? 'selected' : ''}>
-                        ${formatSlotLabel(slot)}${slot.is_available ? '' : ' (unavailable)'}
+                        ${formatSlotLabel(slot, this.translations)}
                     </option>
                 `)
                 .join('')}
@@ -97,7 +117,9 @@ export class SlotSelector {
 
         if (this.helpElement) {
             this.helpElement.classList.remove('text-danger');
-            this.helpElement.textContent = buildRecommendedMessage(defaultSlot);
+            this.helpElement.textContent = defaultSlot
+                ? buildRecommendedMessage(defaultSlot, this.translations)
+                : this.translations.noSlotsMessage;
         }
     }
 
@@ -106,10 +128,10 @@ export class SlotSelector {
             return;
         }
         this.selectElement.disabled = true;
-        this.selectElement.innerHTML = '<option value="">Loading available slots…</option>';
+        this.selectElement.innerHTML = `<option value="">${this.translations.loadingSlotsLabel}</option>`;
         if (this.helpElement) {
             this.helpElement.classList.remove('text-danger');
-            this.helpElement.textContent = 'Loading available slots…';
+            this.helpElement.textContent = this.translations.loadingSlotsLabel;
         }
     }
 
@@ -118,9 +140,9 @@ export class SlotSelector {
             return;
         }
         this.selectElement.disabled = true;
-        this.selectElement.innerHTML = '<option value="">No pickup slots available.</option>';
+        this.selectElement.innerHTML = `<option value="">${this.translations.noSlotsOptionLabel}</option>`;
         if (this.helpElement) {
-            this.helpElement.textContent = 'No pickup slots are currently available.';
+            this.helpElement.textContent = this.translations.noSlotsMessage;
         }
     }
 
@@ -130,19 +152,19 @@ export class SlotSelector {
         }
 
         this.selectElement.disabled = true;
-        this.selectElement.innerHTML = '<option value="">Unable to load pickup slots.</option>';
+        this.selectElement.innerHTML = `<option value="">${this.translations.loadSlotsErrorLabel}</option>`;
         if (this.helpElement) {
             this.helpElement.classList.add('text-danger');
-            this.helpElement.textContent = 'Unable to load pickup slots.';
+            this.helpElement.textContent = this.translations.loadSlotsErrorLabel;
         }
     }
 
-    reset(message = 'Select a pickup slot before checkout.') {
+    reset(message = this.translations.selectSlotMessage) {
         if (!this.selectElement) {
             return;
         }
 
-        this.selectElement.innerHTML = '<option value="">Choose a pickup slot</option>';
+        this.selectElement.innerHTML = `<option value="">${this.translations.choosePickupSlotLabel}</option>`;
         this.selectElement.disabled = true;
         if (this.helpElement) {
             this.helpElement.textContent = message;

@@ -1,36 +1,48 @@
-export function renderCartItem(item) {
+const defaultTranslations = {
+    comboLabel: 'Combo',
+    optionLabelPrefix: 'Option',
+    noExtrasSelected: 'No extras selected',
+    quantityLabel: 'Qty',
+    eachLabel: 'each',
+    removeLabel: 'Remove',
+    cartEmptyMessage: 'Your cart is empty.',
+};
+
+export function renderCartItem(item, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     const optionSummary = item.line_type === 'combo'
-        ? (item.component_summary || 'Combo')
+        ? (item.component_summary || labels.comboLabel)
         : item.selected_options && item.selected_options.length
-            ? item.selected_options.map((option) => option.name || `Option ${option.option_id}`).join(', ')
-            : 'No extras selected';
+            ? item.selected_options.map((option) => option.name || `${labels.optionLabelPrefix} ${option.option_id}`).join(', ')
+            : labels.noExtrasSelected;
 
     return `
         <li class="list-group-item d-flex justify-content-between align-items-start">
             <div>
                 <div class="fw-semibold">${item.item_name}</div>
                 <div class="small text-muted">${optionSummary}</div>
-                <div class="small text-muted">Qty ${item.quantity} • €${parseFloat(item.unit_price).toFixed(2)} each</div>
+                <div class="small text-muted">${labels.quantityLabel} ${item.quantity} • €${parseFloat(item.unit_price).toFixed(2)} ${labels.eachLabel}</div>
             </div>
             <div class="text-end">
                 <div class="fw-semibold">€${parseFloat(item.total_price).toFixed(2)}</div>
                 <button type="button" class="btn btn-link btn-sm text-danger cart-remove" data-line-key="${item.line_key}">
-                    Remove
+                    ${labels.removeLabel}
                 </button>
             </div>
         </li>
     `;
 }
 
-export function renderCart(cart) {
+export function renderCart(cart, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     if (!cart || cart.items.length === 0) {
         return {
             empty: true,
-            markup: '<li class="list-group-item text-center text-muted">Your cart is empty.</li>',
+            markup: `<li class="list-group-item text-center text-muted">${labels.cartEmptyMessage}</li>`,
         };
     }
 
-    const itemsMarkup = cart.items.map(renderCartItem).join('');
+    const itemsMarkup = cart.items.map((item) => renderCartItem(item, labels)).join('');
     return {
         empty: false,
         markup: itemsMarkup,

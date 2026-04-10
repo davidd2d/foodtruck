@@ -23,7 +23,14 @@
      data-empty-message="{% trans "No slots configured yet." %}"
      data-loading-message="{% trans "Loading slots..." %}"
      data-edit-label="{% trans "Edit slot" %}"
-     data-create-label="{% trans "Create pickup slot" %}">
+    data-create-label="{% trans "Create pickup slot" %}"
+    data-available-label="{% trans "Available" %}"
+    data-closed-label="{% trans "Closed" %}"
+    data-delete-label="{% trans "Delete" %}"
+    data-load-error-message="{% trans "Unable to load slots" %}"
+    data-delete-confirm-message="{% trans "Are you sure you want to delete this slot?" %}"
+    data-delete-error-message="{% trans "Unable to delete slot." %}"
+    data-loading-aria-label="{% trans "Loading" %}">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-0">{% trans "Manage Pickup Slots" %}</h1>

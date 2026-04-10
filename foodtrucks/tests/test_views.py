@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import time, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
@@ -68,6 +68,37 @@ class FoodTruckViewTests(TestCase):
         self.assertIn(
             response.context['default_pickup_slot_id'],
             [slot_item.id for slot_item in response.context['available_pickup_slots']]
+        )
+
+    def test_foodtruck_detail_view_falls_back_to_next_service_slots(self):
+        foodtruck = FoodTruckFactory()
+        now = timezone.localtime(timezone.now(), PARIS_TZ)
+        next_day = (now.weekday() + 1) % 7
+        schedule = ServiceScheduleFactory(
+            food_truck=foodtruck,
+            day_of_week=next_day,
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+            is_active=True,
+        )
+        next_slot = PickupSlotFactory(
+            food_truck=foodtruck,
+            service_schedule=schedule,
+            start_time=now + timedelta(days=1, hours=1),
+            end_time=now + timedelta(days=1, hours=2),
+        )
+
+        response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': foodtruck.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['available_pickup_slots'])
+        self.assertEqual(
+            response.context['available_pickup_slots'][0].service_schedule_id,
+            schedule.id,
+        )
+        self.assertEqual(
+            response.context['default_pickup_slot_id'],
+            response.context['available_pickup_slots'][0].id,
         )
 
     def test_foodtruck_detail_view_renders_default_pickup_slot_data_attribute(self):

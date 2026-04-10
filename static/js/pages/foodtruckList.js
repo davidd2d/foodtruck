@@ -10,6 +10,7 @@ import {
     createLoadingState,
     createErrorState,
 } from '../components/foodtruckCard.js';
+import { getDatasetTranslations } from '../i18n.js';
 
 /**
  * Foodtruck List Page Controller
@@ -17,6 +18,19 @@ import {
 class FoodtruckListPage {
     constructor() {
         this.container = document.getElementById('foodtruck-list');
+        this.translations = getDatasetTranslations(this.container, {
+            noFoodtrucksFound: 'No foodtrucks found',
+            emptyStateHint: 'Check back later for new foodtrucks in your area.',
+            loadingLabel: 'Loading...',
+            loadingFoodtrucksLabel: 'Loading foodtrucks...',
+            errorHeading: 'Oops!',
+            failedToLoadFoodtrucks: 'Failed to load foodtrucks',
+            tryAgainLabel: 'Try Again',
+            noDescriptionAvailable: 'No description available',
+            openLabel: 'Open',
+            closedLabel: 'Closed',
+            viewMenuLabel: 'View Menu',
+        });
         this.isLoading = false;
         this.currentData = null;
 
@@ -72,7 +86,7 @@ class FoodtruckListPage {
             return;
         }
 
-        const html = foodtrucks.map(foodtruck => createFoodtruckCard(foodtruck)).join('');
+        const html = foodtrucks.map(foodtruck => createFoodtruckCard(foodtruck, this.translations)).join('');
         this.container.innerHTML = `<div class="row">${html}</div>`;
 
         // Add pagination if needed
@@ -85,14 +99,14 @@ class FoodtruckListPage {
      * Show loading state
      */
     showLoading() {
-        this.container.innerHTML = `<div class="row">${createLoadingState()}</div>`;
+        this.container.innerHTML = `<div class="row">${createLoadingState(this.translations)}</div>`;
     }
 
     /**
      * Show empty state
      */
     showEmpty() {
-        this.container.innerHTML = `<div class="row">${createEmptyState()}</div>`;
+        this.container.innerHTML = `<div class="row">${createEmptyState(null, this.translations)}</div>`;
     }
 
     /**
@@ -100,7 +114,7 @@ class FoodtruckListPage {
      * @param {string} message - Error message
      */
     showError(message) {
-        this.container.innerHTML = `<div class="row">${createErrorState(message)}</div>`;
+        this.container.innerHTML = `<div class="row">${createErrorState(message, this.translations)}</div>`;
     }
 
     /**

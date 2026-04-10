@@ -351,6 +351,96 @@ class FoodTruck(models.Model):
         ).order_by('start_time')
         return slots
 
+    def get_current_service_schedule(self, reference_time=None):
+        """Return the currently active schedule for the provided Paris time."""
+        from orders.models import ServiceSchedule
+
+        reference_time = timezone.localtime(reference_time or timezone.now(), PARIS_TZ)
+        return (
+            ServiceSchedule.objects.filter(
+                food_truck=self,
+                is_active=True,
+                day_of_week=reference_time.weekday(),
+                start_time__lte=reference_time.time(),
+                end_time__gt=reference_time.time(),
+            )
+            .order_by('start_time')
+            .first()
+        )
+
+    def get_next_available_service_schedule(self, after_schedule=None, reference_time=None):
+        """Return the next chronological active schedule after the provided reference."""
+        from orders.models import ServiceSchedule
+
+        reference_time = timezone.localtime(reference_time or timezone.now(), PARIS_TZ)
+        schedules = ServiceSchedule.objects.filter(
+            food_truck=self,
+            is_active=True,
+        ).order_by('day_of_week', 'start_time')
+
+        if not schedules.exists():
+            return None
+
+        for day_offset in range(0, 7):
+            weekday = (reference_time.weekday() + day_offset) % 7
+            day_schedules = schedules.filter(day_of_week=weekday)
+
+            if day_offset == 0:
+                if after_schedule is not None:
+                    day_schedules = day_schedules.filter(start_time__gte=after_schedule.end_time)
+                else:
+                    day_schedules = day_schedules.filter(start_time__gt=reference_time.time())
+
+            next_schedule = day_schedules.order_by('start_time').first()
+            if next_schedule is not None:
+                return next_schedule
+
+        return None
+
+    def _get_schedule_date(self, schedule, reference_time=None):
+        """Return the next calendar date matching the provided schedule."""
+        reference_time = timezone.localtime(reference_time or timezone.now(), PARIS_TZ)
+        days_ahead = (schedule.day_of_week - reference_time.weekday() + 7) % 7
+        target_date = reference_time.date() + timedelta(days=days_ahead)
+
+        if days_ahead == 0 and schedule.end_time <= reference_time.time():
+            target_date += timedelta(days=7)
+
+        return target_date
+
+    def get_recommended_pickup_slots(self, reference_time=None):
+        """Return the best slot collection for ordering: current service first, next service otherwise."""
+        reference_time = timezone.localtime(reference_time or timezone.now(), PARIS_TZ)
+
+        if not self.can_accept_orders():
+            return self.pickup_slots.none()
+
+        current_schedule = self.get_current_service_schedule(reference_time=reference_time)
+        if current_schedule is not None:
+            current_slots = self.get_available_slots(reference_time.date()).filter(
+                service_schedule=current_schedule,
+            )
+            if current_slots.exists():
+                return current_slots
+
+        today_slots = self.get_available_slots(reference_time.date())
+        if today_slots.exists():
+            return today_slots
+
+        next_schedule = self.get_next_available_service_schedule(
+            after_schedule=current_schedule,
+            reference_time=reference_time,
+        )
+        if next_schedule is None:
+            return self.pickup_slots.none()
+
+        target_date = self._get_schedule_date(next_schedule, reference_time=reference_time)
+        return self.get_available_slots(target_date).filter(service_schedule=next_schedule)
+
+    def get_best_default_pickup_slot(self, reference_time=None):
+        """Return the best default pickup slot using current then future service priority."""
+        return self.get_recommended_pickup_slots(reference_time=reference_time).first()
+
     def get_plan(self):
         """
         Get the current plan for this food truck.
@@ -405,156 +495,6 @@ class FoodTruck(models.Model):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
         return R * c
-
-    def get_current_service_schedule(self):
-        """
-        Return the currently active service schedule if any.
-
-        A schedule is considered current if:
-        - It's active
-        - Today is the correct day of week
-        - Current time is within the schedule window
-        """
-        from orders.models import ServiceSchedule
-
-        now = timezone.localtime(timezone.now(), PARIS_TZ)
-        current_time = now.time()
-        weekday = now.weekday()
-
-        return ServiceSchedule.objects.filter(
-            food_truck=self,
-            is_active=True,
-            day_of_week=weekday,
-            start_time__lte=current_time,
-            end_time__gt=current_time
-        ).first()
-
-    def get_next_available_service_schedule(self, after_schedule=None):
-        """
-        Return the next available service schedule after the given schedule,
-        or the next one in general if none provided.
-
-        Looks for schedules in chronological order starting from today.
-        """
-        from orders.models import ServiceSchedule
-
-        now = timezone.localtime(timezone.now(), PARIS_TZ)
-        current_time = now.time()
-        weekday = now.weekday()
-
-        schedules = ServiceSchedule.objects.filter(
-            food_truck=self,
-            is_active=True
-        ).order_by('day_of_week', 'start_time')
-
-        if not schedules.exists():
-            return None
-
-        def find_next_schedule(start_day, condition=None):
-            for offset in range(0, 7):
-                candidate_day = (start_day + offset) % 7
-                day_schedules = schedules.filter(day_of_week=candidate_day)
-                if not day_schedules.exists():
-                    continue
-
-                if offset == 0 and condition is not None:
-                    filtered = day_schedules.filter(condition)
-                    if filtered.exists():
-                        return filtered.first()
-                    continue
-
-                return day_schedules.first()
-            return None
-
-        if after_schedule:
-            same_day_after = Q(start_time__gt=after_schedule.end_time)
-            return find_next_schedule(weekday, same_day_after)
-
-        later_today = Q(start_time__gt=current_time)
-        return find_next_schedule(weekday, later_today)
-
-    def _get_schedule_date(self, schedule, reference_date=None):
-        if reference_date is None:
-            reference_date = timezone.localdate()
-        days_ahead = (schedule.day_of_week - reference_date.weekday() + 7) % 7
-        return reference_date + timedelta(days=days_ahead)
-
-    def get_best_default_pickup_slot(self):
-        """
-        Determine the best default pickup slot for immediate ordering.
-
-        Priority order:
-        1. Immediate pickup if available
-        2. First available slot from current service schedule
-        3. First available slot from next service schedule
-
-        Returns:
-            PickupSlot or None: The recommended slot, or None if no slots available
-        """
-        from orders.models import PickupSlot
-        from orders.services.schedule_service import generate_slots_for_date
-
-        if not self.is_open():
-            return None
-
-        now = timezone.localtime(timezone.now(), PARIS_TZ)
-        weekday = now.weekday()
-
-        immediate_slot = PickupSlot.objects.filter(
-            food_truck=self,
-            start_time__lte=now,
-            end_time__gt=now,
-            capacity__gt=0,
-            service_schedule__is_active=True,
-            service_schedule__day_of_week=weekday,
-        ).annotate(
-            reserved=Count(
-                'orders',
-                filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
-            )
-        ).filter(reserved__lt=F('capacity')).order_by('start_time').first()
-
-        if immediate_slot:
-            return immediate_slot
-
-        current_schedule = self.get_current_service_schedule()
-        if current_schedule:
-            generate_slots_for_date(self, now.date())
-            slot = PickupSlot.objects.filter(
-                food_truck=self,
-                service_schedule=current_schedule,
-                start_time__date=now.date(),
-                end_time__gt=now,
-            ).annotate(
-                reserved=Count(
-                    'orders',
-                    filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
-                )
-            ).filter(reserved__lt=F('capacity')).order_by('start_time').first()
-
-            if slot:
-                return slot
-
-        next_schedule = self.get_next_available_service_schedule(current_schedule)
-        if next_schedule:
-            target_date = self._get_schedule_date(next_schedule, now.date())
-            generate_slots_for_date(self, target_date)
-            slot = PickupSlot.objects.filter(
-                food_truck=self,
-                service_schedule=next_schedule,
-                start_time__date=target_date,
-                end_time__gt=now,
-            ).annotate(
-                reserved=Count(
-                    'orders',
-                    filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
-                )
-            ).filter(reserved__lt=F('capacity')).order_by('start_time').first()
-
-            if slot:
-                return slot
-
-        return None
 
     def supports_preferences(self, preferences):
         """

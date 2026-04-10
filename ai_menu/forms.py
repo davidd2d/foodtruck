@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import BaseInlineFormSet, inlineformset_factory
+from django.utils.translation import gettext_lazy as _
 
 from menu.models import Combo, ComboItem, Item
 
@@ -8,6 +9,13 @@ class ComboOwnerForm(forms.ModelForm):
     class Meta:
         model = Combo
         fields = ['name', 'description', 'combo_price', 'is_available', 'display_order']
+        labels = {
+            'name': _('Name'),
+            'description': _('Description'),
+            'combo_price': _('Combo price'),
+            'is_available': _('Is available'),
+            'display_order': _('Display order'),
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -21,6 +29,12 @@ class ComboItemForm(forms.ModelForm):
     class Meta:
         model = ComboItem
         fields = ['display_name', 'item', 'quantity', 'display_order']
+        labels = {
+            'display_name': _('Display name'),
+            'item': _('Item'),
+            'quantity': _('Quantity'),
+            'display_order': _('Display order'),
+        }
         widgets = {
             'display_name': forms.TextInput(attrs={'class': 'form-control'}),
             'item': forms.Select(attrs={'class': 'form-select'}),
@@ -31,8 +45,6 @@ class ComboItemForm(forms.ModelForm):
     def __init__(self, *args, available_items=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['item'].queryset = available_items or Item.objects.none()
-        self.fields['display_name'].label = 'Display name'
-        self.fields['display_order'].label = 'Display order'
 
 
 class BaseComboItemFormSet(BaseInlineFormSet):

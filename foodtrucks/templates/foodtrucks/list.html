@@ -50,7 +50,18 @@
     </div>
 
     <!-- Foodtruck List Container -->
-    <div id="foodtruck-list">
+    <div id="foodtruck-list"
+         data-no-foodtrucks-found="{% trans 'No foodtrucks found' %}"
+         data-empty-state-hint="{% trans 'Check back later for new foodtrucks in your area.' %}"
+         data-loading-label="{% trans 'Loading...' %}"
+         data-loading-foodtrucks-label="{% trans 'Loading foodtrucks...' %}"
+         data-error-heading="{% trans 'Oops!' %}"
+         data-failed-to-load-foodtrucks="{% trans 'Failed to load foodtrucks' %}"
+         data-try-again-label="{% trans 'Try Again' %}"
+         data-no-description-available="{% trans 'No description available' %}"
+         data-open-label="{% trans 'Open' %}"
+         data-closed-label="{% trans 'Closed' %}"
+         data-view-menu-label="{% trans 'View Menu' %}">
         <!-- Content will be loaded dynamically by JavaScript -->
         <div class="row">
             <div class="col-12">

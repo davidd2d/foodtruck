@@ -1,6 +1,8 @@
 import { generateFoodtruck, createFoodtruckWithMenu } from '../api/ai.js';
 import { renderFoodtruckPreview, getEditedFoodtruckData, setupMenuEditing } from '../components/foodtruckPreview.js';
+import { getDatasetTranslations } from '../i18n.js';
 
+const app = document.getElementById('ai-onboarding-app');
 const aiForm = document.getElementById('ai-form');
 const generateBtn = document.getElementById('generate-btn');
 const errorMessage = document.getElementById('error-message');
@@ -8,6 +10,23 @@ const previewContainer = document.getElementById('preview-container');
 const backToEditBtn = document.getElementById('back-to-edit');
 const saveBtn = document.getElementById('save-btn');
 const foodtruckPreview = document.getElementById('foodtruck-preview');
+const translations = getDatasetTranslations(app, {
+    generatingLabel: 'Generating...',
+    generateButtonLabel: 'Generate my foodtruck',
+    createButtonLoadingLabel: 'Creating...',
+    createButtonLabel: 'Create my foodtruck',
+    generateErrorMessage: 'Failed to generate foodtruck. Please try again.',
+    createErrorMessage: 'Failed to create foodtruck. Please try again.',
+    defaultRedirectUrl: '/foodtrucks/',
+    detailsTitle: 'Foodtruck Details',
+    nameLabel: 'Name',
+    descriptionLabel: 'Description',
+    menuPreviewTitle: 'Menu Preview',
+    noMenuItemsMessage: 'No menu items generated.',
+    removeItemTitle: 'Remove item',
+    addItemLabel: 'Add Item',
+    newItemName: 'New Item',
+});
 
 let generatedData = null;
 
@@ -17,7 +36,7 @@ let generatedData = null;
 function showLoading() {
     generateBtn.disabled = true;
     generateBtn.querySelector('.spinner-border').classList.remove('d-none');
-    generateBtn.textContent = ' Generating...';
+    generateBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> ${translations.generatingLabel}`;
     errorMessage.classList.add('d-none');
 }
 
@@ -26,8 +45,7 @@ function showLoading() {
  */
 function hideLoading() {
     generateBtn.disabled = false;
-    generateBtn.querySelector('.spinner-border').classList.add('d-none');
-    generateBtn.textContent = 'Generate my foodtruck';
+    generateBtn.innerHTML = `<span class="spinner-border spinner-border-sm d-none" role="status"></span>${translations.generateButtonLabel}`;
 }
 
 /**
@@ -45,12 +63,12 @@ function showError(message) {
  */
 function showPreview(data) {
     generatedData = data;
-    foodtruckPreview.innerHTML = renderFoodtruckPreview(data);
-    document.querySelector('.container').classList.add('d-none');
+    foodtruckPreview.innerHTML = renderFoodtruckPreview(data, translations);
+    app.classList.add('d-none');
     previewContainer.classList.remove('d-none');
 
     // Setup editing
-    setupMenuEditing(validateData);
+    setupMenuEditing(validateData, translations);
     validateData();
 }
 
@@ -59,7 +77,7 @@ function showPreview(data) {
  */
 function showInput() {
     previewContainer.classList.add('d-none');
-    document.querySelector('.container').classList.remove('d-none');
+    app.classList.remove('d-none');
     generatedData = null;
 }
 
@@ -99,7 +117,7 @@ async function handleGenerate(e) {
         const result = await generateFoodtruck(data);
         showPreview(result);
     } catch (error) {
-        showError(error.message || 'Failed to generate foodtruck. Please try again.');
+        showError(error.message || translations.generateErrorMessage);
     } finally {
         hideLoading();
     }
@@ -113,17 +131,16 @@ async function handleSave() {
 
     saveBtn.disabled = true;
     saveBtn.querySelector('.spinner-border').classList.remove('d-none');
-    saveBtn.textContent = ' Creating...';
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> ${translations.createButtonLoadingLabel}`;
 
     try {
         const result = await createFoodtruckWithMenu(data);
         // Redirect to foodtruck detail or dashboard
-        window.location.href = result.url || '/foodtrucks/';
+        window.location.href = result.url || translations.defaultRedirectUrl;
     } catch (error) {
-        showError(error.message || 'Failed to create foodtruck. Please try again.');
+        showError(error.message || translations.createErrorMessage);
         saveBtn.disabled = false;
-        saveBtn.querySelector('.spinner-border').classList.add('d-none');
-        saveBtn.textContent = 'Create my foodtruck';
+        saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm d-none" role="status"></span>${translations.createButtonLabel}`;
     }
 }
 

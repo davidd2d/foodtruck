@@ -1,9 +1,16 @@
 import apiClient from '../api/client.js';
+import { getDatasetTranslations } from '../i18n.js';
 
 class ItemAIRecommendations {
     constructor() {
         this.analyzeSelector = '.js-ai-analyze-button';
         this.decisionSelector = '.js-ai-recommendation-action';
+        this.app = document.getElementById('ai-menu-dashboard-app');
+        this.translations = getDatasetTranslations(this.app, {
+            loadingRecommendationsMessage: 'Loading AI recommendations...',
+            analyzeErrorMessage: 'Unable to analyze this item.',
+            decisionErrorMessage: 'Unable to update this recommendation.',
+        });
         if (!document.querySelector(this.analyzeSelector) && !document.querySelector(this.decisionSelector)) {
             return;
         }
@@ -49,12 +56,12 @@ class ItemAIRecommendations {
             });
 
             if (!response.success) {
-                throw new Error(response.message || 'Unable to analyze this item.');
+                throw new Error(response.message || this.translations.analyzeErrorMessage);
             }
 
             panel.innerHTML = response.html;
         } catch (error) {
-            panel.innerHTML = this.buildErrorState(error.message || 'Unable to analyze this item.');
+            panel.innerHTML = this.buildErrorState(error.message || this.translations.analyzeErrorMessage);
         } finally {
             button.disabled = false;
             button.textContent = defaultLabel;
@@ -91,12 +98,12 @@ class ItemAIRecommendations {
             });
 
             if (!response.success) {
-                throw new Error(response.message || 'Unable to update this recommendation.');
+                throw new Error(response.message || this.translations.decisionErrorMessage);
             }
 
             panel.innerHTML = response.html;
         } catch (error) {
-            panel.innerHTML = this.buildErrorState(error.message || 'Unable to update this recommendation.');
+            panel.innerHTML = this.buildErrorState(error.message || this.translations.decisionErrorMessage);
         }
     }
 
@@ -104,7 +111,7 @@ class ItemAIRecommendations {
         return `
             <div class="border rounded bg-light-subtle p-3 text-muted small">
                 <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                Loading AI recommendations...
+                ${this.translations.loadingRecommendationsMessage}
             </div>
         `;
     }

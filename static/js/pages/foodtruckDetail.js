@@ -5,6 +5,7 @@ import { renderCategory } from '../components/menuItem.js';
 import { renderCart } from '../components/cart.js';
 import { SlotSelector } from '../components/slotSelector.js';
 import { createCheckoutHandler } from '../pages/checkout.js';
+import { getDatasetTranslations, interpolate } from '../i18n.js';
 
 const pageContainer = document.querySelector('[data-foodtruck-slug]');
 const foodtruckSlug = pageContainer?.dataset.foodtruckSlug;
@@ -27,12 +28,55 @@ let slotSelector = null;
 let menuLoaded = false;
 let menuLoadTimeout = null;
 const MENU_LOAD_TIMEOUT_MS = 6000;
+const translations = getDatasetTranslations(pageContainer, {
+    loadingMenuMessage: 'Loading menu...',
+    emptyMenuMessage: 'No menu items are available right now.',
+    emptyMenuHint: 'Please check back later.',
+    cartCountLabel: 'Cart ({count})',
+    loginCheckoutMessage: 'Log in to submit your order.',
+    cartCheckoutMessage: 'Add items to your cart to checkout.',
+    cartContinueMessage: 'Add items to your cart to continue.',
+    noSlotsMessage: 'No pickup slots are currently available.',
+    selectSlotMessage: 'Select a pickup slot before checkout.',
+    loadSlotsErrorMessage: 'Unable to load pickup slots.',
+    loadCartErrorMessage: 'Unable to load cart.',
+    missingFoodtruckMessage: 'Could not identify foodtruck.',
+    loadMenuErrorMessage: 'Unable to load menu.',
+    addToCartLabel: 'Add to cart',
+    addingLabel: 'Adding...',
+    addToCartErrorMessage: 'Unable to add item to cart.',
+    comboLabel: 'Combo',
+    optionLabelPrefix: 'Option',
+    noExtrasSelected: 'No extras selected',
+    quantityShortLabel: 'Qty',
+    eachLabel: 'each',
+    removeLabel: 'Remove',
+    cartEmptyMessage: 'Your cart is empty.',
+    priceToConfirmLabel: 'Price to confirm',
+    addComboLabel: 'Add combo',
+    comboBadgeLabel: 'Combo',
+    requiredLabel: 'Required',
+    optionalLabel: 'Optional',
+    minLabel: 'min',
+    maxLabel: 'max',
+    priceLabel: 'Price',
+    quantityLabel: 'Quantity',
+    itemsCountLabel: '{count} items',
+    recommendedPickupMessage: 'Recommended pickup time selected automatically.',
+    pickupNowMessage: 'Recommended pickup: right now',
+    nextPickupMessage: 'Next available slot: {time}',
+    choosePickupSlotLabel: 'Choose a pickup slot',
+    unavailableSuffix: 'unavailable',
+    loadingSlotsLabel: 'Loading available slots...',
+    noSlotsOptionLabel: 'No pickup slots available.',
+    loadSlotsErrorLabel: 'Unable to load pickup slots.',
+});
 
 function createLoadingState() {
     menuContainer.innerHTML = `
         <div class="text-center text-muted py-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-3 mb-0">Loading menu...</p>
+            <p class="mt-3 mb-0">${translations.loadingMenuMessage}</p>
         </div>
     `;
 }
@@ -61,8 +105,8 @@ function renderMenu(menu) {
         categoryShortcuts?.classList.add('d-none');
         menuContainer.innerHTML = `
             <div class="text-center text-muted py-5">
-                <p class="mb-2">No menu items are available right now.</p>
-                <p class="small">Please check back later.</p>
+                <p class="mb-2">${translations.emptyMenuMessage}</p>
+                <p class="small">${translations.emptyMenuHint}</p>
             </div>
         `;
         return;
@@ -71,7 +115,19 @@ function renderMenu(menu) {
     categoryShortcuts?.classList.remove('d-none');
     renderCategoryShortcuts(menu.categories);
     menuContainer.innerHTML = menu.categories
-        .map((category, index) => renderCategory(category, index * 10, orderingEnabled))
+        .map((category, index) => renderCategory(category, index * 10, orderingEnabled, {
+            priceToConfirmLabel: translations.priceToConfirmLabel,
+            addComboLabel: translations.addComboLabel,
+            comboBadgeLabel: translations.comboBadgeLabel,
+            requiredLabel: translations.requiredLabel,
+            optionalLabel: translations.optionalLabel,
+            minLabel: translations.minLabel,
+            maxLabel: translations.maxLabel,
+            priceLabel: translations.priceLabel,
+            quantityLabel: translations.quantityLabel,
+            addToCartLabel: translations.addToCartLabel,
+            itemsCountLabel: translations.itemsCountLabel,
+        }))
         .join('');
 }
 
@@ -87,14 +143,22 @@ function updateCartUI(cart) {
         return;
     }
 
-    const rendered = renderCart(cart);
+    const rendered = renderCart(cart, {
+        comboLabel: translations.comboLabel,
+        optionLabelPrefix: translations.optionLabelPrefix,
+        noExtrasSelected: translations.noExtrasSelected,
+        quantityLabel: translations.quantityShortLabel,
+        eachLabel: translations.eachLabel,
+        removeLabel: translations.removeLabel,
+        cartEmptyMessage: translations.cartEmptyMessage,
+    });
     cartContent.classList.remove('d-none');
     cartEmpty.classList.add('d-none');
     cartItemsContainer.innerHTML = rendered.markup;
     cartTotalElement.textContent = `€${rendered.total}`;
 
     if (navCartCount) {
-        navCartCount.textContent = `Cart (${rendered.itemCount})`;
+        navCartCount.textContent = interpolate(translations.cartCountLabel, { count: rendered.itemCount });
     }
 }
 
@@ -115,13 +179,13 @@ function setCheckoutState(enabled, message = null) {
 
     if (!userAuthenticated) {
         checkoutHelp.classList.remove('d-none');
-        checkoutHelp.textContent = 'Log in to submit your order.';
+        checkoutHelp.textContent = translations.loginCheckoutMessage;
         return;
     }
 
     if (!enabled) {
         checkoutHelp.classList.remove('d-none');
-        checkoutHelp.textContent = message || 'Add items to your cart to checkout.';
+        checkoutHelp.textContent = message || translations.cartCheckoutMessage;
         return;
     }
 
@@ -139,27 +203,27 @@ async function updateSlotSelector(cart) {
     }
 
     if (!cart || cart.items.length === 0) {
-        slotSelector.reset('Add items to your cart to continue.');
-        setCheckoutState(false, 'Add items to your cart to continue.');
+        slotSelector.reset(translations.cartContinueMessage);
+        setCheckoutState(false, translations.cartContinueMessage);
         return;
     }
 
     try {
         const slots = await slotSelector.loadSlots(fetchPickupSlots, foodtruckSlug);
         if (!slots.length) {
-            setCheckoutState(false, 'No pickup slots are currently available.');
+            setCheckoutState(false, translations.noSlotsMessage);
             return;
         }
-        setCheckoutState(false, 'Select a pickup slot before checkout.');
+        setCheckoutState(false, translations.selectSlotMessage);
     } catch (error) {
-        setCheckoutState(false, 'Unable to load pickup slots.');
+        setCheckoutState(false, translations.loadSlotsErrorMessage);
         console.error(error);
     }
 }
 
 function handleSlotSelection(slotId) {
     if (!slotId) {
-        setCheckoutState(false, 'Select a pickup slot before checkout.');
+        setCheckoutState(false, translations.selectSlotMessage);
         return;
     }
 
@@ -176,6 +240,18 @@ function initializeSlotSelector() {
         selectElement: pickupSlotSelect,
         helpElement: pickupSlotHelp,
         onSelectionChange: handleSlotSelection,
+        translations: {
+            recommendedPickupMessage: translations.recommendedPickupMessage,
+            pickupNowMessage: translations.pickupNowMessage,
+            nextPickupMessage: translations.nextPickupMessage,
+            choosePickupSlotLabel: translations.choosePickupSlotLabel,
+            unavailableSuffix: translations.unavailableSuffix,
+            loadingSlotsLabel: translations.loadingSlotsLabel,
+            noSlotsOptionLabel: translations.noSlotsOptionLabel,
+            noSlotsMessage: translations.noSlotsMessage,
+            loadSlotsErrorLabel: translations.loadSlotsErrorLabel,
+            selectSlotMessage: translations.selectSlotMessage,
+        },
     });
 }
 
@@ -191,6 +267,12 @@ function initializeCheckoutFlow() {
         refreshCart,
         setCheckoutState,
         userAuthenticated,
+        translations: {
+            loginRequiredMessage: translations.loginCheckoutMessage,
+            selectSlotMessage: translations.selectSlotMessage,
+            cartContinueMessage: translations.cartContinueMessage,
+            checkoutLabel: checkoutButton.textContent.trim(),
+        },
     });
 
     checkoutButton.addEventListener('click', handler);
@@ -203,14 +285,14 @@ async function refreshCart() {
     } catch (error) {
         cartLoading.classList.add('d-none');
         cartEmpty.classList.remove('d-none');
-        cartEmpty.innerHTML = `<p class="text-danger">Unable to load cart.</p>`;
+        cartEmpty.innerHTML = `<p class="text-danger">${translations.loadCartErrorMessage}</p>`;
         console.error(error);
     }
 }
 
 async function initializeMenu() {
     if (!foodtruckSlug) {
-        renderError('Could not identify foodtruck.');
+        renderError(translations.missingFoodtruckMessage);
         return;
     }
 
@@ -220,7 +302,7 @@ async function initializeMenu() {
         const menu = await fetchFoodtruckMenu(foodtruckSlug);
         renderMenu(menu);
     } catch (error) {
-        renderError(error.message || 'Unable to load menu.');
+        renderError(error.message || translations.loadMenuErrorMessage);
     }
 }
 
@@ -238,10 +320,10 @@ async function handleAddToCart(event) {
     const selectedOptions = itemId
         ? Array.from(itemCard.querySelectorAll('.menu-option:checked')).map((input) => Number(input.dataset.optionId))
         : [];
-    const defaultLabel = button.dataset.defaultLabel || 'Add to cart';
+    const defaultLabel = button.dataset.defaultLabel || translations.addToCartLabel;
 
     button.disabled = true;
-    button.textContent = 'Adding...';
+    button.textContent = translations.addingLabel;
 
     try {
         const cart = await addCartItem({
@@ -253,7 +335,7 @@ async function handleAddToCart(event) {
         });
         await handleCartUpdate(cart);
     } catch (error) {
-        renderError(error.message || 'Unable to add item to cart.');
+        renderError(error.message || translations.addToCartErrorMessage);
         console.error(error);
     } finally {
         button.disabled = false;

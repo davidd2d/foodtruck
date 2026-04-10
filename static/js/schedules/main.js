@@ -1,10 +1,30 @@
 import * as api from './api.js';
 import * as ui from './ui.js';
 import { getPreset } from './presets.js';
+import { getDatasetTranslations } from '../i18n.js';
 
 let scheduleModal;
 let schedulerBootstrapped = false;
 let isLoadingSchedules = false;
+const scheduleApp = document.getElementById('schedule-app');
+const translations = getDatasetTranslations(scheduleApp, {
+    editLabel: 'Edit',
+    deleteLabel: 'Delete',
+    noWindowsDefinedLabel: 'No windows defined',
+    windowsCountLabel: '{count} window(s)',
+    editTimeWindowLabel: 'Edit time window',
+    addTimeWindowLabel: 'Add time window',
+    savingLabel: 'Saving...',
+    saveLabel: 'Save',
+    ordersPerDurationLabel: '{count} orders / {minutes} min',
+    loadSchedulesErrorMessage: 'Unable to load schedules.',
+    deleteWindowConfirmation: 'Delete this time window?',
+    windowRemovedMessage: 'Time window removed.',
+    deleteScheduleErrorMessage: 'Unable to delete schedule.',
+    windowUpdatedMessage: 'Time window updated.',
+    windowAddedMessage: 'Time window added.',
+    presetUnavailableMessage: 'Preset not available.',
+});
 
 function determineDefaultDay() {
     const today = new Date();
@@ -38,7 +58,7 @@ async function loadSchedules() {
         const schedules = Array.isArray(data) ? data : data?.results ?? [];
         ui.renderSchedules(schedules);
     } catch (error) {
-        ui.showToast('Unable to load schedules.', 'danger');
+        ui.showToast(translations.loadSchedulesErrorMessage, 'danger');
     } finally {
         isLoadingSchedules = false;
     }
@@ -70,15 +90,15 @@ function attachCardHandlers() {
 }
 
 async function handleDelete(scheduleId) {
-    if (!confirm('Delete this time window?')) {
+    if (!confirm(translations.deleteWindowConfirmation)) {
         return;
     }
     try {
         await api.deleteSchedule(scheduleId);
         await loadSchedules();
-        ui.showToast('Time window removed.');
+        ui.showToast(translations.windowRemovedMessage);
     } catch (error) {
-        ui.showToast('Unable to delete schedule.', 'danger');
+        ui.showToast(translations.deleteScheduleErrorMessage, 'danger');
     }
 }
 
@@ -106,10 +126,10 @@ function setupForm() {
         try {
             if (scheduleId) {
                 await api.updateSchedule(scheduleId, payload);
-                ui.showToast('Time window updated.');
+                ui.showToast(translations.windowUpdatedMessage);
             } else {
                 await api.createSchedule(payload);
-                ui.showToast('Time window added.');
+                ui.showToast(translations.windowAddedMessage);
             }
             scheduleModal.hide();
             await loadSchedules();
@@ -133,7 +153,7 @@ export function attachPresetHandlers() {
         button.addEventListener('click', () => {
             const preset = getPreset(button.dataset.preset);
             if (!preset) {
-                ui.showToast('Preset not available.', 'danger');
+                ui.showToast(translations.presetUnavailableMessage, 'danger');
                 return;
             }
             ui.clearFormErrors();
@@ -157,6 +177,7 @@ async function initializeScheduler() {
         return;
     }
     schedulerBootstrapped = true;
+    ui.configureScheduleUiTranslations(translations);
 
     initModal();
     await loadSchedules();

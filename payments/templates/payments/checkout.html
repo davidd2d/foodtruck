@@ -37,7 +37,15 @@
         orderId: {{ order.id }},
         orderTotal: '{{ order.total_price }}',
         successUrl: '{{ success_url }}',
-        paymentCurrency: '{% if order.payment %}{{ order.payment.currency }}{% else %}EUR{% endif %}'
+        paymentCurrency: '{% if order.payment %}{{ order.payment.currency }}{% else %}EUR{% endif %}',
+        translations: {
+            genericErrorMessage: '{% trans "Something went wrong. Please try again."|escapejs %}',
+            missingOrderIdMessage: '{% trans "Order ID is missing."|escapejs %}',
+            creatingPaymentMessage: '{% trans "Creating payment..."|escapejs %}',
+            authorizingPaymentMessage: '{% trans "Authorizing payment..."|escapejs %}',
+            capturingPaymentMessage: '{% trans "Capturing payment..."|escapejs %}',
+            paymentCapturedMessage: '{% trans "Payment captured! Redirecting..."|escapejs %}'
+        }
     });
 </script>
 {% endblock %}

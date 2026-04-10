@@ -3,15 +3,31 @@
  * Renders a foodtruck card with image, name, description, and action buttons
  */
 
+const defaultTranslations = {
+    noDescriptionAvailable: 'No description available',
+    openLabel: 'Open',
+    closedLabel: 'Closed',
+    viewMenuLabel: 'View Menu',
+    noFoodtrucksFound: 'No foodtrucks found',
+    emptyStateHint: 'Check back later for new foodtrucks in your area.',
+    loadingLabel: 'Loading...',
+    loadingFoodtrucksLabel: 'Loading foodtrucks...',
+    errorHeading: 'Oops!',
+    failedToLoadFoodtrucks: 'Failed to load foodtrucks',
+    tryAgainLabel: 'Try Again',
+};
+
 /**
  * Create HTML string for a foodtruck card
  * @param {Object} foodtruck - Foodtruck data object
  * @returns {string} HTML string for the card
  */
-export function createFoodtruckCard(foodtruck) {
+export function createFoodtruckCard(foodtruck, translations = {}) {
     if (!foodtruck) {
         return '';
     }
+
+    const labels = { ...defaultTranslations, ...translations };
 
     const {
         id,
@@ -32,12 +48,12 @@ export function createFoodtruckCard(foodtruck) {
     // Truncate description if too long
     const shortDescription = description && description.length > 120
         ? `${description.substring(0, 120)}...`
-        : description || 'No description available';
+        : description || labels.noDescriptionAvailable;
 
     // Status badge
     const statusBadge = is_active
-        ? '<span class="badge bg-success">Open</span>'
-        : '<span class="badge bg-secondary">Closed</span>';
+        ? `<span class="badge bg-success">${labels.openLabel}</span>`
+        : `<span class="badge bg-secondary">${labels.closedLabel}</span>`;
 
     return `
         <div class="col-lg-4 col-md-6 mb-4">
@@ -61,7 +77,7 @@ export function createFoodtruckCard(foodtruck) {
                     <div class="mt-auto">
                         <div class="d-flex gap-2">
                             <a href="/foodtrucks/${slug || id}/" class="btn btn-primary btn-sm flex-fill">
-                                <i class="bi bi-eye"></i> View Menu
+                                <i class="bi bi-eye"></i> ${labels.viewMenuLabel}
                             </a>
                             ${phone ? `<a href="tel:${phone}" class="btn btn-outline-secondary btn-sm">
                                 <i class="bi bi-telephone"></i>
@@ -82,15 +98,17 @@ export function createFoodtruckCard(foodtruck) {
  * @param {string} message - Custom message (optional)
  * @returns {string} HTML string for empty state
  */
-export function createEmptyState(message = 'No foodtrucks found') {
+export function createEmptyState(message, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
+    const resolvedMessage = message || labels.noFoodtrucksFound;
     return `
         <div class="col-12">
             <div class="text-center py-5">
                 <div class="mb-3">
                     <i class="bi bi-shop display-1 text-muted"></i>
                 </div>
-                <h3 class="text-muted">${message}</h3>
-                <p class="text-muted">Check back later for new foodtrucks in your area.</p>
+                <h3 class="text-muted">${resolvedMessage}</h3>
+                <p class="text-muted">${labels.emptyStateHint}</p>
             </div>
         </div>
     `;
@@ -100,14 +118,15 @@ export function createEmptyState(message = 'No foodtrucks found') {
  * Create HTML for loading state
  * @returns {string} HTML string for loading spinner
  */
-export function createLoadingState() {
+export function createLoadingState(translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     return `
         <div class="col-12">
             <div class="text-center py-5">
                 <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">${labels.loadingLabel}</span>
                 </div>
-                <p class="mt-3 text-muted">Loading foodtrucks...</p>
+                <p class="mt-3 text-muted">${labels.loadingFoodtrucksLabel}</p>
             </div>
         </div>
     `;
@@ -118,15 +137,17 @@ export function createLoadingState() {
  * @param {string} errorMessage - Error message to display
  * @returns {string} HTML string for error state
  */
-export function createErrorState(errorMessage = 'Failed to load foodtrucks') {
+export function createErrorState(errorMessage, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
+    const resolvedMessage = errorMessage || labels.failedToLoadFoodtrucks;
     return `
         <div class="col-12">
             <div class="alert alert-danger text-center" role="alert">
                 <i class="bi bi-exclamation-triangle display-4 mb-3"></i>
-                <h4 class="alert-heading">Oops!</h4>
-                <p>${errorMessage}</p>
+                <h4 class="alert-heading">${labels.errorHeading}</h4>
+                <p>${resolvedMessage}</p>
                 <button type="button" class="btn btn-outline-danger" onclick="window.location.reload()">
-                    <i class="bi bi-arrow-clockwise"></i> Try Again
+                    <i class="bi bi-arrow-clockwise"></i> ${labels.tryAgainLabel}
                 </button>
             </div>
         </div>

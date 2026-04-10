@@ -5,6 +5,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
 from foodtrucks.models import FoodTruck
@@ -13,13 +14,13 @@ from .models import Location
 from menu.services.menu_service import MenuService
 
 DAY_NAMES = [
-    ("Monday", 0),
-    ("Tuesday", 1),
-    ("Wednesday", 2),
-    ("Thursday", 3),
-    ("Friday", 4),
-    ("Saturday", 5),
-    ("Sunday", 6),
+    (_lazy("Monday"), 0),
+    (_lazy("Tuesday"), 1),
+    (_lazy("Wednesday"), 2),
+    (_lazy("Thursday"), 3),
+    (_lazy("Friday"), 4),
+    (_lazy("Saturday"), 5),
+    (_lazy("Sunday"), 6),
 ]
 
 

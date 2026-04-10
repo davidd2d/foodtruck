@@ -5,6 +5,7 @@ import { renderCategory } from '../components/menuItem.js';
 import { renderCart } from '../components/cart.js';
 import { SlotSelector } from '../components/slotSelector.js';
 import { createCheckoutHandler } from '../pages/checkout.js';
+import { getDatasetTranslations } from '../i18n.js';
 
 console.log('[FoodtruckDetail] Script starting...');
 
@@ -22,6 +23,13 @@ const pickupSlotHelp = document.getElementById('pickup-slot-help');
 const pageContainer = document.querySelector('[data-foodtruck-slug]');
 const foodtruckSlug = pageContainer?.dataset.foodtruckSlug;
 const userAuthenticated = pageContainer?.dataset.userAuthenticated === 'true';
+const translations = getDatasetTranslations(pageContainer, {
+    loadingMenuMessage: 'Loading menu...',
+    emptyMenuMessage: 'No menu items are available right now.',
+    emptyMenuHint: 'Please check back later.',
+    missingFoodtruckMessage: 'Could not identify foodtruck.',
+    loadMenuErrorMessage: 'Unable to load menu.',
+});
 
 console.log('[FoodtruckDetail] DOM elements loaded');
 console.log('[FoodtruckDetail] foodtruckSlug:', foodtruckSlug);
@@ -37,7 +45,7 @@ function createLoadingState() {
     menuContainer.innerHTML = `
         <div class="text-center text-muted py-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-3 mb-0">Loading menu...</p>
+            <p class="mt-3 mb-0">${translations.loadingMenuMessage}</p>
         </div>
     `;
 }
@@ -48,8 +56,8 @@ function renderMenu(menu) {
         if (menuContainer) {
             menuContainer.innerHTML = `
                 <div class="text-center text-muted py-5">
-                    <p class="mb-2">No menu items are available right now.</p>
-                    <p class="small">Please check back later.</p>
+                    <p class="mb-2">${translations.emptyMenuMessage}</p>
+                    <p class="small">${translations.emptyMenuHint}</p>
                 </div>
             `;
         }
@@ -78,7 +86,7 @@ async function initializeMenu() {
     console.log('[FoodtruckDetail] initializeMenu() called');
     
     if (!foodtruckSlug) {
-        renderError('Could not identify foodtruck.');
+        renderError(translations.missingFoodtruckMessage);
         return;
     }
 
@@ -91,7 +99,7 @@ async function initializeMenu() {
         renderMenu(menu);
     } catch (error) {
         console.error('[FoodtruckDetail] Error loading menu:', error);
-        renderError(error.message || 'Unable to load menu.');
+        renderError(error.message || translations.loadMenuErrorMessage);
     }
 }
 

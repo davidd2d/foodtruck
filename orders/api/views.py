@@ -263,66 +263,25 @@ class PickupSlotListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, slug):
+        logger = logging.getLogger(__name__)
         date_param = request.query_params.get('date')
+        try:
+            food_truck = FoodTruck.objects.get(slug=slug, is_active=True)
+        except FoodTruck.DoesNotExist:
+            logger.warning("Requested slots for unknown food truck slug=%s", slug)
+            return Response({'detail': 'Food truck not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         if date_param:
             try:
                 target_date = datetime.strptime(date_param, '%Y-%m-%d').date()
             except ValueError:
                 return Response({'detail': 'Invalid date format. Use YYYY-MM-DD.'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            target_date = timezone.localdate()
-        logger = logging.getLogger(__name__)
-        try:
-            food_truck = FoodTruck.objects.get(slug=slug, is_active=True)
             generate_slots_for_date(food_truck, target_date)
-
-            slots = (
-                PickupSlot.objects.filter(
-                    food_truck=food_truck,
-                    start_time__date=target_date,
-                    end_time__gt=timezone.localtime(timezone.now(), PARIS_TZ),
-                )
-                .select_related('food_truck')
-                .annotate(
-                    reserved_orders=Count(
-                        'orders',
-                        filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
-                    )
-                )
-                .order_by('start_time')
-            )
-
-            if date_param is None and not slots.exists():
-                next_schedule = food_truck.get_next_available_service_schedule()
-                if next_schedule:
-                    now = timezone.localtime(timezone.now(), PARIS_TZ)
-                    schedule_weekday = next_schedule.day_of_week
-                    current_weekday = now.weekday()
-
-                    if schedule_weekday >= current_weekday:
-                        target_date = now.date() + timedelta(days=schedule_weekday - current_weekday)
-                    else:
-                        target_date = now.date() + timedelta(days=7 - current_weekday + schedule_weekday)
-
-                    generate_slots_for_date(food_truck, target_date)
-                    slots = (
-                        PickupSlot.objects.filter(
-                            food_truck=food_truck,
-                            start_time__date=target_date,
-                            end_time__gt=timezone.localtime(timezone.now(), PARIS_TZ),
-                        )
-                        .select_related('food_truck')
-                        .annotate(
-                            reserved_orders=Count(
-                                'orders',
-                                filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
-                            )
-                        )
-                        .order_by('start_time')
-                    )
-        except FoodTruck.DoesNotExist:
-            logger.warning("Requested slots for unknown food truck slug=%s", slug)
-            return Response({'detail': 'Food truck not found.'}, status=status.HTTP_404_NOT_FOUND)
+            slots = food_truck.get_available_slots(target_date).select_related('food_truck')
+        else:
+            slots = food_truck.get_recommended_pickup_slots().select_related('food_truck')
+            first_slot = slots.first()
+            target_date = first_slot.start_time.date() if first_slot else timezone.localdate()
 
         serializer = PickupSlotSerializer(slots, many=True)
         logger.info("Returning %s slots for food truck %s on %s", len(slots), food_truck.slug, target_date)

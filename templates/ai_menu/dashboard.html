@@ -22,7 +22,11 @@
     {% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
 {% endif %}
 
-<div class="container py-5" id="ai-menu-dashboard-app">
+<div class="container py-5"
+    id="ai-menu-dashboard-app"
+    data-loading-recommendations-message="{% trans 'Loading AI recommendations...' %}"
+    data-analyze-error-message="{% trans 'Unable to analyze this item.' %}"
+    data-decision-error-message="{% trans 'Unable to update this recommendation.' %}">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="mb-1">{% trans "AI Menu Analysis" %}</h1>

@@ -4,7 +4,23 @@
 {% block title %}{% trans "AI foodtruck onboarding" %} - {% trans "FoodTruck SaaS" %}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-5"
+    id="ai-onboarding-app"
+    data-generating-label="{% trans 'Generating...' %}"
+    data-generate-button-label="{% trans 'Generate my foodtruck' %}"
+    data-create-button-loading-label="{% trans 'Creating...' %}"
+    data-create-button-label="{% trans 'Create my foodtruck' %}"
+    data-generate-error-message="{% trans 'Failed to generate foodtruck. Please try again.' %}"
+    data-create-error-message="{% trans 'Failed to create foodtruck. Please try again.' %}"
+    data-default-redirect-url="/foodtrucks/"
+    data-details-title="{% trans 'Foodtruck Details' %}"
+    data-name-label="{% trans 'Name' %}"
+    data-description-label="{% trans 'Description' %}"
+    data-menu-preview-title="{% trans 'Menu Preview' %}"
+    data-no-menu-items-message="{% trans 'No menu items generated.' %}"
+    data-remove-item-title="{% trans 'Remove item' %}"
+    data-add-item-label="{% trans 'Add Item' %}"
+    data-new-item-name="{% trans 'New Item' %}">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-sm">

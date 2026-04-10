@@ -1,3 +1,14 @@
+const defaultTranslations = {
+    detailsTitle: 'Foodtruck Details',
+    nameLabel: 'Name',
+    descriptionLabel: 'Description',
+    menuPreviewTitle: 'Menu Preview',
+    noMenuItemsMessage: 'No menu items generated.',
+    removeItemTitle: 'Remove item',
+    addItemLabel: 'Add Item',
+    newItemName: 'New Item',
+};
+
 /**
  * Render foodtruck preview
  * @param {Object} foodtruck - Foodtruck data
@@ -6,25 +17,26 @@
  * @param {Array} foodtruck.menu - Menu categories
  * @returns {string} HTML markup
  */
-export function renderFoodtruckPreview(foodtruck) {
+export function renderFoodtruckPreview(foodtruck, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     return `
         <div class="foodtruck-preview mb-4">
             <div class="row">
                 <div class="col-md-6">
-                    <h3 class="h4 mb-3">Foodtruck Details</h3>
+                    <h3 class="h4 mb-3">${labels.detailsTitle}</h3>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Name</label>
+                        <label class="form-label fw-semibold">${labels.nameLabel}</label>
                         <input type="text" class="form-control" id="foodtruck-name" value="${foodtruck.name}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Description</label>
+                        <label class="form-label fw-semibold">${labels.descriptionLabel}</label>
                         <textarea class="form-control" id="foodtruck-description" rows="3" required>${foodtruck.description}</textarea>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <h3 class="h4 mb-3">Menu Preview</h3>
+                    <h3 class="h4 mb-3">${labels.menuPreviewTitle}</h3>
                     <div id="menu-preview">
-                        ${renderMenuPreview(foodtruck.menu)}
+                        ${renderMenuPreview(foodtruck.menu, labels)}
                     </div>
                 </div>
             </div>
@@ -37,9 +49,9 @@ export function renderFoodtruckPreview(foodtruck) {
  * @param {Array} menu - Menu categories
  * @returns {string} HTML markup
  */
-function renderMenuPreview(menu) {
+function renderMenuPreview(menu, translations) {
     if (!menu || menu.length === 0) {
-        return '<p class="text-muted">No menu items generated.</p>';
+        return `<p class="text-muted">${translations.noMenuItemsMessage}</p>`;
     }
 
     return menu.map((category, categoryIndex) => `
@@ -60,7 +72,7 @@ function renderMenuPreview(menu) {
                                     </div>
                                 </div>
                                 <div class="col-auto">
-                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="Remove item">
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="${translations.removeItemTitle}">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -70,7 +82,7 @@ function renderMenuPreview(menu) {
                 `).join('')}
             </div>
             <button type="button" class="btn btn-outline-primary btn-sm add-item" data-category-index="${categoryIndex}">
-                <i class="bi bi-plus"></i> Add Item
+                <i class="bi bi-plus"></i> ${translations.addItemLabel}
             </button>
         </div>
     `).join('');
@@ -115,7 +127,8 @@ export function getEditedFoodtruckData() {
  * Add event listeners for menu editing
  * @param {Function} onDataChange - Callback when data changes
  */
-export function setupMenuEditing(onDataChange) {
+export function setupMenuEditing(onDataChange, translations = {}) {
+    const labels = { ...defaultTranslations, ...translations };
     // Remove item
     document.addEventListener('click', (e) => {
         if (e.target.closest('.remove-item')) {
@@ -138,7 +151,7 @@ export function setupMenuEditing(onDataChange) {
                     <div class="card-body py-2">
                         <div class="row align-items-center">
                             <div class="col">
-                                <input type="text" class="form-control form-control-sm" value="New Item" data-field="name" required>
+                                <input type="text" class="form-control form-control-sm" value="${labels.newItemName}" data-field="name" required>
                             </div>
                             <div class="col-auto">
                                 <div class="input-group input-group-sm">
@@ -147,7 +160,7 @@ export function setupMenuEditing(onDataChange) {
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="Remove item">
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="${labels.removeItemTitle}">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>

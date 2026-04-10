@@ -8,7 +8,24 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-5"
+    id="schedule-app"
+    data-edit-label="{% trans 'Edit' %}"
+    data-delete-label="{% trans 'Delete' %}"
+    data-no-windows-defined-label="{% trans 'No windows defined' %}"
+    data-windows-count-label="{% trans '{count} window(s)' %}"
+    data-edit-time-window-label="{% trans 'Edit time window' %}"
+    data-add-time-window-label="{% trans 'Add time window' %}"
+    data-saving-label="{% trans 'Saving...' %}"
+    data-save-label="{% trans 'Save' %}"
+    data-orders-per-duration-label="{% trans '{count} orders / {minutes} min' %}"
+    data-load-schedules-error-message="{% trans 'Unable to load schedules.' %}"
+    data-delete-window-confirmation="{% trans 'Delete this time window?' %}"
+    data-window-removed-message="{% trans 'Time window removed.' %}"
+    data-delete-schedule-error-message="{% trans 'Unable to delete schedule.' %}"
+    data-window-updated-message="{% trans 'Time window updated.' %}"
+    data-window-added-message="{% trans 'Time window added.' %}"
+    data-preset-unavailable-message="{% trans 'Preset not available.' %}">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
         <div>
             <h1 class="mb-1">{% trans "Working Hours" %}</h1>

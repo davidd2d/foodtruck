@@ -1,5 +1,22 @@
+import { interpolate } from '../i18n.js';
+
 const scheduleStore = new Map();
 const TOTAL_DAYS = 7;
+const translations = {
+    editLabel: 'Edit',
+    deleteLabel: 'Delete',
+    noWindowsDefinedLabel: 'No windows defined',
+    windowsCountLabel: '{count} window(s)',
+    editTimeWindowLabel: 'Edit time window',
+    addTimeWindowLabel: 'Add time window',
+    savingLabel: 'Saving...',
+    saveLabel: 'Save',
+    ordersPerDurationLabel: '{count} orders / {minutes} min',
+};
+
+export function configureScheduleUiTranslations(customTranslations = {}) {
+    Object.assign(translations, customTranslations);
+}
 
 function formatTime(value) {
     if (!value) {
@@ -24,7 +41,10 @@ function createWindowElement(schedule) {
     range.textContent = rangeText;
     const capacity = document.createElement('small');
     capacity.className = 'text-muted d-block';
-    capacity.textContent = `${schedule.capacity_per_slot} orders / ${schedule.slot_duration_minutes ?? 10} min`; // fallback
+    capacity.textContent = interpolate(translations.ordersPerDurationLabel, {
+        count: schedule.capacity_per_slot,
+        minutes: schedule.slot_duration_minutes ?? 10,
+    });
     left.appendChild(range);
     left.appendChild(capacity);
 
@@ -34,13 +54,13 @@ function createWindowElement(schedule) {
     const edit = document.createElement('button');
     edit.type = 'button';
     edit.className = 'btn btn-sm btn-outline-secondary edit-window-btn';
-    edit.textContent = 'Edit';
+    edit.textContent = translations.editLabel;
     edit.dataset.schedule = schedule.id;
 
     const del = document.createElement('button');
     del.type = 'button';
     del.className = 'btn btn-sm btn-outline-danger delete-window-btn';
-    del.textContent = 'Delete';
+    del.textContent = translations.deleteLabel;
     del.dataset.schedule = schedule.id;
 
     actions.appendChild(edit);
@@ -74,14 +94,14 @@ export function renderSchedules(schedules) {
         listBox.innerHTML = '';
         if (windows.length === 0) {
             emptyState?.classList.remove('d-none');
-            summary.textContent = 'No windows defined';
+            summary.textContent = translations.noWindowsDefinedLabel;
         } else {
             emptyState?.classList.add('d-none');
             windows.sort((a, b) => a.start_time.localeCompare(b.start_time));
             windows.forEach((window) => {
                 listBox.appendChild(createWindowElement(window));
             });
-            summary.textContent = `${windows.length} window(s)`;
+            summary.textContent = interpolate(translations.windowsCountLabel, { count: windows.length });
         }
     }
 }
@@ -143,7 +163,7 @@ export function populateForm(schedule, dayIndex, overrides = {}) {
     const locationField = document.getElementById('location');
 
     if (schedule) {
-        modalTitle.textContent = 'Edit time window';
+        modalTitle.textContent = translations.editTimeWindowLabel;
         scheduleIdField.value = schedule.id;
         dayField.value = schedule.day_of_week;
         startTime.value = schedule.start_time;
@@ -153,7 +173,7 @@ export function populateForm(schedule, dayIndex, overrides = {}) {
             locationField.value = schedule.location ?? '';
         }
     } else {
-        modalTitle.textContent = 'Add time window';
+        modalTitle.textContent = translations.addTimeWindowLabel;
         scheduleIdField.value = '';
         dayField.value = dayIndex;
         startTime.value = '';
@@ -177,6 +197,6 @@ export function setFormProcessing(isProcessing) {
     const submit = document.getElementById('schedule-submit-btn');
     if (submit) {
         submit.disabled = isProcessing;
-        submit.textContent = isProcessing ? 'Saving…' : 'Save';
+        submit.textContent = isProcessing ? translations.savingLabel : translations.saveLabel;
     }
 }

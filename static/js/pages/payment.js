@@ -18,6 +18,15 @@ export default function initPaymentPage(config = {}) {
     }
 
     const { orderId, successUrl } = config;
+    const translations = {
+        genericErrorMessage: 'Something went wrong. Please try again.',
+        missingOrderIdMessage: 'Order ID is missing.',
+        creatingPaymentMessage: 'Creating payment...',
+        authorizingPaymentMessage: 'Authorizing payment...',
+        capturingPaymentMessage: 'Capturing payment...',
+        paymentCapturedMessage: 'Payment captured! Redirecting...',
+        ...config.translations,
+    };
 
     const updateStatus = (message, isError = false) => {
         statusEl.textContent = message;
@@ -26,29 +35,29 @@ export default function initPaymentPage(config = {}) {
     };
 
     const handleError = (error) => {
-        const message = error?.message || 'Something went wrong. Please try again.';
+        const message = error?.message || translations.genericErrorMessage;
         updateStatus(message, true);
     };
 
     payButton.addEventListener('click', async () => {
         if (!orderId) {
-            handleError(new Error('Order ID is missing.'));
+            handleError(new Error(translations.missingOrderIdMessage));
             return;
         }
 
         payButton.disabled = true;
 
         try {
-            updateStatus('Creating payment...');
+            updateStatus(translations.creatingPaymentMessage);
             const payment = await PaymentAPI.create(orderId);
 
-            updateStatus('Authorizing payment...');
+            updateStatus(translations.authorizingPaymentMessage);
             await PaymentAPI.authorize(payment.id);
 
-            updateStatus('Capturing payment...');
+            updateStatus(translations.capturingPaymentMessage);
             await PaymentAPI.capture(payment.id);
 
-            updateStatus('Payment captured! Redirecting...', false);
+            updateStatus(translations.paymentCapturedMessage, false);
             setTimeout(() => {
                 window.location.href = successUrl;
             }, 1200);

@@ -4,7 +4,20 @@
 {% block title %}{{ foodtruck.name }} - {% trans "FoodTruck SaaS" %}{% endblock %}
 
 {% block content %}
-<div class="container py-5" data-foodtruck-slug="{{ foodtruck.slug }}" data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
+<div class="container py-5"
+    data-foodtruck-slug="{{ foodtruck.slug }}"
+    data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+    data-ordering-enabled="{{ foodtruck.can_accept_orders|yesno:'true,false' }}"
+    data-recommended-pickup-message="{% trans 'Recommended pickup time selected automatically.' %}"
+    data-pickup-now-message="{% trans 'Recommended pickup: right now' %}"
+    data-next-pickup-message="{% trans 'Next available slot: {time}' %}"
+    data-choose-pickup-slot-label="{% trans 'Choose a pickup slot' %}"
+    data-unavailable-suffix="{% trans 'unavailable' %}"
+    data-loading-slots-label="{% trans 'Loading available slots...' %}"
+    data-no-slots-option-label="{% trans 'No pickup slots available.' %}"
+    data-no-slots-message="{% trans 'No pickup slots are currently available.' %}"
+    data-load-slots-error-label="{% trans 'Unable to load pickup slots.' %}"
+    data-select-slot-message="{% trans 'Select a pickup slot before checkout.' %}">
     <div class="row gy-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm overflow-hidden">
