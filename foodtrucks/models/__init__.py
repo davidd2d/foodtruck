@@ -362,6 +362,7 @@ class FoodTruck(models.Model):
         target_date = target_date or timezone.localdate()
         generate_slots_for_date(self, target_date)
         paris_now = timezone.localtime(timezone.now(), PARIS_TZ)
+        reserved_statuses = self._get_reserved_order_statuses()
 
         slots = self.pickup_slots.filter(
             start_time__date=target_date,
@@ -369,12 +370,17 @@ class FoodTruck(models.Model):
         ).annotate(
             reserved=Count(
                 'orders',
-                filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
+                filter=Q(orders__status__in=reserved_statuses)
             )
         ).filter(reserved__lt=F('capacity')).select_related(
             'service_schedule'
         ).order_by('start_time')
         return slots
+
+    def _get_reserved_order_statuses(self):
+        from orders.models import Order
+
+        return Order.capacity_reserved_statuses()
 
     def get_current_service_schedule(self, reference_time=None):
         """Return the currently active schedule for the provided Paris time."""

@@ -70,7 +70,7 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], 'order submitted')
         order.refresh_from_db()
-        self.assertEqual(order.status, 'submitted')
+        self.assertEqual(order.status, 'pending')
 
     def test_submit_empty_order_fails(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
@@ -231,7 +231,7 @@ class OrderAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.status, 'submitted')
+        self.assertEqual(order.status, 'pending')
         self.assertEqual(response.data['status'], 'order submitted')
 
     def test_set_slot_endpoint_rejects_full_slot(self):

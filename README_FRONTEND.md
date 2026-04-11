@@ -77,7 +77,27 @@
 
 ---
 
-## 8️⃣ Documentation / Notes
+## 8️⃣ Order Dashboard UI
+
+- **Template:** `orders/templates/orders/dashboard.html`
+- **Reusable partial:** `orders/templates/orders/partials/order_card.html`
+- **JS module:** `static/orders/js/dashboard.js`
+- **CSS:** `static/orders/css/dashboard.css`
+- **Behavior:**
+  - server-side snapshot on initial render
+  - AJAX polling every 10 seconds on `/orders/api/dashboard/`
+  - status filter + manual refresh
+  - inline owner actions for `pending`, `confirmed`, `preparing`, `ready`
+  - polling pauses when the tab is hidden and resumes on return
+- **Implementation rules:**
+  - no inline business logic in templates
+  - vanilla JS only, no framework dependency
+  - keep payloads compact for future WebSocket migration
+  - all operator labels/messages remain translation-ready via template data attributes
+
+---
+
+## 9️⃣ Documentation / Notes
 
 - Any frontend modification must be documented in `README_frontend`
 - Clearly indicate which components or JS scripts are impacted by branding or plan gating

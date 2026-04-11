@@ -1,0 +1,53 @@
+{% load i18n %}
+<article class="card border mb-3 dashboard-order-card {% if order.is_urgent %}border-danger-subtle dashboard-order-card-urgent{% endif %}"
+         data-order-id="{{ order.id }}"
+         data-order-status="{{ order.status }}"
+         data-pickup-time="{{ order.pickup_slot.start_time|date:'c' }}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+            <div>
+                <div class="fw-semibold">{% trans "Order" %} #{{ order.id }}</div>
+                <div class="small text-muted">{{ order.pickup_slot.start_time|date:"d/m/Y H:i" }}</div>
+            </div>
+            <div class="text-end">
+                <div class="fw-semibold">€{{ order.total_price }}</div>
+                {% if order.is_urgent %}
+                    <span class="badge text-bg-danger mt-1">{% trans "Urgent pickup" %}</span>
+                {% endif %}
+            </div>
+        </div>
+        <ul class="small ps-3 mb-3 dashboard-order-lines">
+            {% for item in order.items.all %}
+                <li class="mb-2">
+                    <div class="d-flex justify-content-between gap-3">
+                        <div>
+                            <span class="fw-medium">{{ item.product_name }}</span>
+                            <span class="text-muted">x{{ item.quantity }}</span>
+                        </div>
+                        <span class="text-nowrap">€{{ item.total_price }}</span>
+                    </div>
+                    {% if item.selected_options.all %}
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            {% for selected_option in item.selected_options.all %}
+                                <span class="badge rounded-pill text-bg-light border">{{ selected_option.option.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="d-flex flex-wrap gap-2">
+            {% if order.status == 'pending' %}
+                <button type="button" class="btn btn-sm btn-primary js-order-status" data-next-status="confirmed">{% trans "Confirm order" %}</button>
+                <button type="button" class="btn btn-sm btn-outline-danger js-order-status" data-next-status="cancelled">{% trans "Cancel order" %}</button>
+            {% elif order.status == 'confirmed' %}
+                <button type="button" class="btn btn-sm btn-primary js-order-status" data-next-status="preparing">{% trans "Start preparing" %}</button>
+                <button type="button" class="btn btn-sm btn-outline-danger js-order-status" data-next-status="cancelled">{% trans "Cancel order" %}</button>
+            {% elif order.status == 'preparing' %}
+                <button type="button" class="btn btn-sm btn-success js-order-status" data-next-status="ready">{% trans "Mark as ready" %}</button>
+            {% elif order.status == 'ready' %}
+                <button type="button" class="btn btn-sm btn-dark js-order-status" data-next-status="completed">{% trans "Complete" %}</button>
+            {% endif %}
+        </div>
+    </div>
+</article>

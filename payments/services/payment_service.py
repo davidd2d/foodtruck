@@ -14,8 +14,8 @@ class PaymentService:
     def create_payment(order: Order) -> Payment:
         """Create a pending payment for a submitted order."""
 
-        if order.status != 'submitted':
-            raise ValidationError('Only submitted orders can be paid.')
+        if order.status != Order.Status.PENDING:
+            raise ValidationError('Only pending orders can be paid.')
 
         if not order.items.exists():
             raise ValidationError('Cannot pay for an empty order.')
@@ -45,14 +45,13 @@ class PaymentService:
 
     @staticmethod
     def capture_payment(payment: Payment) -> Payment:
-        """Simulate capture and mark both payment and order as paid."""
+        """Simulate capture while leaving the operator lifecycle unchanged."""
 
         if payment.order.is_paid():
             raise ValidationError('Order has already been marked as paid.')
 
         with transaction.atomic():
             payment.transition_to('paid')
-            payment.order.mark_as_paid()
 
         return payment
 

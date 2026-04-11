@@ -1,13 +1,11 @@
-from datetime import datetime, timedelta
 import logging
+from datetime import datetime, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.utils import timezone
-from datetime import datetime
 
 from rest_framework import viewsets, status
-from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
@@ -27,14 +25,19 @@ from .serializers import (
     OrderSlotAssignmentSerializer,
     OrderSubmissionSerializer,
     ServiceScheduleSerializer,
+    OrderDashboardSerializer,
+    OrderStatusUpdateSerializer,
 )
 from ..models import Order, PickupSlot, ServiceSchedule, PARIS_TZ
+from ..exceptions import OrderTransitionError
 from menu.models import Combo, Item
 from ..services.cart_service import CartService
 from ..services.order_service import OrderService
 from ..services.schedule_service import generate_slots_for_date
 from foodtrucks.models import FoodTruck
-import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class IsFoodTruckOwner(BasePermission):
@@ -42,6 +45,16 @@ class IsFoodTruckOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return getattr(obj.food_truck, 'owner_id', None) == request.user.id
+
+
+class OwnerFoodTruckMixin:
+    """Resolve the active food truck owned by the authenticated user."""
+
+    def get_owner_foodtruck(self, request):
+        foodtruck = FoodTruck.objects.filter(owner=request.user, is_active=True).first()
+        if not foodtruck:
+            raise DRFValidationError({'foodtruck': 'No active food truck found for this user.'})
+        return foodtruck
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -371,7 +384,7 @@ class PickupSlotViewSet(viewsets.ReadOnlyModelViewSet):
         ).annotate(
             reserved=Count(
                 'orders',
-                filter=Q(orders__status__in=['draft', 'submitted', 'paid'])
+                filter=Q(orders__status__in=Order.capacity_reserved_statuses())
             )
         ).order_by('start_time')
 
@@ -416,3 +429,68 @@ class PickupSlotManageViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Ensure the serializer enforces ownership."""
         serializer.save()
+
+
+class OrderDashboardAPIView(OwnerFoodTruckMixin, APIView):
+    """Return optimized orders for the operator dashboard."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        foodtruck = self.get_owner_foodtruck(request)
+        filters = {
+            'status': request.query_params.get('status') or None,
+            'slot': request.query_params.get('slot') or None,
+        }
+        try:
+            orders = OrderService.get_dashboard_orders(foodtruck, filters)
+        except ValidationError as exc:
+            logger.warning('Dashboard order retrieval failed', extra={'foodtruck_id': foodtruck.id, 'filters': filters})
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = OrderDashboardSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class OrderStatusUpdateAPIView(APIView):
+    """Apply an operator lifecycle transition to an owned order."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        serializer = OrderStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        order = Order.objects.filter(
+            pk=order_id,
+            food_truck__owner=request.user,
+        ).select_related('food_truck', 'pickup_slot').first()
+
+        if not order:
+            return Response({'detail': 'Order not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            updated_order = OrderService.update_status(order, serializer.validated_data['status'])
+        except (OrderTransitionError, ValidationError) as exc:
+            logger.warning(
+                'Dashboard order status update rejected',
+                extra={
+                    'order_id': order_id,
+                    'requested_status': serializer.validated_data['status'],
+                    'owner_id': request.user.id,
+                },
+            )
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            logger.exception(
+                'Dashboard order status update failed',
+                extra={
+                    'order_id': order_id,
+                    'requested_status': serializer.validated_data['status'],
+                    'owner_id': request.user.id,
+                },
+            )
+            return Response({'detail': 'Unable to update order status.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        response_serializer = OrderDashboardSerializer(updated_order)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)

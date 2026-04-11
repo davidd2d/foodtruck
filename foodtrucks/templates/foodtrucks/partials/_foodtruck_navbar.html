@@ -29,6 +29,9 @@
                             {% endif %}
                             {% if user.is_superuser or foodtruck.owner_id == user.id %}
                             <li>
+                                <a class="dropdown-item" href="{% url 'orders:dashboard' slug=foodtruck.slug %}">{% trans "Order dashboard" %}</a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item" href="{% url 'orders:working-hours' slug=foodtruck.slug %}">{% trans "Working hours" %}</a>
                             </li>
                             <li>

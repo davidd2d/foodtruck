@@ -1,4 +1,5 @@
 from decimal import Decimal
+import logging
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -6,11 +7,15 @@ from django.db import transaction
 from foodtrucks.models import FoodTruck
 from menu.models import Combo, Item
 from orders.models import Order, PickupSlot
+from orders.exceptions import OrderTransitionError
 from orders.services.cart_service import CartService
 
 
+logger = logging.getLogger(__name__)
+
+
 class OrderService:
-    """Service layer responsible for orchestrating order finalization."""
+    """Service layer responsible for orchestrating order workflows."""
 
     @staticmethod
     def create_order_from_cart(user, session, pickup_slot_id=None):
@@ -55,7 +60,7 @@ class OrderService:
             order = Order.objects.create(
                 user=user,
                 food_truck=food_truck,
-                status='draft',
+                status=Order.Status.DRAFT,
                 total_price=Decimal('0.00'),
             )
 
@@ -97,7 +102,7 @@ class OrderService:
     @staticmethod
     def assign_pickup_slot(order, slot_id):
         """Assign a pickup slot to the provided draft order."""
-        if order.status != 'draft':
+        if order.status != Order.Status.DRAFT:
             raise ValidationError('Only draft orders can be assigned a pickup slot.')
 
         try:
@@ -114,3 +119,48 @@ class OrderService:
     def submit_order(order):
         """Validate and submit a draft order."""
         return order.submit()
+
+    @staticmethod
+    def update_status(order: Order, new_status: str) -> Order:
+        """Atomically update an operator-facing order status using the domain rules."""
+        try:
+            normalized_status = new_status.lower()
+        except AttributeError as exc:
+            raise ValidationError('A valid status string is required.') from exc
+
+        try:
+            with transaction.atomic():
+                locked_order = Order.objects.select_for_update().get(pk=order.pk)
+                locked_order.transition_to(normalized_status)
+                locked_order.save(update_fields=['status'])
+                return locked_order
+        except OrderTransitionError:
+            logger.warning(
+                'Invalid order transition',
+                extra={
+                    'order_id': order.pk,
+                    'from_status': order.status,
+                    'to_status': normalized_status,
+                },
+            )
+            raise
+
+    @staticmethod
+    def get_dashboard_orders(foodtruck, filters: dict):
+        """Return optimized orders for the owner dashboard with optional filters."""
+        filters = filters or {}
+        requested_status = filters.get('status')
+        requested_slot = filters.get('slot')
+
+        queryset = Order.objects.for_dashboard(
+            foodtruck,
+            include_cancelled=requested_status == Order.Status.CANCELLED,
+        ).exclude(status=Order.Status.DRAFT)
+
+        if requested_status:
+            queryset = queryset.by_status(requested_status)
+
+        if requested_slot:
+            queryset = queryset.filter(pickup_slot_id=requested_slot)
+
+        return queryset

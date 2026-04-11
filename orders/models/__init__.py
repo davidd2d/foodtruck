@@ -13,6 +13,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from menu.models import Combo, Item, Option
+from orders.exceptions import OrderTransitionError
 
 PARIS_TZ = pytz.timezone('Europe/Paris')
 
@@ -253,9 +254,9 @@ class PickupSlot(models.Model):
 
     def _capacity_queryset(self, *, exclude_order=None, include_drafts=True):
         """Return the queryset used to evaluate slot capacity."""
-        statuses = ['submitted', 'paid']
+        statuses = list(Order.capacity_reserved_statuses(include_drafts=False))
         if include_drafts:
-            statuses.append('draft')
+            statuses.append(Order.Status.DRAFT)
         qs = self.orders.filter(status__in=statuses)
         if exclude_order is not None:
             exclude_pk = exclude_order.pk if hasattr(exclude_order, 'pk') else exclude_order
@@ -322,12 +323,77 @@ class Order(models.Model):
     Represents an authenticated order with pickup details and lifecycle management.
     """
 
-    STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('submitted', 'Submitted'),
-        ('paid', 'Paid'),
-        ('cancelled', 'Cancelled'),
-    ]
+    class Status(models.TextChoices):
+        DRAFT = 'draft', _('Draft')
+        PENDING = 'pending', _('Pending')
+        CONFIRMED = 'confirmed', _('Confirmed')
+        PREPARING = 'preparing', _('Preparing')
+        READY = 'ready', _('Ready')
+        COMPLETED = 'completed', _('Completed')
+        CANCELLED = 'cancelled', _('Cancelled')
+
+    STATUS_TRANSITIONS = {
+        Status.PENDING: {Status.CONFIRMED, Status.CANCELLED},
+        Status.CONFIRMED: {Status.PREPARING, Status.CANCELLED},
+        Status.PREPARING: {Status.READY},
+        Status.READY: {Status.COMPLETED},
+    }
+
+    DASHBOARD_STATUSES = (
+        Status.PENDING,
+        Status.CONFIRMED,
+        Status.PREPARING,
+        Status.READY,
+        Status.COMPLETED,
+    )
+
+    ACTIVE_STATUSES = (
+        Status.PENDING,
+        Status.CONFIRMED,
+        Status.PREPARING,
+        Status.READY,
+    )
+
+    class OrderQuerySet(models.QuerySet):
+        """Query helpers for order retrieval in customer and operator contexts."""
+
+        def for_dashboard(self, foodtruck, include_cancelled=False):
+            queryset = self.filter(food_truck=foodtruck).select_related('pickup_slot').prefetch_related(
+                'items',
+                'items__item',
+                'items__combo',
+                'items__selected_options__option',
+            )
+            if not include_cancelled:
+                queryset = queryset.exclude(status=Order.Status.CANCELLED)
+            return queryset.order_by('pickup_slot__start_time', 'created_at')
+
+        def by_status(self, status):
+            return self.filter(status=status)
+
+        def upcoming(self):
+            return self.filter(pickup_slot__start_time__date__gte=timezone.localdate()).select_related('pickup_slot')
+
+        def active(self):
+            return self.exclude(status__in=[Order.Status.DRAFT, Order.Status.COMPLETED, Order.Status.CANCELLED])
+
+    class OrderManager(models.Manager):
+        """Manager exposing optimized dashboard-ready query helpers."""
+
+        def get_queryset(self):
+            return Order.OrderQuerySet(self.model, using=self._db)
+
+        def for_dashboard(self, foodtruck, include_cancelled=False):
+            return self.get_queryset().for_dashboard(foodtruck, include_cancelled=include_cancelled)
+
+        def by_status(self, status):
+            return self.get_queryset().by_status(status)
+
+        def upcoming(self):
+            return self.get_queryset().upcoming()
+
+        def active(self):
+            return self.get_queryset().active()
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -353,8 +419,8 @@ class Order(models.Model):
     )
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
-        default='draft',
+        choices=Status.choices,
+        default=Status.DRAFT,
         help_text=_("Current status of the order")
     )
     total_price = models.DecimalField(
@@ -373,6 +439,7 @@ class Order(models.Model):
         indexes = [
             models.Index(fields=['pickup_slot']),
             models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
             models.Index(fields=['food_truck']),
         ]
         constraints = [
@@ -382,9 +449,68 @@ class Order(models.Model):
             ),
         ]
 
+    objects = OrderManager()
+
     def __str__(self):
         owner_email = getattr(self.user, 'email', 'anonymous')
         return f"Order {self.id} - {owner_email}"
+
+    @classmethod
+    def capacity_reserved_statuses(cls, *, include_drafts=True):
+        """Return statuses that should reserve pickup slot capacity."""
+        statuses = [
+            cls.Status.PENDING,
+            cls.Status.CONFIRMED,
+            cls.Status.PREPARING,
+            cls.Status.READY,
+            cls.Status.COMPLETED,
+        ]
+        if include_drafts:
+            statuses.append(cls.Status.DRAFT)
+        return tuple(statuses)
+
+    def can_transition_to(self, new_status: str) -> bool:
+        """Return whether the order can move to the provided new status."""
+        if not isinstance(new_status, str):
+            return False
+
+        normalized = new_status.lower()
+        if normalized == self.status:
+            return False
+
+        try:
+            normalized = self.Status(normalized)
+        except ValueError:
+            return False
+
+        return normalized in self.STATUS_TRANSITIONS.get(self.status, set())
+
+    def transition_to(self, new_status: str):
+        """Validate and apply an in-memory status transition for the order."""
+        normalized = new_status.lower() if isinstance(new_status, str) else new_status
+        if not self.can_transition_to(normalized):
+            raise OrderTransitionError(
+                _("Cannot transition order from %(from_status)s to %(to_status)s."),
+                params={'from_status': self.status, 'to_status': normalized},
+            )
+
+        self.status = normalized
+        return self
+
+    def is_active(self):
+        """Return True while the order is still actionable on the operator side."""
+        return self.status in self.ACTIVE_STATUSES
+
+    def is_completed(self):
+        """Return True when the operational lifecycle is finished."""
+        return self.status == self.Status.COMPLETED
+
+    def is_urgent(self, threshold_minutes=15):
+        """Return True when the pickup time is close enough to deserve emphasis."""
+        if not self.pickup_slot_id or self.status not in self.ACTIVE_STATUSES:
+            return False
+        delta = self.pickup_slot.start_time - timezone.now()
+        return timedelta(minutes=0) <= delta <= timedelta(minutes=threshold_minutes)
 
     def add_item(self, item, quantity, selected_options=None):
         """
@@ -398,7 +524,7 @@ class Order(models.Model):
         Raises:
             ValidationError: If item is invalid or unavailable
         """
-        if self.status != 'draft':
+        if self.status != self.Status.DRAFT:
             raise ValidationError("Cannot modify order after submission")
 
         if not item.is_available_now():
@@ -428,7 +554,11 @@ class Order(models.Model):
                 group__item=item,
                 is_available=True
             )
-            for option in option_qs:
+            option_map = {option.id: option for option in option_qs}
+            for option_id in selected_options:
+                option = option_map.get(int(option_id))
+                if option is None:
+                    continue
                 OrderItemOption.objects.create(
                     order_item=order_item,
                     option=option,
@@ -440,7 +570,7 @@ class Order(models.Model):
 
     def add_combo(self, combo, quantity):
         """Add a combo to the order as a priced snapshot line."""
-        if self.status != 'draft':
+        if self.status != self.Status.DRAFT:
             raise ValidationError("Cannot modify order after submission")
 
         if combo.category.menu.food_truck_id != self.food_truck_id:
@@ -481,7 +611,7 @@ class Order(models.Model):
 
     def clear(self):
         """Remove all draft items from the order and reset totals."""
-        if self.status != 'draft':
+        if self.status != self.Status.DRAFT:
             raise ValidationError('Can only clear draft orders.')
 
         self.items.all().delete()
@@ -491,7 +621,7 @@ class Order(models.Model):
     def can_be_submitted(self):
         """Return True when the draft order meets all submission requirements."""
 
-        if self.status != 'draft':
+        if self.status != self.Status.DRAFT:
             return False
 
         if not self.items.exists():
@@ -538,7 +668,7 @@ class Order(models.Model):
     def validate(self):
         """Raise ValidationError when business rules forbid submission."""
 
-        if self.status != 'draft':
+        if self.status != self.Status.DRAFT:
             raise ValidationError('Only draft orders may be submitted.')
 
         if not self.items.exists():
@@ -596,7 +726,7 @@ class Order(models.Model):
         try:
             self.validate()
 
-            if self.status != 'draft':
+            if self.status != self.Status.DRAFT:
                 raise ValidationError('Only draft orders may be submitted.')
 
             if not self.pickup_slot_id:
@@ -621,7 +751,7 @@ class Order(models.Model):
 
             slot.assign_order(self, include_drafts=False)
 
-            self.status = 'submitted'
+            self.status = self.Status.PENDING
             self.submitted_at = timezone.now()
             self.save(update_fields=['status', 'submitted_at'])
         except OperationalError:
@@ -638,33 +768,26 @@ class Order(models.Model):
 
     def mark_as_paid(self):
         """
-        Mark the order as paid.
+        Preserve backward compatibility for legacy payment hooks.
 
-        This should only be called by the Payment model to maintain data integrity.
-        Direct calls may break consistency.
+        Payment state now lives in the Payment model and no longer mutates the
+        operational order lifecycle used by the operator dashboard.
 
         Raises:
             ValidationError: If order is not in correct state
         """
-        if self.status == 'paid':
-            raise ValidationError('Order is already marked as paid.')
-
-        if self.status != 'submitted':
-            raise ValidationError(f"Cannot mark as paid from status '{self.status}'")
-
         if not hasattr(self, 'payment'):
             raise ValidationError('Order has no associated payment.')
 
         if not self.payment.is_paid():
             raise ValidationError('Payment must be paid before marking order as paid.')
 
-        self.status = 'paid'
-        self.save(update_fields=['status'])
+        return self
 
     def clean(self):
         """Validate order constraints."""
-        if self.status != 'draft' and self.status != 'cancelled':
-            # For submitted/paid orders, ensure all required data is present
+        if self.status not in (self.Status.DRAFT, self.Status.CANCELLED):
+            # For submitted operator-side orders, ensure all required data is present
             if not self.items.exists():
                 raise ValidationError("Submitted orders must have items")
 

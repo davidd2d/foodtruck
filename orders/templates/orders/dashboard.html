@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Order dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'orders/css/dashboard.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4"
+     id="order-dashboard"
+     data-dashboard-url="{% url 'orders:dashboard-api' %}"
+     data-status-url-template="{% url 'orders:dashboard-status-api' order_id=0 %}"
+     data-empty-message="{% trans 'No orders for this section.' %}"
+     data-loading-message="{% trans 'Refreshing orders...' %}"
+     data-error-message="{% trans 'Unable to load orders right now.' %}"
+     data-update-error-message="{% trans 'Unable to update this order.' %}"
+     data-refresh-label="{% trans 'Refresh' %}"
+     data-confirm-label="{% trans 'Confirm order' %}"
+     data-cancel-label="{% trans 'Cancel order' %}"
+     data-start-preparing-label="{% trans 'Start preparing' %}"
+     data-mark-ready-label="{% trans 'Mark as ready' %}"
+     data-complete-label="{% trans 'Complete' %}"
+     data-urgent-label="{% trans 'Urgent pickup' %}"
+    data-order-label="{% trans 'Order' %}"
+     data-pending-label="{% trans 'Pending' %}"
+     data-confirmed-label="{% trans 'Confirmed' %}"
+     data-preparing-label="{% trans 'Preparing' %}"
+     data-ready-label="{% trans 'Ready' %}"
+     data-completed-label="{% trans 'Completed' %}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{% trans "Order dashboard" %}</h1>
+            <p class="text-muted mb-0">{% trans "Monitor incoming orders and move them through the kitchen workflow." %}</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <label class="visually-hidden" for="dashboard-status-filter">{% trans "Filter by status" %}</label>
+            <select id="dashboard-status-filter" class="form-select">
+                <option value="">{% trans "All statuses" %}</option>
+                <option value="pending">{% trans "Pending" %}</option>
+                <option value="confirmed">{% trans "Confirmed" %}</option>
+                <option value="preparing">{% trans "Preparing" %}</option>
+                <option value="ready">{% trans "Ready" %}</option>
+                <option value="completed">{% trans "Completed" %}</option>
+                <option value="cancelled">{% trans "Cancelled" %}</option>
+            </select>
+            <button type="button" class="btn btn-outline-primary" id="dashboard-refresh-button">{% trans "Refresh" %}</button>
+        </div>
+    </div>
+
+    <div id="dashboard-feedback" class="alert alert-danger d-none" role="alert"></div>
+    <div id="dashboard-loading" class="alert alert-info d-none" role="status"></div>
+
+    <div class="row g-3" id="dashboard-columns">
+        {% for section in dashboard_sections %}
+            <div class="col-12 col-xl-6" data-dashboard-section="{{ section.key }}">
+                <section class="card shadow-sm border-0 h-100 dashboard-section-card">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h2 class="h5 mb-0">{{ section.label }}</h2>
+                        <span class="badge text-bg-{{ section.badge }}" data-section-count>{{ section.orders|length }}</span>
+                    </div>
+                    <div class="card-body" data-section-body>
+                        {% if section.orders %}
+                            {% for order in section.orders %}
+                                {% include 'orders/partials/order_card.html' with order=order %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small mb-0" data-section-empty>{% trans "No orders for this section." %}</p>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'orders/js/dashboard.js' %}"></script>
+{% endblock %}

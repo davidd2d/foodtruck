@@ -17,7 +17,7 @@ class PaymentAPITests(JWTAPITestCase):
         self.other_user = UserFactory()
         self.client = APIClient()
 
-    def _prepare_order_with_items(self, user, status='submitted'):
+    def _prepare_order_with_items(self, user, status='pending'):
         order = OrderFactory(user=user, status='draft')
         menu = MenuFactory(food_truck=order.food_truck)
         category = CategoryFactory(menu=menu)
@@ -36,7 +36,7 @@ class PaymentAPITests(JWTAPITestCase):
         self.assertEqual(Decimal(response.data['amount']), order.total_price)
         self.assertEqual(response.data['status'], 'pending')
 
-    def test_create_payment_requires_submitted_order(self):
+    def test_create_payment_requires_pending_order(self):
         order = OrderFactory(user=self.user, status='draft')
         self.authenticate_user(self.user)
 
@@ -67,7 +67,7 @@ class PaymentAPITests(JWTAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_capture_payment_marks_order_paid(self):
+    def test_capture_payment_keeps_order_in_operator_flow(self):
         order = self._prepare_order_with_items(self.user)
         self.authenticate_user(self.user)
         payment = PaymentService.create_payment(order)
@@ -78,7 +78,7 @@ class PaymentAPITests(JWTAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], 'paid')
         order.refresh_from_db()
-        self.assertEqual(order.status, 'paid')
+        self.assertEqual(order.status, 'pending')
 
     def test_capture_requires_authorized_payment(self):
         order = self._prepare_order_with_items(self.user)
@@ -115,6 +115,6 @@ class PaymentAPITests(JWTAPITestCase):
         self.assertEqual(captured.status_code, status.HTTP_200_OK)
 
         order.refresh_from_db()
-        self.assertEqual(order.status, 'paid')
+        self.assertEqual(order.status, 'pending')
         payment = Payment.objects.get(id=payment_id)
         self.assertEqual(payment.status, 'paid')

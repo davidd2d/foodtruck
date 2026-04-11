@@ -154,7 +154,7 @@ class OrderServiceTests(TestCase):
         OrderService.submit_order(order)
 
         order.refresh_from_db()
-        self.assertEqual(order.status, 'submitted')
+        self.assertEqual(order.status, 'pending')
         self.assertIsNotNone(order.submitted_at)
 
     def test_submit_order_rolls_back_when_slot_full(self):
@@ -171,6 +171,26 @@ class OrderServiceTests(TestCase):
 
         second.refresh_from_db()
         self.assertEqual(second.status, 'draft')
+
+    def test_update_status_applies_valid_transition(self):
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.slot)
+        order.add_item(self.item, quantity=1)
+        order.submit()
+
+        updated = OrderService.update_status(order, 'confirmed')
+
+        self.assertEqual(updated.status, 'confirmed')
+
+    def test_get_dashboard_orders_excludes_drafts(self):
+        draft_order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.slot, status='draft')
+        pending_order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.slot, status='draft')
+        pending_order.add_item(self.item, quantity=1)
+        pending_order.submit()
+
+        orders = list(OrderService.get_dashboard_orders(self.foodtruck, {}))
+
+        self.assertNotIn(draft_order, orders)
+        self.assertIn(pending_order, orders)
 
     def test_create_order_rejects_foodtruck_without_pro_subscription(self):
         free_truck = FoodTruckFactory(owner=self.user, name='Free Truck')

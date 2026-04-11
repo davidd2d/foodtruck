@@ -94,7 +94,7 @@ class OrderModelTests(TestCase):
         order.add_item(self.item, quantity=1)
 
         order.submit()
-        self.assertEqual(order.status, 'submitted')
+        self.assertEqual(order.status, Order.Status.PENDING)
 
         with self.assertRaises(ValidationError):
             order.submit()
@@ -142,7 +142,29 @@ class OrderModelTests(TestCase):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
         order.add_item(self.item, quantity=1)
         order.submit()
-        self.assertEqual(order.status, 'submitted')
+        self.assertEqual(order.status, Order.Status.PENDING)
+
+    def test_transition_sequence_follows_operator_lifecycle(self):
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(self.item, quantity=1)
+        order.submit()
+
+        order.transition_to(Order.Status.CONFIRMED)
+        order.transition_to(Order.Status.PREPARING)
+        order.transition_to(Order.Status.READY)
+        order.transition_to(Order.Status.COMPLETED)
+
+        self.assertEqual(order.status, Order.Status.COMPLETED)
+
+    def test_cancel_is_only_allowed_from_pending_or_confirmed(self):
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+        order.add_item(self.item, quantity=1)
+        order.submit()
+        order.transition_to(Order.Status.CONFIRMED)
+        order.transition_to(Order.Status.PREPARING)
+
+        with self.assertRaises(ValidationError):
+            order.transition_to(Order.Status.CANCELLED)
 
     def test_submit_order_fails_when_slot_full(self):
         schedule = ServiceSchedule.objects.create(

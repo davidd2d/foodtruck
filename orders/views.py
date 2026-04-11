@@ -7,11 +7,13 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import TemplateView
 
 from foodtrucks.models import FoodTruck
 from .forms import LocationForm
-from .models import Location
+from .models import Location, Order
 from menu.services.menu_service import MenuService
+from orders.services.order_service import OrderService
 
 DAY_NAMES = [
     (_lazy("Monday"), 0),
@@ -87,6 +89,42 @@ class FoodTruckOwnerMixin(LoginRequiredMixin):
 
     def get_menu_categories(self):
         return _load_menu_categories(self.foodtruck)
+
+
+class OrderDashboardView(FoodTruckOwnerMixin, TemplateView):
+    """Render the owner order dashboard shell with an initial server-side snapshot."""
+
+    template_name = 'orders/dashboard.html'
+
+    SECTION_CONFIG = (
+        (Order.Status.PENDING, _lazy('Pending'), 'warning'),
+        (Order.Status.CONFIRMED, _lazy('Confirmed'), 'primary'),
+        (Order.Status.PREPARING, _lazy('Preparing'), 'info'),
+        (Order.Status.READY, _lazy('Ready'), 'success'),
+        (Order.Status.COMPLETED, _lazy('Completed'), 'secondary'),
+    )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        orders = list(OrderService.get_dashboard_orders(self.foodtruck, {}))
+        grouped_orders = {status: [] for status, _, _ in self.SECTION_CONFIG}
+        for order in orders:
+            grouped_orders.setdefault(order.status, []).append(order)
+
+        context.update({
+            'foodtruck': self.foodtruck,
+            'categories': self.get_menu_categories(),
+            'dashboard_sections': [
+                {
+                    'key': status,
+                    'label': label,
+                    'badge': badge,
+                    'orders': grouped_orders.get(status, []),
+                }
+                for status, label, badge in self.SECTION_CONFIG
+            ],
+        })
+        return context
 
 
 class LocationListView(FoodTruckOwnerMixin, ListView):

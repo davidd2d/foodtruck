@@ -1,0 +1,33 @@
+.dashboard-section-card {
+    min-height: 220px;
+}
+
+.dashboard-order-card {
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.dashboard-order-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-order-card-urgent {
+    box-shadow: inset 4px 0 0 #dc3545;
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.06), rgba(255, 255, 255, 0));
+}
+
+.dashboard-order-lines {
+    list-style: none;
+    padding-left: 0;
+}
+
+#dashboard-status-filter {
+    min-width: 220px;
+}
+
+@media (max-width: 767.98px) {
+    #dashboard-status-filter,
+    #dashboard-refresh-button {
+        width: 100%;
+    }
+}

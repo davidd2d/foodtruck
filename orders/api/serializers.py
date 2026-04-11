@@ -222,6 +222,52 @@ class OrderSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'customer', 'status', 'total_price', 'created_at']
 
 
+class OrderDashboardItemSerializer(serializers.ModelSerializer):
+    """Compact but complete serializer for order items displayed in the operator dashboard."""
+
+    item_name = serializers.CharField(source='product_name', read_only=True)
+    line_type = serializers.CharField(read_only=True)
+    selected_options = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderItem
+        fields = ['item_name', 'line_type', 'quantity', 'unit_price', 'total_price', 'selected_options']
+
+    def get_selected_options(self, obj):
+        return [
+            {
+                'name': selected_option.option.name,
+                'price_modifier': selected_option.price_modifier,
+            }
+            for selected_option in obj.selected_options.all()
+        ]
+
+
+class OrderDashboardSerializer(serializers.ModelSerializer):
+    """Compact serializer for dashboard polling responses."""
+
+    pickup_time = serializers.DateTimeField(source='pickup_slot.start_time', read_only=True)
+    items = OrderDashboardItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = ['id', 'status', 'pickup_time', 'total_price', 'items']
+
+
+class OrderStatusUpdateSerializer(serializers.Serializer):
+    """Validate operator-facing order status updates."""
+
+    status = serializers.ChoiceField(
+        choices=[
+            Order.Status.CONFIRMED,
+            Order.Status.PREPARING,
+            Order.Status.READY,
+            Order.Status.COMPLETED,
+            Order.Status.CANCELLED,
+        ]
+    )
+
+
 class OrderCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating orders."""
     class Meta:

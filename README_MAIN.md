@@ -139,6 +139,19 @@ A SaaS platform for food trucks allowing:
 
 ---
 
+## 1️⃣1️⃣ Order Dashboard
+
+- **Owner route:** `/orders/foodtruck/<slug>/dashboard/` exposes the operator kitchen board for the food truck owner.
+- **Owner APIs:** `/orders/api/dashboard/` returns lightweight DRF JSON for polling, and `/orders/api/<order_id>/status/` applies owner-only status transitions.
+- **Order lifecycle:** customer checkout still creates a `draft`, submission moves the order to `pending`, then the owner workflow becomes `confirmed -> preparing -> ready -> completed`, with `cancelled` only allowed from `pending` or `confirmed`.
+- **Business rules:** transition validation lives in `Order.transition_to()` and `OrderService.update_status()`; views stay thin and only handle auth, validation, and serialization.
+- **Payments:** payment state remains on `payments.Payment`; capturing payment no longer forces an operator status change on the order.
+- **Performance:** dashboard queries use optimized queryset helpers and lightweight serializers to support AJAX polling every 10 seconds.
+- **Logging:** rejected transitions and dashboard failures are logged with structured context (`order_id`, owner, target status).
+- **Tests:** backend coverage includes transition rules, dashboard API filtering/permissions, and payment compatibility with the new lifecycle.
+
+---
+
 ## 9️⃣ AI Menu Intelligence
 
 **Phase 1: MVP Foundation (Rules-Based)**

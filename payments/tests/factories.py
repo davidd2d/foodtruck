@@ -17,7 +17,7 @@ def UserFactory(email=None, password='password123'):
     )
 
 
-def OrderFactory(user=None, food_truck=None, pickup_slot=None, status='submitted', total_price=Decimal('25.50')):
+def OrderFactory(user=None, food_truck=None, pickup_slot=None, status='pending', total_price=Decimal('25.50')):
     user = user or UserFactory()
     food_truck = food_truck or FoodTruckFactory(owner=user)
 

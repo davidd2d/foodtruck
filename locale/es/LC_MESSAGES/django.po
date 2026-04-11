@@ -251,6 +251,60 @@ msgstr "Crear una cuenta"
 msgid "Already have an account? Log in."
 msgstr "¿Ya tienes una cuenta? Inicia sesión."
 
+msgid "Order dashboard"
+msgstr "Panel de pedidos"
+
+msgid "No orders for this section."
+msgstr "No hay pedidos en esta sección."
+
+msgid "Refreshing orders..."
+msgstr "Actualizando pedidos..."
+
+msgid "Unable to load orders right now."
+msgstr "No se pueden cargar los pedidos en este momento."
+
+msgid "Unable to update this order."
+msgstr "No se puede actualizar este pedido."
+
+msgid "Confirm order"
+msgstr "Confirmar pedido"
+
+msgid "Cancel order"
+msgstr "Cancelar pedido"
+
+msgid "Start preparing"
+msgstr "Empezar a preparar"
+
+msgid "Mark as ready"
+msgstr "Marcar como listo"
+
+msgid "Complete"
+msgstr "Completar"
+
+msgid "Urgent pickup"
+msgstr "Recogida urgente"
+
+msgid "Monitor incoming orders and move them through the kitchen workflow."
+msgstr "Supervisa los pedidos entrantes y hazlos avanzar por el flujo de cocina."
+
+msgid "Filter by status"
+msgstr "Filtrar por estado"
+
+msgid "All statuses"
+msgstr "Todos los estados"
+
+msgid "Confirmed"
+msgstr "Confirmado"
+
+msgid "Preparing"
+msgstr "Preparando"
+
+msgid "Ready"
+msgstr "Listo"
+
+msgid "Cancelled"
+msgstr "Cancelado"
+
 #: accounts/templates/core/basic.html:6
 #, fuzzy
 #| msgid "Food Truck"
