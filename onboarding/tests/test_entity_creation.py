@@ -23,6 +23,7 @@ class EntityCreationTests(OnboardingTestFixtures):
 
         # Check FoodTruck created
         foodtruck = FoodTruck.objects.get(name="Test Food Truck")
+        self.assertEqual(foodtruck.default_language, 'en')
         self.assertEqual(foodtruck.description, "A delicious food truck")
         self.assertEqual(foodtruck.primary_color, "#FF6B35")
         self.assertEqual(foodtruck.secondary_color, "#F7931E")
@@ -62,6 +63,7 @@ class EntityCreationTests(OnboardingTestFixtures):
 
         # Should still create FoodTruck with available data
         foodtruck = FoodTruck.objects.get(name="Partial Truck")
+        self.assertEqual(foodtruck.default_language, 'en')
         self.assertEqual(foodtruck.description, "")  # Default empty
 
         # Should create empty menu
@@ -138,6 +140,31 @@ class EntityCreationTests(OnboardingTestFixtures):
         self.assertEqual(float(item1.base_price), 10.50)
         self.assertEqual(float(item2.base_price), 15.00)
         self.assertEqual(float(item3.base_price), 20.00)
+
+    def test_create_foodtruck_from_import_uses_detected_language(self):
+        language_import = OnboardingImport.objects.create(
+            user=self.user,
+            raw_text="French content",
+            status='completed',
+            parsed_data={
+                'foodtruck': {
+                    'language_code': 'fr',
+                    'name': 'Camion Test',
+                    'description': 'Cuisine de rue',
+                },
+                'menu': [],
+                'branding': {},
+            }
+        )
+
+        service = AIOnboardingService()
+        service.create_foodtruck_from_import(language_import)
+
+        foodtruck = FoodTruck.objects.get(name='Camion Test')
+        menu = Menu.objects.get(food_truck=foodtruck)
+
+        self.assertEqual(foodtruck.default_language, 'fr')
+        self.assertEqual(menu.name, 'Camion Test Carte')
 
 
 class ResilienceTests(OnboardingTestFixtures):

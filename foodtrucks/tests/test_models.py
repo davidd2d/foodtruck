@@ -27,6 +27,24 @@ class FoodTruckModelTests(TestCase):
 
         self.assertEqual(foodtruck.get_absolute_url(), f'/foodtrucks/{foodtruck.slug}/')
 
+    def test_slug_is_regenerated_when_name_changes(self):
+        foodtruck = FoodTruckFactory(name='Barn Burger')
+
+        foodtruck.name = 'Golden Taco'
+        foodtruck.save()
+
+        self.assertEqual(foodtruck.slug, 'golden-taco')
+
+    def test_slug_regeneration_keeps_uniqueness_when_name_changes(self):
+        FoodTruckFactory(name='Golden Taco')
+        foodtruck = FoodTruckFactory(name='Barn Burger')
+
+        foodtruck.name = 'Golden Taco'
+        foodtruck.save()
+
+        self.assertTrue(foodtruck.slug.startswith('golden-taco'))
+        self.assertNotEqual(foodtruck.slug, 'golden-taco')
+
     def test_has_active_subscription_checks_plan_and_status(self):
         foodtruck = FoodTruckFactory()
 

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
 from onboarding.models import OnboardingImport
@@ -103,6 +104,9 @@ class GenerateFoodtruckView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         service = AIOnboardingService()
-        result = service.generate_foodtruck(serializer.validated_data)
+        result = service.generate_foodtruck(
+            serializer.validated_data['concept'],
+            language_code=serializer.validated_data.get('language_code'),
+        )
 
         return Response(result, status=status.HTTP_200_OK)

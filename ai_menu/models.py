@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -93,6 +94,12 @@ class AIRecommendation(models.Model):
     )
 
     # Data
+    language_code = models.CharField(
+        max_length=10,
+        choices=settings.LANGUAGES,
+        default=settings.LANGUAGE_CODE,
+        help_text=_("Language used to generate this recommendation")
+    )
     payload = models.JSONField(
         default=dict,
         blank=True,

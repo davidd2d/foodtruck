@@ -168,6 +168,12 @@ class FoodTruck(models.Model):
         related_name='foodtrucks',
         help_text=_("The user who owns this food truck")
     )
+    default_language = models.CharField(
+        max_length=10,
+        choices=settings.LANGUAGES,
+        default=settings.LANGUAGE_CODE,
+        help_text=_("Primary content language for this food truck and its menu")
+    )
     name = models.CharField(max_length=200, help_text=_("Name of the food truck"))
     description = models.TextField(blank=True, help_text=_("Description of the food truck"))
     is_active = models.BooleanField(default=True, help_text=_("Whether the food truck is active"))
@@ -244,6 +250,20 @@ class FoodTruck(models.Model):
     def __str__(self):
         return self.name
 
+    def get_content_language(self):
+        """Return the primary content language for this food truck."""
+        return self.default_language or settings.LANGUAGE_CODE
+
+    def get_default_menu_name(self):
+        """Return a default menu name in the food truck content language."""
+        menu_labels = {
+            'en': 'Menu',
+            'fr': 'Carte',
+            'es': 'Carta',
+        }
+        menu_label = menu_labels.get(self.get_content_language(), 'Menu')
+        return f"{self.name} {menu_label}"
+
     def get_absolute_url(self):
         """
         Return the canonical URL for this food truck.
@@ -261,9 +281,14 @@ class FoodTruck(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Automatically generate a unique slug on create.
+        Automatically generate a unique slug on create and when the name changes.
         """
-        if not self.slug:
+        should_regenerate_slug = not self.slug
+        if self.pk and not should_regenerate_slug:
+            previous_name = FoodTruck.objects.filter(pk=self.pk).values_list('name', flat=True).first()
+            should_regenerate_slug = previous_name is not None and previous_name != self.name
+
+        if should_regenerate_slug:
             self.slug = self._build_unique_slug()
         super().save(*args, **kwargs)
 

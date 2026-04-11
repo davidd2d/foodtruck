@@ -1,0 +1,46 @@
+{% load i18n %}
+
+<div class="modal fade" id="itemOrderModal" tabindex="-1" aria-labelledby="itemOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <form class="modal-content" id="item-order-form">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemOrderModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body">
+                <div id="item-order-error" class="alert alert-danger d-none" role="alert"></div>
+                <p id="item-order-description" class="text-muted small d-none"></p>
+                <div id="item-order-options"></div>
+            </div>
+            <div class="modal-footer justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="form-label mb-0" for="item-order-quantity">{% trans 'Quantity' %}</label>
+                    <input id="item-order-quantity" type="number" min="1" value="1" class="form-control" style="width: 88px;">
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
+                    <button type="submit" class="btn btn-primary" id="item-order-submit">{% trans 'Add item to cart' %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="authRequiredModal" tabindex="-1" aria-labelledby="authRequiredModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authRequiredModalLabel">{% trans 'Sign in required' %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">{% trans 'Log in or create an account to add items to your cart.' %}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans 'Maybe later' %}</button>
+                <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary" id="auth-required-register">{% trans 'Create account' %}</a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-primary" id="auth-required-login">{% trans 'Log in' %}</a>
+            </div>
+        </div>
+    </div>
+</div>

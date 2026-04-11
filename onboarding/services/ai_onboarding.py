@@ -22,6 +22,12 @@ logger = logging.getLogger(__name__)
 class AIOnboardingService:
     """Service for AI-powered onboarding data processing and entity creation."""
 
+    LANGUAGE_NAMES = {
+        'en': 'English',
+        'fr': 'French',
+        'es': 'Spanish',
+    }
+
     COLOR_NAME_TO_HEX = {
         'red': '#FF0000',
         'dark red': '#8B0000',
@@ -48,6 +54,17 @@ class AIOnboardingService:
 
     def __init__(self):
         self.openai_service = OpenAIService()
+
+    def _normalize_language_code(self, language_code: Optional[str]) -> str:
+        """Normalize a language code to the configured choices."""
+        valid_codes = {code for code, _ in settings.LANGUAGES}
+        if language_code in valid_codes:
+            return language_code
+        return settings.LANGUAGE_CODE
+
+    def _get_language_name(self, language_code: str) -> str:
+        """Return a display name for prompt instructions."""
+        return self.LANGUAGE_NAMES.get(language_code, self.LANGUAGE_NAMES[settings.LANGUAGE_CODE])
 
     def process_import(self, import_id: int) -> Dict[str, Any]:
         """
@@ -575,6 +592,7 @@ class AIOnboardingService:
                 foodtruck_data = data.get('foodtruck', {})
                 foodtruck = FoodTruck.objects.create(
                     owner=import_instance.user,
+                    default_language=self._normalize_language_code(foodtruck_data.get('language_code')),
                     name=foodtruck_data.get('name', 'My Food Truck'),
                     description=foodtruck_data.get('description', ''),
                     latitude=foodtruck_data.get('latitude', 0.0),
@@ -595,7 +613,7 @@ class AIOnboardingService:
                 # Create Menu
                 menu = Menu.objects.create(
                     food_truck=foodtruck,
-                    name=f"{foodtruck.name} Menu"
+                    name=foodtruck.get_default_menu_name()
                 )
 
                 # Create Categories and Items
@@ -664,6 +682,7 @@ class AIOnboardingService:
         }
         return {
             "foodtruck": {
+                "language_code": settings.LANGUAGE_CODE,
                 "name": "",
                 "description": "",
                 "cuisine_type": "",
@@ -684,6 +703,7 @@ IMPORTANT RULES:
 - Do NOT hallucinate or add information not in the text
 - If data is missing, use empty strings or empty arrays
 - Be conservative - only extract what's clearly present
+- Detect the dominant language of the business content and return it as one of: en, fr, es
 
 Input text:
 {text}
@@ -691,6 +711,7 @@ Input text:
 Return JSON in this exact format:
 {{
   "foodtruck": {{
+        "language_code": "en",
     "name": "",
     "description": "",
     "cuisine_type": "",
@@ -733,10 +754,14 @@ Rules:
 - Group items by category if visible
 - Extract colors if dominant colors are visible
 - Detect currency (€,$,£)
+- Detect the dominant language of the menu and return it as one of: en, fr, es
 - Return ONLY valid JSON
 
 Return JSON in this exact format:
 {
+    "foodtruck": {
+        "language_code": "en"
+    },
   "menu": [
     {
       "category": "",
@@ -776,7 +801,7 @@ Return:
 }
 """
 
-    def generate_foodtruck(self, concept_prompt: str) -> Dict[str, Any]:
+    def generate_foodtruck(self, concept_prompt: str, language_code: Optional[str] = None) -> Dict[str, Any]:
         """
         Generate a complete foodtruck concept from a user prompt.
 
@@ -789,7 +814,8 @@ Return:
         if not concept_prompt or not concept_prompt.strip():
             raise ValidationError("Concept prompt cannot be empty")
 
-        prompt = self._build_foodtruck_generation_prompt(concept_prompt.strip())
+        normalized_language = self._normalize_language_code(language_code)
+        prompt = self._build_foodtruck_generation_prompt(concept_prompt.strip(), normalized_language)
 
         try:
             response = self.openai_service.generate(
@@ -812,24 +838,31 @@ Return:
             # Validate the response structure
             if not self._validate_generated_data(data):
                 logger.warning("Generated data failed validation, using fallback")
-                return self._get_fallback_foodtruck(concept_prompt)
+                return self._get_fallback_foodtruck(concept_prompt, normalized_language)
+
+            data.setdefault('foodtruck', {})['language_code'] = normalized_language
 
             return data
 
         except (json.JSONDecodeError, ValueError) as e:
             logger.error(f"Failed to parse OpenAI response for foodtruck generation: {e}")
             logger.error(f"Raw response was: {response}")
-            return self._get_fallback_foodtruck(concept_prompt)
+            return self._get_fallback_foodtruck(concept_prompt, normalized_language)
         except Exception as e:
             logger.error(f"Error generating foodtruck: {e}")
-            return self._get_fallback_foodtruck(concept_prompt)
+            return self._get_fallback_foodtruck(concept_prompt, normalized_language)
 
-    def _build_foodtruck_generation_prompt(self, concept: str) -> str:
+    def _build_foodtruck_generation_prompt(self, concept: str, language_code: str) -> str:
         """Build the OpenAI prompt for foodtruck generation."""
+        language_name = self._get_language_name(language_code)
         return f"""
 You are a creative food truck business consultant. Generate a complete food truck concept based on the user's idea.
 
 USER CONCEPT: {concept}
+
+TARGET LANGUAGE:
+- Write all food truck, category and item content in {language_name}
+- Return foodtruck.language_code as \"{language_code}\"
 
 Create a compelling food truck concept with:
 1. A catchy, memorable name
@@ -849,6 +882,7 @@ IMPORTANT RULES:
 Return JSON in this exact format:
 {{
   "foodtruck": {{
+        "language_code": "{language_code}",
     "name": "Catchy Food Truck Name",
     "description": "Engaging 2-3 sentence description",
     "cuisine_type": "Primary cuisine style",
@@ -906,22 +940,54 @@ Return JSON in this exact format:
         except Exception:
             return False
 
-    def _get_fallback_foodtruck(self, concept: str) -> Dict[str, Any]:
+    def _get_fallback_foodtruck(self, concept: str, language_code: Optional[str] = None) -> Dict[str, Any]:
         """Return a basic fallback foodtruck structure when generation fails."""
+        normalized_language = self._normalize_language_code(language_code)
+        fallback_copy = {
+            'en': {
+                'name': 'My Food Truck',
+                'description': f"A delicious food truck serving {concept.lower() if concept else 'great food'}.",
+                'cuisine_type': 'American',
+                'preferences': ['Vegetarian'],
+                'category': 'Main Dishes',
+                'item_name': 'Signature Dish',
+                'item_description': 'Our most popular item',
+            },
+            'fr': {
+                'name': 'Mon Food Truck',
+                'description': f"Un food truck gourmand qui propose {concept.lower() if concept else 'une cuisine savoureuse'}.",
+                'cuisine_type': 'Americaine',
+                'preferences': ['Vegetarian'],
+                'category': 'Plats principaux',
+                'item_name': 'Plat signature',
+                'item_description': 'Notre plat le plus populaire',
+            },
+            'es': {
+                'name': 'Mi Food Truck',
+                'description': f"Un food truck delicioso que sirve {concept.lower() if concept else 'comida sabrosa'}.",
+                'cuisine_type': 'Americana',
+                'preferences': ['Vegetarian'],
+                'category': 'Platos principales',
+                'item_name': 'Plato estrella',
+                'item_description': 'Nuestro plato mas popular',
+            },
+        }
+        localized = fallback_copy.get(normalized_language, fallback_copy['en'])
         return {
             "foodtruck": {
-                "name": "My Food Truck",
-                "description": f"A delicious food truck serving {concept.lower() if concept else 'great food'}.",
-                "cuisine_type": "American",
-                "preferences": ["Vegetarian"]
+                "language_code": normalized_language,
+                "name": localized['name'],
+                "description": localized['description'],
+                "cuisine_type": localized['cuisine_type'],
+                "preferences": localized['preferences']
             },
             "menu": [
                 {
-                    "category": "Main Dishes",
+                    "category": localized['category'],
                     "items": [
                         {
-                            "name": "Signature Dish",
-                            "description": "Our most popular item",
+                            "name": localized['item_name'],
+                            "description": localized['item_description'],
                             "price": 12.99,
                             "options": []
                         }

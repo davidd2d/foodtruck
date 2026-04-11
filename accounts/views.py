@@ -1,12 +1,13 @@
 # apps/accounts/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth import logout
+from foodtrucks.models import FoodTruck
 from .models import User
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, OwnerAccountProfileForm, OwnerFoodTruckProfileForm
 from .utils import send_confirmation_email, verify_email_confirmation_token
 
 def register(request):
@@ -55,5 +56,54 @@ def confirm_email(request, token):
 
 
 @login_required
-def profile(request):
-    return render(request, "accounts/profile.html")
+def profile_redirect(request):
+    foodtruck = request.user.foodtrucks.order_by('created_at').first()
+    if foodtruck is None:
+        messages.error(request, _("No managed food truck found for your account."))
+        return redirect('foodtrucks:foodtruck-list')
+    return redirect('accounts:profile', slug=foodtruck.slug)
+
+
+@login_required
+def profile(request, slug):
+    foodtruck = get_object_or_404(FoodTruck, slug=slug, owner=request.user)
+
+    account_form = OwnerAccountProfileForm(instance=request.user)
+    foodtruck_form = OwnerFoodTruckProfileForm(instance=foodtruck)
+
+    if request.method == "POST":
+        if 'save-foodtruck' in request.POST:
+            foodtruck_form = OwnerFoodTruckProfileForm(request.POST, request.FILES, instance=foodtruck)
+            if foodtruck_form.is_valid():
+                foodtruck_form.save()
+                messages.success(request, _("Your food truck has been updated."))
+                return redirect('accounts:profile', slug=foodtruck.slug)
+        else:
+            previous_email = request.user.email
+            account_form = OwnerAccountProfileForm(request.POST, instance=request.user)
+            if account_form.is_valid():
+                account = account_form.save(commit=False)
+                account.username = account.email
+                email_changed = account.email != previous_email
+
+                if email_changed:
+                    account.email_verified = False
+
+                account.save()
+
+                if email_changed:
+                    send_confirmation_email(account, request)
+                    messages.success(request, _("Your account has been updated. Please confirm your new email address."))
+                else:
+                    messages.success(request, _("Your account has been updated."))
+                return redirect('accounts:profile', slug=foodtruck.slug)
+
+    return render(
+        request,
+        "accounts/profile.html",
+        {
+            "account_form": account_form,
+            "foodtruck_form": foodtruck_form,
+            "foodtruck": foodtruck,
+        },
+    )

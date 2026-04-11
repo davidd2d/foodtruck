@@ -1,40 +1,53 @@
 {% extends "core/basic.html" %}
 {% load static i18n %}
 {% block title %}{% trans "Login" %}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/forms.css' %}">
+{% endblock %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}">
-
-<div class="login-container">
-  <h2>{% trans "Login" %}</h2>
-  <h1>{% trans "Access your account" %}</h1>
-  <form method="post">
-    {% csrf_token %}
-    {% if redirect_field_value %}
-      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
-    {% endif %}
-    {% if form.non_field_errors %}
-      <div class="alert alert-danger small">
-        {{ form.non_field_errors }}
+<div class="account-shell account-shell-auth">
+  <div class="account-panel" style="max-width: 490px; margin: 0 auto;">
+    <section class="account-card account-card-narrow">
+      <div class="account-card-header">
+        <div class="account-kicker">{% trans "Login" %}</div>
+        <h1 class="account-title">{% trans "Access your account" %}</h1>
       </div>
-    {% endif %}
-    <label for="id_username">{% trans "Email" %}</label>
-    <input type="email" name="username" id="id_username" required value="{{ form.username.value|default:'' }}">
-    {% if form.username.errors %}
-      <small class="text-danger">{{ form.username.errors|first }}</small>
-    {% endif %}
-
-    <label for="id_password">{% trans "Password" %}</label>
-    <input type="password" name="password" id="id_password" required>
-    {% if form.password.errors %}
-      <small class="text-danger">{{ form.password.errors|first }}</small>
-    {% endif %}
-
-    <button type="submit">{% trans "Sign in" %}</button>
-
-    <div class="password-reset">
-      <span>{% trans "Forgot your password?" %}</span>
-      <a href="{% url 'accounts:password_reset' %}">{% trans "Click here to reset it." %}</a>
-    </div>
-  </form>
+      <div class="account-card-body">
+        <form method="post" class="account-form" novalidate>
+          {% csrf_token %}
+          {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+          {% endif %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger small">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+          <div class="account-field">
+            <label for="id_username" class="account-label">{% trans "Email" %}</label>
+            <input type="email" name="username" id="id_username" required value="{{ form.username.value|default:'' }}">
+            {% if form.username.errors %}
+              <small class="text-danger">{{ form.username.errors|first }}</small>
+            {% endif %}
+          </div>
+          <div class="account-field">
+            <label for="id_password" class="account-label">{% trans "Password" %}</label>
+            <input type="password" name="password" id="id_password" required>
+            {% if form.password.errors %}
+              <small class="text-danger">{{ form.password.errors|first }}</small>
+            {% endif %}
+          </div>
+          <div class="account-actions">
+            <button type="submit">{% trans "Sign in" %}</button>
+            <a class="account-link" href="{% url 'accounts:register' %}">{% trans "Create an account" %}</a>
+          </div>
+          <div class="account-field">
+            <small class="account-muted">{% trans "Forgot your password?" %}</small>
+            <a class="account-link" href="{% url 'accounts:password_reset' %}">{% trans "Click here to reset it." %}</a>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
 </div>
 {% endblock %}

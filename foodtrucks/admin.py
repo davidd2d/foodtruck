@@ -5,9 +5,9 @@ from .models import FoodTruck, Plan, Subscription
 
 @admin.register(FoodTruck)
 class FoodTruckAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'owner', 'is_active', 'get_plan')
+    list_display = ('name', 'owner', 'default_language', 'is_active', 'get_plan')
     search_fields = ('name',)
-    list_filter = ('is_active',)
+    list_filter = ('default_language', 'is_active',)
     autocomplete_fields = ('owner', 'supported_preferences')
 
     def get_queryset(self, request):

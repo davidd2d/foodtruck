@@ -66,12 +66,13 @@ class FoodTruckViewSet(viewsets.ReadOnlyModelViewSet):
             # Create foodtruck
             foodtruck = FoodTruck.objects.create(
                 owner=request.user,
+                default_language=serializer.validated_data['default_language'],
                 name=serializer.validated_data['name'],
                 description=serializer.validated_data['description']
             )
 
             # Create menu
-            menu = Menu.objects.create(food_truck=foodtruck, name=f"{foodtruck.name} Menu")
+            menu = Menu.objects.create(food_truck=foodtruck, name=foodtruck.get_default_menu_name())
 
             for category_data in serializer.validated_data['menu']:
                 category = Category.objects.create(menu=menu, name=category_data['category'])

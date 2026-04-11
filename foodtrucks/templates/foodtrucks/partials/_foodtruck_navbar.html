@@ -22,7 +22,7 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="foodtruck-user-menu">
                         {% if user.is_authenticated %}
-                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">{% trans "Profile" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' slug=foodtruck.slug %}">{% trans "Profile" %}</a></li>
                             <li><a class="dropdown-item" href="{% url 'orders:history' %}">{% trans "Orders" %}</a></li>
                             {% if user.is_staff %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>

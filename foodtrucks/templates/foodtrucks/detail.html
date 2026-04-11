@@ -16,6 +16,8 @@
     data-foodtruck-slug="{{ foodtruck.slug }}"
     data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
     data-ordering-enabled="{{ foodtruck.can_accept_orders|yesno:'true,false' }}"
+    data-login-url="{% url 'accounts:login' %}"
+    data-register-url="{% url 'accounts:register' %}"
     data-loading-menu-message="{% trans 'Loading menu...' %}"
     data-empty-menu-message="{% trans 'No menu items are available right now.' %}"
     data-empty-menu-hint="{% trans 'Please check back later.' %}"
@@ -38,7 +40,7 @@
     data-quantity-short-label="{% trans 'Qty' %}"
     data-each-label="{% trans 'each' %}"
     data-remove-label="{% trans 'Remove' %}"
-    data-cart-empty-message="{% trans 'Your cart is empty.' %}"
+    data-cart-empty-message="{% if foodtruck.can_accept_orders %}{% trans 'Your cart is empty.' %}{% endif %}"
     data-price-to-confirm-label="{% trans 'Price to confirm' %}"
     data-add-combo-label="{% trans 'Add combo' %}"
     data-combo-badge-label="{% trans 'Combo' %}"
@@ -56,7 +58,12 @@
     data-unavailable-suffix="{% trans 'unavailable' %}"
     data-loading-slots-label="{% trans 'Loading available slots...' %}"
     data-no-slots-option-label="{% trans 'No pickup slots available.' %}"
-    data-load-slots-error-label="{% trans 'Unable to load pickup slots.' %}">
+    data-load-slots-error-label="{% trans 'Unable to load pickup slots.' %}"
+    data-customize-item-title="{% trans 'Customize {item}' %}"
+    data-add-item-to-cart-label="{% trans 'Add item to cart' %}"
+    data-no-customization-options-message="{% trans 'No customization options for this item.' %}"
+    data-select-at-least-options-message="{% trans 'Please choose at least {count} option(s) for {group}.' %}"
+    data-select-at-most-options-message="{% trans 'You can select up to {count} option(s) for {group}.' %}">
     <div class="row gy-4">
         <div class="col-lg-8">
             {% include 'foodtrucks/components/menu_panel.html' %}
@@ -76,6 +83,10 @@
         </div>
     </div>
 </div>
+
+{% if foodtruck.can_accept_orders %}
+    {% include 'foodtrucks/components/add_to_cart_modals.html' %}
+{% endif %}
 
 {% endblock %}
 

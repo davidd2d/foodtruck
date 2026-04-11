@@ -218,6 +218,7 @@ class AIOnboardingServiceTests(TestCase):
             "menu": [],
             "branding": {"primary_color": "#222222", "secondary_color": "#333333"}
         }
+
         logo_data = {
             "branding": {"primary_color": "#ABCDEF", "secondary_color": "#123456"}
         }
@@ -226,6 +227,18 @@ class AIOnboardingServiceTests(TestCase):
 
         self.assertEqual(merged['branding']['primary_color'], '#ABCDEF')
         self.assertEqual(merged['branding']['secondary_color'], '#123456')
+
+    def test_generate_foodtruck_fallback_is_localized(self):
+        fallback = self.service._get_fallback_foodtruck('tacos', language_code='es')
+
+        self.assertEqual(fallback['foodtruck']['language_code'], 'es')
+        self.assertEqual(fallback['menu'][0]['category'], 'Platos principales')
+
+    def test_generate_foodtruck_prompt_includes_target_language(self):
+        prompt = self.service._build_foodtruck_generation_prompt('burger gourmet', 'fr')
+
+        self.assertIn('Write all food truck, category and item content in French', prompt)
+        self.assertIn('"language_code": "fr"', prompt)
 
     def test_normalize_colors_maps_names_and_hex(self):
         branding = {

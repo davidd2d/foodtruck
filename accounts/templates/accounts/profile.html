@@ -1,11 +1,159 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load static i18n %}
 
-{% block title %}{% trans "Profile" %}{% endblock %}
+{% block title %}{% trans "Owner profile" %}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/forms.css' %}">
+{% endblock %}
 
 {% block content %}
+<div class="account-shell account-shell-profile">
 <div class="container py-5">
-    <h1>{% trans "Profile" %}</h1>
-    <p class="text-muted">{% trans "Update your profile or view your subscription status." %}</p>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="account-page-header">
+                <div>
+                    <div class="account-kicker">{% trans "Owner profile" %}</div>
+                    <h1 class="account-title">{% trans "Owner profile" %}</h1>
+                    <p class="account-subtitle mb-0">{% trans "Manage the owner account linked to this food truck." %}</p>
+                </div>
+                <a class="btn btn-outline-secondary" href="{{ foodtruck.get_absolute_url }}">{% trans "Back to food truck" %}</a>
+            </div>
+
+            <div class="account-section-card mb-4">
+                <div class="account-card-body">
+                    <h2 class="h5 mb-3">{% trans "Food truck" %}</h2>
+                    <dl class="account-meta mb-0">
+                        <div class="account-stat">
+                            <dt>{% trans "Name" %}</dt>
+                            <dd>{{ foodtruck.name }}</dd>
+                        </div>
+                        <div class="account-stat">
+                            <dt>Slug</dt>
+                            <dd>{{ foodtruck.slug }}</dd>
+                        </div>
+                        <div class="account-stat">
+                            <dt>{% trans "Content language" %}</dt>
+                            <dd>{{ foodtruck.get_default_language_display }}</dd>
+                        </div>
+                        <div class="account-stat">
+                            <dt>{% trans "Verified email" %}</dt>
+                            <dd>
+                            {% if request.user.email_verified %}
+                                {% trans "Yes" %}
+                            {% else %}
+                                {% trans "No" %}
+                            {% endif %}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="account-section-card mb-4">
+                <div class="account-card-body">
+                    <h2 class="h5 mb-3">{% trans "Food truck details" %}</h2>
+                    <p class="text-muted">{% trans "Update your food truck identity, branding, and primary content language." %}</p>
+                    <form method="post" enctype="multipart/form-data" novalidate class="account-form">
+                        {% csrf_token %}
+                        {% if foodtruck_form.non_field_errors %}
+                            <div class="alert alert-danger">{{ foodtruck_form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ foodtruck_form.name.id_for_label }}">{{ foodtruck_form.name.label }}</label>
+                                {{ foodtruck_form.name }}
+                                {% if foodtruck_form.name.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ foodtruck_form.default_language.id_for_label }}">{{ foodtruck_form.default_language.label }}</label>
+                                {{ foodtruck_form.default_language }}
+                                {% if foodtruck_form.default_language.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.default_language.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="{{ foodtruck_form.description.id_for_label }}">{{ foodtruck_form.description.label }}</label>
+                                {{ foodtruck_form.description }}
+                                {% if foodtruck_form.description.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label d-block" for="{{ foodtruck_form.logo.id_for_label }}">{{ foodtruck_form.logo.label }}</label>
+                                {% if foodtruck.get_logo_url %}
+                                    <div class="account-logo-preview mb-2">
+                                        <img src="{{ foodtruck.get_logo_url }}" alt="{{ foodtruck.name }} logo">
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted small mb-2">{% trans "No logo uploaded yet." %}</p>
+                                {% endif %}
+                                {{ foodtruck_form.logo }}
+                                {% if foodtruck_form.logo.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.logo.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="{{ foodtruck_form.primary_color.id_for_label }}">{{ foodtruck_form.primary_color.label }}</label>
+                                <div class="account-field-inline">
+                                    {{ foodtruck_form.primary_color }}
+                                    <span class="small text-muted">{{ foodtruck.primary_color }}</span>
+                                </div>
+                                {% if foodtruck_form.primary_color.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.primary_color.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" for="{{ foodtruck_form.secondary_color.id_for_label }}">{{ foodtruck_form.secondary_color.label }}</label>
+                                <div class="account-field-inline">
+                                    {{ foodtruck_form.secondary_color }}
+                                    <span class="small text-muted">{{ foodtruck.secondary_color }}</span>
+                                </div>
+                                {% if foodtruck_form.secondary_color.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.secondary_color.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="account-actions">
+                            <button type="submit" name="save-foodtruck" value="1" class="btn btn-primary mt-4">{% trans "Save food truck" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="account-section-card">
+                <div class="account-card-body">
+                    <h2 class="h5 mb-3">{% trans "Account details" %}</h2>
+                    <form method="post" novalidate class="account-form">
+                        {% csrf_token %}
+                        {% if account_form.non_field_errors %}
+                            <div class="alert alert-danger">{{ account_form.non_field_errors }}</div>
+                        {% endif %}
+
+                        {% for field in account_form %}
+                            {% if field.name != 'password' %}
+                                <div class="account-field">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="text-danger small mt-1">{{ field.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="account-actions">
+                            <button type="submit" name="save-account" value="1" class="btn btn-primary">{% trans "Save changes" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 {% endblock %}

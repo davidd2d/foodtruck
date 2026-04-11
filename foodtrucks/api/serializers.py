@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 from ..models import FoodTruck
 
@@ -15,6 +16,7 @@ class FoodTruckSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'slug',
+            'default_language',
             'name',
             'description',
             'logo',
@@ -36,6 +38,11 @@ class CreateWithMenuSerializer(serializers.Serializer):
     """
     name = serializers.CharField(max_length=100)
     description = serializers.CharField()
+    default_language = serializers.ChoiceField(
+        choices=settings.LANGUAGES,
+        required=False,
+        default=settings.LANGUAGE_CODE,
+    )
     menu = serializers.ListField(child=serializers.DictField())
 
     def validate_menu(self, value):

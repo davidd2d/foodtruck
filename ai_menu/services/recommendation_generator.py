@@ -9,6 +9,7 @@ import logging
 from decimal import Decimal
 from typing import Dict, Any, List, Optional
 
+from django.conf import settings
 from django.db import transaction
 from django.core.exceptions import ValidationError
 
@@ -41,6 +42,11 @@ class AIRecommendationGeneratorService:
     RECOMMENDATION_MODEL = "gpt-4o"
     MAX_TOKENS = 1500
     TIMEOUT_SECONDS = 30
+    LANGUAGE_NAMES = {
+        'en': 'English',
+        'fr': 'French',
+        'es': 'Spanish',
+    }
 
     def __init__(self):
         """Initialize service with OpenAIService client."""
@@ -191,25 +197,27 @@ class AIRecommendationGeneratorService:
         logger.info(f"Using fallback rule-based analysis for item {item.id}")
 
         try:
-            fallback_result = self.fallback_service.analyze_item(item)
+            language_code = self._get_language_code(item)
+            fallback_result = self.fallback_service.analyze_item(item, language_code=language_code)
+            fallback_reason = self._get_fallback_reason(language_code)
 
             # Convert fallback format to OpenAI format
             return {
                 'detected_category': fallback_result.get('detected_category', 'other'),
                 'free_options': [
-                    {'name': opt, 'reason': 'Rule-based suggestion'}
+                    {'name': opt, 'reason': fallback_reason}
                     for opt in fallback_result.get('free_options_suggestions', [])
                 ],
                 'paid_options': [
                     {
                         'name': opt.split(' (+')[0] if ' (+' in opt else opt,  # Remove price
                         'suggested_price': self._extract_price_from_string(opt),
-                        'reason': 'Rule-based suggestion'
+                        'reason': fallback_reason
                     }
                     for opt in fallback_result.get('paid_options_suggestions', [])
                 ],
                 'bundles': [
-                    {'name': bundle, 'items': [], 'reason': 'Rule-based suggestion'}
+                    {'name': bundle, 'items': [], 'reason': fallback_reason}
                     for bundle in fallback_result.get('bundles_suggestions', [])
                 ],
             }
@@ -247,6 +255,7 @@ class AIRecommendationGeneratorService:
                 'category_name': category.name,
                 'menu_name': menu.name,
                 'foodtruck_name': foodtruck.name,
+                'foodtruck_language': self._get_language_code(item),
                 'foodtruck_cuisine': getattr(foodtruck, 'cuisine_type', 'Mixed'),
             }
         except Exception as e:
@@ -256,6 +265,7 @@ class AIRecommendationGeneratorService:
                 'item_description': item.description or '',
                 'item_base_price': float(item.base_price),
                 'category_name': item.category.name,
+                'foodtruck_language': settings.LANGUAGE_CODE,
             }
 
     def _build_ai_prompt(self, item, context: Dict[str, Any]) -> str:
@@ -269,10 +279,17 @@ class AIRecommendationGeneratorService:
         Returns:
             Prompt string
         """
+        language_code = context.get('foodtruck_language', settings.LANGUAGE_CODE)
+        language_name = self.LANGUAGE_NAMES.get(language_code, self.LANGUAGE_NAMES['en'])
+
         return f"""
-You are an expert menu consultant helping food truck owners optimize their menus.
+    You are an expert menu consultant helping food truck owners optimize their menus.
 
 Analyze this menu item and generate actionable recommendations.
+
+    OUTPUT LANGUAGE:
+    - All customer-facing suggestion names, reasons, and bundle item labels must be written in {language_name}
+    - Keep detected_category in English and choose only from the allowed enum values
 
 ITEM DETAILS:
 - Name: {context['item_name']}
@@ -427,6 +444,7 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
             List of created AIRecommendation IDs
         """
         created_ids = []
+        language_code = self._get_language_code(item)
 
         try:
             # Create free option recommendations
@@ -434,6 +452,7 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
                 rec = AIRecommendation.objects.create(
                     item=item,
                     recommendation_type='free_option',
+                    language_code=language_code,
                     payload={
                         'name': free_opt.get('name', ''),
                         'reason': free_opt.get('reason', ''),
@@ -448,6 +467,7 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
                 rec = AIRecommendation.objects.create(
                     item=item,
                     recommendation_type='paid_option',
+                    language_code=language_code,
                     payload={
                         'name': paid_opt.get('name', ''),
                         'suggested_price': float(paid_opt.get('suggested_price', 0)),
@@ -463,6 +483,7 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
                 rec = AIRecommendation.objects.create(
                     item=item,
                     recommendation_type='bundle',
+                    language_code=language_code,
                     payload={
                         'name': bundle.get('name', ''),
                         'items': bundle.get('items', []),
@@ -478,6 +499,21 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
             raise
 
         return created_ids
+
+    def _get_language_code(self, item) -> str:
+        """Return the owning food truck content language or the project default."""
+        language_code = getattr(item.category.menu.food_truck, 'default_language', settings.LANGUAGE_CODE)
+        valid_codes = {code for code, _ in settings.LANGUAGES}
+        return language_code if language_code in valid_codes else settings.LANGUAGE_CODE
+
+    def _get_fallback_reason(self, language_code: str) -> str:
+        """Return a localized fallback reason."""
+        reasons = {
+            'en': 'Rule-based suggestion',
+            'fr': 'Suggestion basee sur des regles',
+            'es': 'Sugerencia basada en reglas',
+        }
+        return reasons.get(language_code, reasons['en'])
 
     def _extract_price_from_string(self, price_string: str) -> float:
         """

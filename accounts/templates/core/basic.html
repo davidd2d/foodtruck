@@ -3,7 +3,24 @@
 <html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% trans "Foodtruck" %}{% endblock %}</title>
+    <style>
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            width: 100%;
+        }
+
+        main {
+            width: 100%;
+            min-height: 100vh;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <main>

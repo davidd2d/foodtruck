@@ -15,7 +15,7 @@ def test_valid_user_creation_form():
     assert form.is_valid()
 
 @pytest.mark.django_db
-def test_invalid_email_domain_user_creation_form():
+def test_user_creation_form_allows_any_email_domain():
     form_data = {
         "email": "jane@gmail.com",
         "first_name": "Jane",
@@ -24,8 +24,7 @@ def test_invalid_email_domain_user_creation_form():
         "password2": "StrongPass123",
     }
     form = CustomUserCreationForm(data=form_data)
-    assert not form.is_valid()
-    assert "@intermas.com" in form.errors["email"][0]
+    assert form.is_valid()
 
 @pytest.mark.django_db
 def test_password_mismatch_user_creation_form():
@@ -39,6 +38,13 @@ def test_password_mismatch_user_creation_form():
     form = CustomUserCreationForm(data=form_data)
     assert not form.is_valid()
     assert "password2" in form.errors
+
+def test_user_creation_form_uses_only_password_and_confirmation_fields():
+    form = CustomUserCreationForm()
+
+    assert 'password' not in form.fields
+    assert 'password1' in form.fields
+    assert 'password2' in form.fields
 
 @pytest.mark.django_db
 def test_valid_user_change_form():

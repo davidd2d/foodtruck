@@ -21,11 +21,13 @@ class AIRecommendationModelTests(TestCase):
         rec = AIRecommendation.objects.create(
             item=self.item,
             recommendation_type='free_option',
+            language_code='fr',
             payload={'suggestion': 'Extra lettuce'},
             status='pending',
         )
         self.assertEqual(rec.item, self.item)
         self.assertEqual(rec.recommendation_type, 'free_option')
+        self.assertEqual(rec.language_code, 'fr')
         self.assertTrue(rec.is_pending())
 
     def test_is_pending(self):

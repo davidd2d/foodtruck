@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-10 13:23+0000\n"
+"POT-Creation-Date: 2026-04-10 16:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,29 +18,67 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: accounts/forms.py:11
+#: accounts/forms.py:12
 msgid "Vous devez confirmer votre adresse e-mail pour vous connecter."
 msgstr "Debe confirmar su dirección de correo electrónico para iniciar sesión."
 
-#: accounts/forms.py:16
+#: accounts/forms.py:17
 msgid "Ce compte est inactif."
 msgstr "Esta cuenta está inactiva."
 
-#: accounts/forms.py:26
+#: accounts/forms.py:27 accounts/forms.py:58
 msgid "Adresse e-mail"
 msgstr "Dirección de correo electrónico"
 
-#: accounts/forms.py:26
+#: accounts/forms.py:27
 msgid "Utilisez une adresse @intermas.com"
 msgstr "Utilice una dirección @intermas.com"
 
-#: accounts/forms.py:27
+#: accounts/forms.py:28
 msgid "Mot de passe"
 msgstr "Contraseña"
 
-#: accounts/forms.py:46
+#: accounts/forms.py:47
 msgid "Seuls les addresses email @intermas.com sont autorisées."
 msgstr "Solo se permiten direcciones de correo @intermas.com."
+
+#: accounts/forms.py:59
+#, fuzzy
+#| msgid "Display name"
+msgid "First name"
+msgstr "Nombre para mostrar"
+
+#: accounts/forms.py:60
+msgid "Last name"
+msgstr "Apellido"
+
+#: accounts/forms.py:77
+msgid "A user with that email already exists."
+msgstr "Ya existe un usuario con ese correo electrónico."
+
+#: accounts/forms.py:93
+msgid "Food truck name"
+msgstr "Nombre del foodtruck"
+
+#: accounts/forms.py:94
+msgid "Food truck description"
+msgstr "Descripción del foodtruck"
+
+#: accounts/forms.py:95 accounts/templates/accounts/profile.html:26
+msgid "Content language"
+msgstr "Idioma del contenido"
+
+#: accounts/forms.py:96
+msgid "Logo"
+msgstr "Logotipo"
+
+#: accounts/forms.py:97 templates/onboarding/preview.html:141
+msgid "Primary color"
+msgstr "Color principal"
+
+#: accounts/forms.py:98 templates/onboarding/preview.html:148
+msgid "Secondary color"
+msgstr "Color secundario"
 
 #: accounts/models.py:33
 msgid "Whether the email is verified"
@@ -138,14 +176,67 @@ msgid "Send"
 msgstr "Enviar"
 
 #: accounts/templates/accounts/profile.html:4
-#: accounts/templates/accounts/profile.html:8
-#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:25
-msgid "Profile"
-msgstr ""
+#: accounts/templates/accounts/profile.html:12
+msgid "Owner profile"
+msgstr "Perfil del propietario"
 
-#: accounts/templates/accounts/profile.html:9
-msgid "Update your profile or view your subscription status."
+#: accounts/templates/accounts/profile.html:13
+msgid "Manage the owner account linked to this food truck."
+msgstr "Gestiona la cuenta del propietario vinculada a este foodtruck."
+
+#: accounts/templates/accounts/profile.html:15
+msgid "Back to food truck"
+msgstr "Volver al foodtruck"
+
+#: accounts/templates/accounts/profile.html:20
+msgid "Food truck"
+msgstr "Foodtruck"
+
+#: accounts/templates/accounts/profile.html:22 ai_menu/forms.py:13
+#: templates/onboarding/ai_input.html:17
+#: templates/onboarding/partials/_preview_foodtruck.html:10
+#: templates/onboarding/preview.html:97
+msgid "Name"
+msgstr "Nombre"
+
+#: accounts/templates/accounts/profile.html:28
+msgid "Verified email"
+msgstr "Correo verificado"
+
+#: accounts/templates/accounts/profile.html:31
+msgid "Yes"
+msgstr "Sí"
+
+#: accounts/templates/accounts/profile.html:33
+msgid "No"
+msgstr "No"
+
+#: accounts/templates/accounts/profile.html:42
+msgid "Food truck details"
+msgstr "Detalles del foodtruck"
+
+#: accounts/templates/accounts/profile.html:43
+msgid ""
+"Update your food truck identity, branding, and primary content language."
 msgstr ""
+"Actualiza la identidad, la imagen de marca y el idioma principal del "
+"contenido de tu foodtruck."
+
+#: accounts/templates/accounts/profile.html:79
+msgid "No logo uploaded yet."
+msgstr "Todavía no se ha subido ningún logotipo."
+
+#: accounts/templates/accounts/profile.html:108
+msgid "Save food truck"
+msgstr "Guardar foodtruck"
+
+#: accounts/templates/accounts/profile.html:115
+msgid "Account details"
+msgstr "Detalles de la cuenta"
+
+#: accounts/templates/accounts/profile.html:134
+msgid "Save changes"
+msgstr "Guardar cambios"
 
 #: accounts/templates/accounts/register.html:4
 #: accounts/templates/accounts/register.html:49
@@ -169,7 +260,7 @@ msgstr "Camión de Comida"
 #: accounts/templates/registration/login.html:3
 #: accounts/templates/registration/login.html:8
 #: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:47
-#: templates/base.html:55
+#: templates/base.html:40
 msgid "Login"
 msgstr "Iniciar sesión"
 
@@ -201,35 +292,47 @@ msgstr "Haz clic aquí para restablecerla."
 msgid "Confirmation de votre adresse e-mail"
 msgstr "Confirmación de su dirección de correo electrónico"
 
-#: accounts/views.py:21
+#: accounts/views.py:22
 msgid "Un e-mail de confirmation vous a été envoyé."
 msgstr "Se ha enviado un correo de confirmación."
 
-#: accounts/views.py:24
+#: accounts/views.py:25
 msgid "Votre demande ne peut aboutir."
 msgstr "Su solicitud no puede procesarse."
 
-#: accounts/views.py:35
+#: accounts/views.py:36
 msgid "You have been logged out."
 msgstr "Has cerrado sesión."
 
-#: accounts/views.py:41
+#: accounts/views.py:42
 msgid "Lien de confirmation invalide ou expiré."
 msgstr "Enlace de confirmación inválido o caducado."
 
-#: accounts/views.py:47
+#: accounts/views.py:48
 msgid "Utilisateur introuvable."
 msgstr "Usuario no encontrado."
 
-#: accounts/views.py:53
+#: accounts/views.py:54
 msgid "Email confirmé avec succès."
 msgstr "Correo electrónico confirmado con éxito."
 
-#: ai_menu/forms.py:13 templates/onboarding/ai_input.html:17
-#: templates/onboarding/partials/_preview_foodtruck.html:10
-#: templates/onboarding/preview.html:97
-msgid "Name"
-msgstr "Nombre"
+#: accounts/views.py:62
+msgid "No managed food truck found for your account."
+msgstr "No se encontró ningún foodtruck gestionado para su cuenta."
+
+#: accounts/views.py:79
+msgid "Your food truck has been updated."
+msgstr "Su foodtruck ha sido actualizado."
+
+#: accounts/views.py:96
+msgid "Your account has been updated. Please confirm your new email address."
+msgstr ""
+"Su cuenta ha sido actualizada. Confirme su nueva dirección de correo "
+"electrónico."
+
+#: accounts/views.py:98
+msgid "Your account has been updated."
+msgstr "Su cuenta ha sido actualizada."
 
 #: ai_menu/forms.py:14 templates/onboarding/ai_input.html:18
 #: templates/onboarding/partials/_preview_foodtruck.html:19
@@ -259,106 +362,114 @@ msgstr "Nombre para mostrar"
 msgid "Item"
 msgstr "Artículo"
 
-#: ai_menu/forms.py:35 foodtrucks/templates/foodtrucks/detail.html:50
+#: ai_menu/forms.py:35
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:17
+#: foodtrucks/templates/foodtrucks/detail.html:52
 msgid "Quantity"
 msgstr "Cantidad"
 
-#: ai_menu/models.py:68
+#: ai_menu/models.py:69
 #, fuzzy
 #| msgid "Order Item Option"
 msgid "Free Option"
 msgstr "Opción de artículo del pedido"
 
-#: ai_menu/models.py:69
+#: ai_menu/models.py:70
 #, fuzzy
 #| msgid "Option"
 msgid "Paid Option"
 msgstr "Opción"
 
-#: ai_menu/models.py:70
+#: ai_menu/models.py:71
 msgid "Bundle"
 msgstr ""
 
-#: ai_menu/models.py:71
+#: ai_menu/models.py:72
 #, fuzzy
 #| msgid "Price range"
 msgid "Pricing"
 msgstr "Rango de precios"
 
-#: ai_menu/models.py:75 onboarding/models.py:46
+#: ai_menu/models.py:76 onboarding/models.py:46
 msgid "Pending"
 msgstr "Pendiente"
 
-#: ai_menu/models.py:76
+#: ai_menu/models.py:77
 #: templates/ai_menu/partials/recommendations_panel.html:128
 msgid "Accepted"
 msgstr "Aceptado"
 
-#: ai_menu/models.py:77
+#: ai_menu/models.py:78
 #: templates/ai_menu/partials/recommendations_panel.html:172
 msgid "Rejected"
 msgstr "Rechazado"
 
-#: ai_menu/models.py:85
+#: ai_menu/models.py:86
 #, fuzzy
 #| msgid "Unable to update this recommendation."
 msgid "The menu item this recommendation is for"
 msgstr "No se pudo actualizar esta recomendación."
 
-#: ai_menu/models.py:92
+#: ai_menu/models.py:93
 #, fuzzy
 #| msgid "Loading AI recommendations..."
 msgid "Type of recommendation"
 msgstr "Cargando recomendaciones de IA..."
 
-#: ai_menu/models.py:99
+#: ai_menu/models.py:101
+#, fuzzy
+#| msgid "Unable to update this recommendation."
+msgid "Language used to generate this recommendation"
+msgstr "No se pudo actualizar esta recomendación."
+
+#: ai_menu/models.py:106
 msgid "Structured recommendation data (varies by type)"
 msgstr ""
 
-#: ai_menu/models.py:107
+#: ai_menu/models.py:114
 #, fuzzy
 #| msgid "Current status of the subscription"
 msgid "Current status of the recommendation"
 msgstr "Estado actual de la suscripción"
 
-#: ai_menu/models.py:111
+#: ai_menu/models.py:118
 #, fuzzy
 #| msgid "When the menu was created"
 msgid "When the recommendation was created"
 msgstr "Fecha de creación del menú"
 
-#: ai_menu/models.py:112
+#: ai_menu/models.py:119
 #, fuzzy
 #| msgid "When the payment was last updated"
 msgid "When the recommendation was last updated"
 msgstr "Fecha de la última actualización del pago"
 
-#: ai_menu/models.py:117
+#: ai_menu/models.py:124
 #, fuzzy
 #| msgid "Loading AI recommendations..."
 msgid "AI Recommendation"
 msgstr "Cargando recomendaciones de IA..."
 
-#: ai_menu/models.py:118
+#: ai_menu/models.py:125
 #, fuzzy
 #| msgid "Loading AI recommendations..."
 msgid "AI Recommendations"
 msgstr "Cargando recomendaciones de IA..."
 
-#: ai_menu/models.py:137
+#: ai_menu/models.py:144
 msgid "Only pending recommendations can be accepted."
 msgstr ""
 
-#: ai_menu/models.py:144
+#: ai_menu/models.py:151
 msgid "Only pending recommendations can be rejected."
 msgstr ""
 
-#: ai_menu/models.py:151
+#: ai_menu/models.py:158
 msgid "This recommendation is already pending."
 msgstr ""
 
 #: foodtrucks/api/i18n_example_serializers.py:62
-#: foodtrucks/models/__init__.py:171
+#: foodtrucks/models/__init__.py:177
 msgid "Name of the food truck"
 msgstr "Nombre del camión de comida"
 
@@ -448,58 +559,102 @@ msgstr "Suscripciones"
 msgid "The user who owns this food truck"
 msgstr "El usuario propietario de este foodtruck"
 
-#: foodtrucks/models/__init__.py:172
+#: foodtrucks/models/__init__.py:175
+msgid "Primary content language for this food truck and its menu"
+msgstr "Idioma principal del contenido para este foodtruck y su menú"
+
+#: foodtrucks/models/__init__.py:178
 msgid "Description of the food truck"
 msgstr "Descripción del foodtruck"
 
-#: foodtrucks/models/__init__.py:173
+#: foodtrucks/models/__init__.py:179
 msgid "Whether the food truck is active"
 msgstr "Indica si el foodtruck está activo"
 
-#: foodtrucks/models/__init__.py:174
+#: foodtrucks/models/__init__.py:180
 msgid "When the food truck was created"
 msgstr "Fecha de creación del foodtruck"
 
-#: foodtrucks/models/__init__.py:181
+#: foodtrucks/models/__init__.py:187
 msgid "Logo image for the food truck"
 msgstr "Imagen del logotipo del foodtruck"
 
-#: foodtrucks/models/__init__.py:187
+#: foodtrucks/models/__init__.py:193
 msgid "Cover image for the food truck"
 msgstr "Imagen de portada del foodtruck"
 
-#: foodtrucks/models/__init__.py:192
+#: foodtrucks/models/__init__.py:198
 msgid "Primary brand color (hex code)"
 msgstr "Color principal de la marca (código hexadecimal)"
 
-#: foodtrucks/models/__init__.py:197
+#: foodtrucks/models/__init__.py:203
 msgid "Secondary brand color (hex code)"
 msgstr "Color secundario de la marca (código hexadecimal)"
 
-#: foodtrucks/models/__init__.py:204
+#: foodtrucks/models/__init__.py:210
 msgid "SEO-friendly resource slug"
 msgstr "Slug del recurso optimizado para SEO"
 
-#: foodtrucks/models/__init__.py:211
+#: foodtrucks/models/__init__.py:217
 msgid "Latitude coordinate"
 msgstr "Coordenada de latitud"
 
-#: foodtrucks/models/__init__.py:217
+#: foodtrucks/models/__init__.py:223
 msgid "Longitude coordinate"
 msgstr "Coordenada de longitud"
 
-#: foodtrucks/models/__init__.py:231
+#: foodtrucks/models/__init__.py:237
 msgid "Dietary preferences this food truck supports"
 msgstr "Preferencias alimentarias admitidas por este foodtruck"
 
-#: foodtrucks/models/__init__.py:237 test_translations.py:37
+#: foodtrucks/models/__init__.py:243 test_translations.py:37
 #: test_translations.py:46
 msgid "Food Truck"
 msgstr "Camión de Comida"
 
-#: foodtrucks/models/__init__.py:238
+#: foodtrucks/models/__init__.py:244
 msgid "Food Trucks"
 msgstr "Foodtrucks"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:8
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:34
+#, fuzzy
+#| msgid "Closed"
+msgid "Close"
+msgstr "Cerrado"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:21
+#: orders/templates/orders/locations/confirm_delete.html:17
+#: orders/templates/orders/slot_management.html:95
+#: templates/orders/working_hours/partials/modal_form.html:44
+#: templates/schedules/partials/modal_form.html:28
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:22
+#: foodtrucks/templates/foodtrucks/detail.html:63
+msgid "Add item to cart"
+msgstr "Anadir el articulo al carrito"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:33
+msgid "Sign in required"
+msgstr "Inicio de sesion obligatorio"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:37
+msgid "Log in or create an account to add items to your cart."
+msgstr "Inicia sesion o crea una cuenta para anadir articulos a tu carrito."
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:40
+msgid "Maybe later"
+msgstr "Quizas mas tarde"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:41
+msgid "Create account"
+msgstr "Crear una cuenta"
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:42
+msgid "Log in"
+msgstr "Iniciar sesion"
 
 #: foodtrucks/templates/foodtrucks/components/cart_drawer.html:6
 msgid "Your cart"
@@ -532,7 +687,7 @@ msgid "Loading available slots…"
 msgstr "Cargando franjas disponibles..."
 
 #: foodtrucks/templates/foodtrucks/components/cart_drawer.html:30
-#: foodtrucks/templates/foodtrucks/detail.html:52
+#: foodtrucks/templates/foodtrucks/detail.html:54
 #: foodtrucks/templates/foodtrucks/detail_debug.html:11
 msgid "Recommended pickup time selected automatically."
 msgstr "La hora de recogida recomendada se seleccionó automáticamente."
@@ -548,7 +703,7 @@ msgid "Checkout"
 msgstr "Pago"
 
 #: foodtrucks/templates/foodtrucks/components/cart_drawer.html:43
-#: foodtrucks/templates/foodtrucks/detail.html:41
+#: foodtrucks/templates/foodtrucks/detail.html:43
 msgid "Your cart is empty."
 msgstr "Tu carrito está vacío."
 
@@ -573,7 +728,7 @@ msgstr "Cargando el menú..."
 #: foodtrucks/templates/foodtrucks/detail.html:4
 #: foodtrucks/templates/foodtrucks/detail_debug.html:4
 #: foodtrucks/templates/foodtrucks/list.html:4 templates/base.html:7
-#: templates/base.html:21 templates/base.html:110
+#: templates/base.html:21 templates/base.html:95
 #: templates/onboarding/ai_input.html:4 templates/onboarding/import.html:4
 #: templates/onboarding/preview.html:4
 #, fuzzy
@@ -581,114 +736,114 @@ msgstr "Cargando el menú..."
 msgid "FoodTruck SaaS"
 msgstr "Camión de Comida"
 
-#: foodtrucks/templates/foodtrucks/detail.html:19
+#: foodtrucks/templates/foodtrucks/detail.html:21
 msgid "Loading menu..."
 msgstr "Cargando el menú..."
 
-#: foodtrucks/templates/foodtrucks/detail.html:20
+#: foodtrucks/templates/foodtrucks/detail.html:22
 msgid "No menu items are available right now."
 msgstr "No hay elementos del menú disponibles en este momento."
 
-#: foodtrucks/templates/foodtrucks/detail.html:21
+#: foodtrucks/templates/foodtrucks/detail.html:23
 msgid "Please check back later."
 msgstr "Vuelve a intentarlo más tarde."
 
-#: foodtrucks/templates/foodtrucks/detail.html:22
+#: foodtrucks/templates/foodtrucks/detail.html:24
 #, python-brace-format
 msgid "Cart ({count})"
 msgstr "Carrito ({count})"
 
-#: foodtrucks/templates/foodtrucks/detail.html:23
+#: foodtrucks/templates/foodtrucks/detail.html:25
 msgid "Log in to submit your order."
 msgstr "Inicia sesión para enviar tu pedido."
 
-#: foodtrucks/templates/foodtrucks/detail.html:24
+#: foodtrucks/templates/foodtrucks/detail.html:26
 msgid "Add items to your cart to checkout."
 msgstr "Añade artículos a tu carrito para completar la compra."
 
-#: foodtrucks/templates/foodtrucks/detail.html:25
+#: foodtrucks/templates/foodtrucks/detail.html:27
 msgid "Add items to your cart to continue."
 msgstr "Añade artículos a tu carrito para continuar."
 
-#: foodtrucks/templates/foodtrucks/detail.html:26
+#: foodtrucks/templates/foodtrucks/detail.html:28
 #: foodtrucks/templates/foodtrucks/detail_debug.html:18
 msgid "No pickup slots are currently available."
 msgstr "No hay franjas de recogida disponibles en este momento."
 
-#: foodtrucks/templates/foodtrucks/detail.html:27
+#: foodtrucks/templates/foodtrucks/detail.html:29
 #: foodtrucks/templates/foodtrucks/detail_debug.html:20
 msgid "Select a pickup slot before checkout."
 msgstr "Selecciona una franja de recogida antes de finalizar la compra."
 
-#: foodtrucks/templates/foodtrucks/detail.html:28
-#: foodtrucks/templates/foodtrucks/detail.html:59
+#: foodtrucks/templates/foodtrucks/detail.html:30
+#: foodtrucks/templates/foodtrucks/detail.html:61
 #: foodtrucks/templates/foodtrucks/detail_debug.html:19
 msgid "Unable to load pickup slots."
 msgstr "No se pudieron cargar las franjas de recogida."
 
-#: foodtrucks/templates/foodtrucks/detail.html:29
+#: foodtrucks/templates/foodtrucks/detail.html:31
 msgid "Unable to load cart."
 msgstr "No se pudo cargar el carrito."
 
-#: foodtrucks/templates/foodtrucks/detail.html:30
+#: foodtrucks/templates/foodtrucks/detail.html:32
 msgid "Could not identify foodtruck."
 msgstr "No se pudo identificar el foodtruck."
 
-#: foodtrucks/templates/foodtrucks/detail.html:31
+#: foodtrucks/templates/foodtrucks/detail.html:33
 msgid "Unable to load menu."
 msgstr "No se pudo cargar el menú."
 
-#: foodtrucks/templates/foodtrucks/detail.html:32
+#: foodtrucks/templates/foodtrucks/detail.html:34
 msgid "Add to cart"
 msgstr "Añadir al carrito"
 
-#: foodtrucks/templates/foodtrucks/detail.html:33
+#: foodtrucks/templates/foodtrucks/detail.html:35
 msgid "Adding..."
 msgstr "Añadiendo..."
 
-#: foodtrucks/templates/foodtrucks/detail.html:34
+#: foodtrucks/templates/foodtrucks/detail.html:36
 msgid "Unable to add item to cart."
 msgstr "No se pudo añadir el artículo al carrito."
 
-#: foodtrucks/templates/foodtrucks/detail.html:35
-#: foodtrucks/templates/foodtrucks/detail.html:44 menu/models/__init__.py:219
+#: foodtrucks/templates/foodtrucks/detail.html:37
+#: foodtrucks/templates/foodtrucks/detail.html:46 menu/models/__init__.py:219
 msgid "Combo"
 msgstr "Combo"
 
-#: foodtrucks/templates/foodtrucks/detail.html:36 menu/models/__init__.py:338
+#: foodtrucks/templates/foodtrucks/detail.html:38 menu/models/__init__.py:338
 msgid "Option"
 msgstr "Opción"
 
-#: foodtrucks/templates/foodtrucks/detail.html:37
+#: foodtrucks/templates/foodtrucks/detail.html:39
 msgid "No extras selected"
 msgstr "No se seleccionaron extras"
 
-#: foodtrucks/templates/foodtrucks/detail.html:38
+#: foodtrucks/templates/foodtrucks/detail.html:40
 msgid "Qty"
 msgstr "Cant."
 
-#: foodtrucks/templates/foodtrucks/detail.html:39
+#: foodtrucks/templates/foodtrucks/detail.html:41
 msgid "each"
 msgstr "cada uno"
 
-#: foodtrucks/templates/foodtrucks/detail.html:40
+#: foodtrucks/templates/foodtrucks/detail.html:42
 msgid "Remove"
 msgstr "Eliminar"
 
-#: foodtrucks/templates/foodtrucks/detail.html:42
+#: foodtrucks/templates/foodtrucks/detail.html:44
 #: templates/ai_menu/combo_list.html:35
 msgid "Price to confirm"
 msgstr "Precio por confirmar"
 
-#: foodtrucks/templates/foodtrucks/detail.html:43
+#: foodtrucks/templates/foodtrucks/detail.html:45
 msgid "Add combo"
 msgstr "Añadir combo"
 
-#: foodtrucks/templates/foodtrucks/detail.html:45
+#: foodtrucks/templates/foodtrucks/detail.html:47
 msgid "Required"
 msgstr "Obligatorio"
 
-#: foodtrucks/templates/foodtrucks/detail.html:46
+#: foodtrucks/templates/foodtrucks/detail.html:48
 #: templates/onboarding/ai_input.html:43 templates/onboarding/ai_input.html:56
 #: templates/onboarding/ai_input.html:67 templates/onboarding/import.html:93
 #: templates/onboarding/import.html:107 templates/onboarding/import.html:121
@@ -699,55 +854,75 @@ msgstr "Obligatorio"
 msgid "Optional"
 msgstr "Opción"
 
-#: foodtrucks/templates/foodtrucks/detail.html:47
+#: foodtrucks/templates/foodtrucks/detail.html:49
 msgid "min"
 msgstr "mín."
 
-#: foodtrucks/templates/foodtrucks/detail.html:48
+#: foodtrucks/templates/foodtrucks/detail.html:50
 msgid "max"
 msgstr "máx."
 
-#: foodtrucks/templates/foodtrucks/detail.html:49
+#: foodtrucks/templates/foodtrucks/detail.html:51
 msgid "Price"
 msgstr "Precio"
 
-#: foodtrucks/templates/foodtrucks/detail.html:51
+#: foodtrucks/templates/foodtrucks/detail.html:53
 #, python-brace-format
 msgid "{count} items"
 msgstr "{count} artículos"
 
-#: foodtrucks/templates/foodtrucks/detail.html:53
+#: foodtrucks/templates/foodtrucks/detail.html:55
 #: foodtrucks/templates/foodtrucks/detail_debug.html:12
 msgid "Recommended pickup: right now"
 msgstr "Recogida recomendada: ahora mismo"
 
-#: foodtrucks/templates/foodtrucks/detail.html:54
+#: foodtrucks/templates/foodtrucks/detail.html:56
 #: foodtrucks/templates/foodtrucks/detail_debug.html:13
 #, python-brace-format
 msgid "Next available slot: {time}"
 msgstr "Próxima franja disponible: {time}"
 
-#: foodtrucks/templates/foodtrucks/detail.html:55
+#: foodtrucks/templates/foodtrucks/detail.html:57
 #: foodtrucks/templates/foodtrucks/detail_debug.html:14
 msgid "Choose a pickup slot"
 msgstr "Elige una franja de recogida"
 
-#: foodtrucks/templates/foodtrucks/detail.html:56
+#: foodtrucks/templates/foodtrucks/detail.html:58
 #: foodtrucks/templates/foodtrucks/detail_debug.html:15
 msgid "unavailable"
 msgstr "no disponible"
 
-#: foodtrucks/templates/foodtrucks/detail.html:57
+#: foodtrucks/templates/foodtrucks/detail.html:59
 #: foodtrucks/templates/foodtrucks/detail_debug.html:16
 msgid "Loading available slots..."
 msgstr "Cargando franjas disponibles..."
 
-#: foodtrucks/templates/foodtrucks/detail.html:58
+#: foodtrucks/templates/foodtrucks/detail.html:60
 #: foodtrucks/templates/foodtrucks/detail_debug.html:17
 msgid "No pickup slots available."
 msgstr "No hay franjas de recogida disponibles."
 
-#: foodtrucks/templates/foodtrucks/detail.html:71
+#: foodtrucks/templates/foodtrucks/detail.html:62
+#, python-brace-format
+msgid "Customize {item}"
+msgstr "Personalizar {item}"
+
+#: foodtrucks/templates/foodtrucks/detail.html:64
+msgid "No customization options for this item."
+msgstr "No hay opciones de personalizacion para este articulo."
+
+#: foodtrucks/templates/foodtrucks/detail.html:65
+#, python-brace-format
+msgid "Please choose at least {count} option(s) for {group}."
+msgstr "Elige al menos {count} opcion(es) para {group}."
+
+#: foodtrucks/templates/foodtrucks/detail.html:66
+#, python-brace-format
+msgid "You can select up to {count} option(s) for {group}."
+msgstr "Puedes seleccionar hasta {count} opcion(es) para {group}."
+
+#: foodtrucks/templates/foodtrucks/detail.html:78
+#: foodtrucks/templates/foodtrucks/detail_debug.html:67
 #, fuzzy
 #| msgid "Logo image for the food truck"
 msgid "Ordering is not available for this foodtruck."
@@ -770,25 +945,25 @@ msgstr "Secundario"
 msgid "Back to table"
 msgstr "Volver a la tabla"
 
-#: foodtrucks/templates/foodtrucks/detail_debug.html:67
+#: foodtrucks/templates/foodtrucks/detail_debug.html:77
 msgid "Debug information"
 msgstr "Información de depuración"
 
-#: foodtrucks/templates/foodtrucks/detail_debug.html:68
+#: foodtrucks/templates/foodtrucks/detail_debug.html:78
 #, fuzzy
 #| msgid "Food Truck"
 msgid "Foodtruck slug:"
 msgstr "Camión de Comida"
 
-#: foodtrucks/templates/foodtrucks/detail_debug.html:69
+#: foodtrucks/templates/foodtrucks/detail_debug.html:79
 msgid "API URL:"
 msgstr "URL de la API:"
 
-#: foodtrucks/templates/foodtrucks/detail_debug.html:70
+#: foodtrucks/templates/foodtrucks/detail_debug.html:80
 msgid "Check browser console for detailed logs."
 msgstr "Consulta la consola del navegador para ver los registros detallados."
 
-#: foodtrucks/templates/foodtrucks/list.html:4 templates/base.html:31
+#: foodtrucks/templates/foodtrucks/list.html:4
 #, fuzzy
 #| msgid "Food Truck"
 msgid "Foodtrucks"
@@ -882,8 +1057,12 @@ msgstr "Mostrar descripción"
 msgid "Hide description"
 msgstr "Ocultar descripción"
 
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:25
+msgid "Profile"
+msgstr ""
+
 #: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:26
-#: orders/models/__init__.py:371 templates/base.html:35
+#: orders/models/__init__.py:371
 msgid "Orders"
 msgstr "Pedidos"
 
@@ -913,7 +1092,7 @@ msgid "Manage combos"
 msgstr "Gestionar combos"
 
 #: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:45
-#: templates/base.html:51
+#: templates/base.html:36
 msgid "Logout"
 msgstr "Cerrar sesión"
 
@@ -1500,13 +1679,6 @@ msgstr "¿Seguro que quieres marcar esta ubicación como inactiva?"
 msgid "Confirm"
 msgstr "Confirmar"
 
-#: orders/templates/orders/locations/confirm_delete.html:17
-#: orders/templates/orders/slot_management.html:95
-#: templates/orders/working_hours/partials/modal_form.html:44
-#: templates/schedules/partials/modal_form.html:28
-msgid "Cancel"
-msgstr "Cancelar"
-
 #: orders/templates/orders/locations/form.html:28
 msgid "Back"
 msgstr "Volver"
@@ -1956,31 +2128,31 @@ msgstr "Historial de rechazados"
 msgid "No rejected recommendations yet."
 msgstr "Aún no hay recomendaciones rechazadas."
 
-#: templates/base.html:44
+#: templates/base.html:29
 msgid "Welcome"
 msgstr "Bienvenido"
 
-#: templates/base.html:48
+#: templates/base.html:33
 msgid "Cart"
 msgstr "Carrito"
 
-#: templates/base.html:58
+#: templates/base.html:43
 msgid "Register"
 msgstr "Registrarse"
 
-#: templates/base.html:65
+#: templates/base.html:50
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:110
+#: templates/base.html:95
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
 
-#: templates/base.html:113
+#: templates/base.html:98
 msgid "Privacy Policy"
 msgstr "Política de privacidad"
 
-#: templates/base.html:114
+#: templates/base.html:99
 msgid "Terms of Service"
 msgstr "Términos del servicio"
 
@@ -2279,14 +2451,6 @@ msgstr ""
 #: templates/onboarding/preview.html:123
 msgid "Add category"
 msgstr "Añadir categoría"
-
-#: templates/onboarding/preview.html:141
-msgid "Primary color"
-msgstr "Color principal"
-
-#: templates/onboarding/preview.html:148
-msgid "Secondary color"
-msgstr "Color secundario"
 
 #: templates/onboarding/preview.html:165
 msgid "Back to import"

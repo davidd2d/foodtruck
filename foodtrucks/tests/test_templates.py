@@ -28,7 +28,7 @@ class FoodTruckBrandingTemplateTests(TestCase):
     def test_user_menu_links_when_authenticated(self):
         self.client.login(email=self.foodtruck.owner.email, password='password123')
         response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug}))
-        self.assertContains(response, reverse('accounts:profile'))
+        self.assertContains(response, reverse('accounts:profile', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(response, reverse('orders:history'))
         self.assertContains(response, reverse('accounts:logout'))
 

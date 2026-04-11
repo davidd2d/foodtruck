@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 from onboarding.models import OnboardingImport, OnboardingImage
 import os
@@ -85,6 +86,11 @@ class GenerateFoodtruckSerializer(serializers.Serializer):
     """Serializer for generating foodtruck with AI."""
 
     concept = serializers.CharField(max_length=200)
+    language_code = serializers.ChoiceField(
+        choices=settings.LANGUAGES,
+        required=False,
+        default=settings.LANGUAGE_CODE,
+    )
     cuisine_type = serializers.CharField(max_length=50, required=False, allow_blank=True)
     price_range = serializers.CharField(max_length=20, required=False, allow_blank=True)
     dietary_tags = serializers.ListField(

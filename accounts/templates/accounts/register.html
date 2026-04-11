@@ -1,13 +1,9 @@
 {% extends "core/basic.html" %}
-{% load i18n %}
+{% load static i18n %}
 
 {% block title %}{% trans "Sign up" %}{% endblock %}
 {% block extra_css %}
-<style>
-  body {
-    padding-top: 0;
-  }
-</style>
+<link rel="stylesheet" href="{% static 'css/accounts/forms.css' %}">
 {% endblock %}
 
 {% block messages %}
@@ -23,33 +19,45 @@
 {% endblock %}
 
 {% block content %}
-  <h2>{% trans "Create an account" %}</h2>
-
-  <form method="post">
-    {% csrf_token %}
-
-    {% if form.non_field_errors %}
-      <div class="alert alert-danger">
-        {{ form.non_field_errors }}
+<div class="account-shell account-shell-auth">
+  <div class="account-panel" style="max-width: 490px; margin: 0 auto;">
+    <section class="account-card account-card-narrow">
+      <div class="account-card-header">
+        <div class="account-kicker">{% trans "Sign up" %}</div>
+        <h1 class="account-title">{% trans "Create an account" %}</h1>
       </div>
-    {% endif %}
+      <div class="account-card-body">
+        <form method="post" class="account-form" novalidate>
+          {% csrf_token %}
 
-    {% for field in form %}
-    <div class="mb-3">
-      <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}
-        <div class="text-red-600 text-sm mt-1">
-          {{ field.errors|striptags }}
-        </div>
-      {% endif %}
-    </div>
-    {% endfor %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
 
-    <button type="submit">{% trans "Sign up" %}</button>
-  </form>
+          {% for field in form %}
+          <div class="account-field">
+            <label for="{{ field.id_for_label }}" class="account-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <small class="account-muted">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+              <div class="text-danger small mt-1">
+                {{ field.errors|striptags }}
+              </div>
+            {% endif %}
+          </div>
+          {% endfor %}
 
-  <p>
-    <a href="{% url 'accounts:login' %}">{% trans "Already have an account? Log in." %}</a>
-  </p>
+          <div class="account-actions">
+            <button type="submit">{% trans "Sign up" %}</button>
+            <a class="account-link" href="{% url 'accounts:login' %}">{% trans "Already have an account? Log in." %}</a>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
 {% endblock %}

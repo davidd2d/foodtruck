@@ -4,6 +4,8 @@ from django.test import TestCase
 from django.contrib.auth import authenticate
 from django.urls import reverse
 from foodtrucks.tests.factories import UserFactory
+from foodtrucks.tests.factories import FoodTruckFactory
+from unittest.mock import patch
 
 
 class AuthenticationTests(TestCase):
@@ -43,3 +45,35 @@ class AuthenticationTests(TestCase):
         self.client.login(username='test@example.com', password='testpass123')
         response = self.client.get(self.logout_url)
         self.assertEqual(response.status_code, 302)
+
+    @patch('accounts.views.send_confirmation_email')
+    def test_email_change_requires_reconfirmation_before_next_login(self, mock_send):
+        foodtruck = FoodTruckFactory(owner=self.user)
+        self.user.email_verified = True
+        self.user.save(update_fields=['email_verified'])
+
+        self.client.login(username='test@example.com', password='testpass123')
+        response = self.client.post(
+            reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+            {
+                'save-account': '1',
+                'email': 'newaddress@intermas.com',
+                'first_name': self.user.first_name,
+                'last_name': self.user.last_name,
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.email_verified)
+
+        self.client.logout()
+        login_response = self.client.post(self.login_url, {
+            'username': 'newaddress@intermas.com',
+            'password': 'testpass123'
+        })
+
+        self.assertEqual(login_response.status_code, 200)
+        self.assertContains(login_response, "Vous devez confirmer votre adresse e-mail pour vous connecter.")
+        mock_send.assert_called_once()

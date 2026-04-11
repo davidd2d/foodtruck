@@ -58,7 +58,17 @@
             {% include 'foodtrucks/components/menu_panel.html' %}
         </div>
         <div class="col-lg-4">
-            {% include 'foodtrucks/components/cart_drawer.html' %}
+            {% if foodtruck.can_accept_orders %}
+                {% include 'foodtrucks/components/cart_drawer.html' %}
+            {% else %}
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="alert alert-info mb-0">
+                            {% trans "Ordering is not available for this foodtruck." %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 

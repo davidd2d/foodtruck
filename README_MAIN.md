@@ -93,8 +93,15 @@ A SaaS platform for food trucks allowing:
 
 ## 7️⃣ Translations
 
-- All template text marked for translation
-- `.po` files can be auto-translated (Codex possible)
+- UI language remains handled by Django i18n (`LocaleMiddleware`, `.po/.mo`, `gettext`)
+- Business content now has a separate primary language at the foodtruck level via `FoodTruck.default_language`
+- This content language drives:
+  - AI onboarding generation output
+  - active menu default naming
+  - AI menu recommendation generation and fallback copy
+- Phase 1 rule: one primary content language per foodtruck (`en`, `fr`, `es`)
+- Phase 2 path: `django-parler` remains available for future per-field multi-translation of foodtruck/menu content
+- `.po` files are still only for interface strings, not for foodtruck/menu business data
 - Instructions present in `README_frontend`
 
 ---
@@ -156,7 +163,7 @@ A SaaS platform for food trucks allowing:
 - **Service:** `AIRecommendationGeneratorService` — intelligent recommendation generation
   - Main method: `generate_and_store_for_item(item)` — generates & persists recommendations
   - Workflow:
-    1. Prepares item context (name, description, category, foodtruck cuisine type)
+    1. Prepares item context (name, description, category, foodtruck cuisine type, foodtruck content language)
     2. Builds structured prompt asking OpenAI to generate:
        - Detected item category (burger, bowl, taco, salad, pizza, etc.)
        - 3-4 free options (enhance value perception)
@@ -167,6 +174,11 @@ A SaaS platform for food trucks allowing:
     5. Validates response structure
     6. Persists recommendations as `AIRecommendation` records (status: pending)
     7. Falls back to `MenuAnalyzerService` if API fails/returns invalid JSON
+  - Language behavior:
+    - Prompt still uses stable English instructions for model steering where useful
+    - Customer-facing suggestion content is requested in the foodtruck content language
+    - Each recommendation stores its generation language in `AIRecommendation.language_code`
+    - Rule-based fallback suggestions are localized too, avoiding English-only fallback text on French/Spanish trucks
   - Prompt constraints:
     - English prompt optimized for GPT-4o
     - Forces strict JSON output format
@@ -242,6 +254,16 @@ A SaaS platform for food trucks allowing:
   - Resetting an accepted recommendation back to pending removes the generated option and deletes the empty group if needed
   - Generated combos can be reviewed and edited from an owner-facing combo management screen
   - Combos with a confirmed effective price are now orderable through the cart and checkout flow
+
+---
+
+## 1️⃣2️⃣ Owner Profile
+
+- **Canonical route:** `/accounts/foodtruck/<slug>/profile/`
+- **Compatibility route:** `/accounts/profile/` redirects to the first foodtruck owned by the authenticated user
+- **Scope:** owner-only page tied to a specific foodtruck slug
+- **Purpose:** lets the foodtruck owner update their account details while keeping the page inside the foodtruck management context
+- **Displayed context:** foodtruck name, slug, content language, owner email verification state
 - **Backend tests:**
   - owner dashboard access
   - non-owner isolation

@@ -26,7 +26,7 @@ class AIRecommendationGeneratorServiceTests(TestCase):
 
     def setUp(self):
         """Set up test fixtures."""
-        self.foodtruck = FoodTruckFactory(name='Test Truck')
+        self.foodtruck = FoodTruckFactory(name='Test Truck', default_language='fr')
         self.menu = MenuFactory(food_truck=self.foodtruck, name='Main Menu')
         self.category = CategoryFactory(menu=self.menu, name='Burgers')
         self.item = ItemFactory(
@@ -47,6 +47,7 @@ class AIRecommendationGeneratorServiceTests(TestCase):
         self.assertEqual(context['category_name'], 'Burgers')
         self.assertEqual(context['menu_name'], 'Main Menu')
         self.assertEqual(context['foodtruck_name'], 'Test Truck')
+        self.assertEqual(context['foodtruck_language'], 'fr')
 
     def test_prepare_item_context_with_missing_description(self):
         """Test context preparation with missing item description."""
@@ -110,6 +111,7 @@ class AIRecommendationGeneratorServiceTests(TestCase):
         # Verify recommendations were created
         recommendations = AIRecommendation.objects.for_item(self.item)
         self.assertEqual(recommendations.count(), 4)
+        self.assertTrue(all(rec.language_code == 'fr' for rec in recommendations))
 
         # Verify types
         free_opts = recommendations.filter(recommendation_type='free_option')
@@ -151,6 +153,18 @@ class AIRecommendationGeneratorServiceTests(TestCase):
         self.assertEqual(result['status'], 'fallback')
         self.assertIn('fallback_reason', result)
         self.assertTrue(len(result['recommendations']) > 0)
+
+        recommendation = AIRecommendation.objects.for_item(self.item).first()
+        self.assertEqual(recommendation.language_code, 'fr')
+        self.assertEqual(recommendation.payload['reason'], 'Suggestion basee sur des regles')
+
+    def test_build_ai_prompt_uses_foodtruck_language(self):
+        """Prompt should request localized output based on the food truck language."""
+        context = self.service._prepare_item_context(self.item)
+        prompt = self.service._build_ai_prompt(self.item, context)
+
+        self.assertIn('French', prompt)
+        self.assertIn('must be written in French', prompt)
 
     @patch('ai_menu.services.recommendation_generator.OpenAIService')
     def test_generate_with_fallback_api_error(self, mock_openai_class):

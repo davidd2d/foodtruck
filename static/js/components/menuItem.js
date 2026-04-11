@@ -14,30 +14,6 @@ const defaultTranslations = {
     itemsCountLabel: '{count} items',
 };
 
-export function buildOptionControl(group, itemIndex) {
-    const inputName = `group-${group.id}-${itemIndex}`;
-    const isRadio = group.max_choices === 1 && group.min_choices <= 1;
-
-    return group.options.map((option) => {
-        const inputType = isRadio ? 'radio' : 'checkbox';
-        return `
-            <div class="form-check mb-2">
-                <input
-                    class="form-check-input menu-option"
-                    type="${inputType}"
-                    name="${inputName}"
-                    id="option-${option.id}"
-                    data-option-id="${option.id}"
-                    value="${option.id}"
-                />
-                <label class="form-check-label" for="option-${option.id}">
-                    ${option.name} <span class="text-muted">(+€${parseFloat(option.price_modifier).toFixed(2)})</span>
-                </label>
-            </div>
-        `;
-    }).join('');
-}
-
 export function renderComboItem(combo, orderingEnabled = true, translations = {}) {
     const labels = { ...defaultTranslations, ...translations };
     const comboItems = (combo.combo_items || []).map((comboItem) => {
@@ -51,8 +27,9 @@ export function renderComboItem(combo, orderingEnabled = true, translations = {}
         ? `€${parseFloat(effectivePrice).toFixed(2)}`
         : labels.priceToConfirmLabel;
     const orderingMarkup = canOrder ? `
-        <div class="d-flex align-items-center gap-2 mt-3 js-orderable-entry">
-            <input type="number" min="1" value="1" class="form-control form-control-sm menu-item-quantity" style="width: 84px;">
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-3 js-orderable-entry">
+            <label class="form-label small mb-0" for="combo-quantity-${combo.id}">${labels.quantityLabel}</label>
+            <input id="combo-quantity-${combo.id}" type="number" min="1" value="1" class="form-control form-control-sm menu-item-quantity" style="width: 84px;">
             <button type="button" class="btn btn-sm btn-warning add-to-cart" data-combo-id="${combo.id}" data-default-label="${labels.addComboLabel}">
                 ${labels.addComboLabel}
             </button>
@@ -83,21 +60,6 @@ export function renderComboItem(combo, orderingEnabled = true, translations = {}
 
 export function renderMenuItem(item, itemIndex, orderingEnabled = true, translations = {}) {
     const labels = { ...defaultTranslations, ...translations };
-    const optionGroupsMarkup = item.option_groups.map((group) => {
-        return `
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <strong>${group.name}</strong>
-                    <small class="text-muted">
-                        ${group.required ? labels.requiredLabel : labels.optionalLabel}
-                        ${group.min_choices ? `• ${labels.minLabel} ${group.min_choices}` : ''}
-                        ${group.max_choices ? `• ${labels.maxLabel} ${group.max_choices}` : ''}
-                    </small>
-                </div>
-                ${buildOptionControl(group, itemIndex)}
-            </div>
-        `;
-    }).join('');
 
     return `
         <div class="card mb-3 menu-item" data-item-id="${item.id}">
@@ -106,22 +68,17 @@ export function renderMenuItem(item, itemIndex, orderingEnabled = true, translat
                     <div class="col-md-8">
                         <h4 class="h6 mb-1">${item.name}</h4>
                         <p class="text-muted mb-2">${item.description || ''}</p>
-                        <div class="mb-3">
+                        <div class="mb-0">
                             <strong>${labels.priceLabel}:</strong> €${parseFloat(item.base_price).toFixed(2)}
                         </div>
-                        <div class="menu-item-options">
-                            ${optionGroupsMarkup}
-                        </div>
                     </div>
-                    <div class="col-md-4 text-md-end">
+                    <div class="col-md-4 d-flex justify-content-md-end">
                         ${orderingEnabled ? `
-                        <div class="mb-3">
-                            <label class="form-label small mb-1" for="quantity-${item.id}">${labels.quantityLabel}</label>
-                            <input type="number" class="form-control form-control-sm menu-item-quantity" id="quantity-${item.id}" value="1" min="1" />
+                        <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2 w-100">
+                            <button type="button" class="btn btn-primary btn-sm add-to-cart" data-item-id="${item.id}" data-default-label="${labels.addToCartLabel}">
+                                ${labels.addToCartLabel}
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm add-to-cart" data-item-id="${item.id}" data-default-label="${labels.addToCartLabel}">
-                            ${labels.addToCartLabel}
-                        </button>
                         ` : ''}
                     </div>
                 </div>
