@@ -41,10 +41,10 @@ class OrderModelTests(TestCase):
         order.add_item(self.item, quantity=2)
 
         self.assertEqual(order.items.count(), 1)
-        self.assertEqual(order.total_price, Decimal('24.00'))
+        self.assertEqual(order.total_price, Decimal('26.40'))
         order_item = order.items.first()
         self.assertEqual(order_item.unit_price, Decimal('12.00'))
-        self.assertEqual(order_item.total_price, Decimal('24.00'))
+        self.assertEqual(order_item.total_price, Decimal('26.40'))
 
     def test_add_item_rejects_invalid_option_ids(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
@@ -64,8 +64,8 @@ class OrderModelTests(TestCase):
         order.add_item(self.item, quantity=1)
         order.add_item(self.item, quantity=2)
 
-        self.assertEqual(order.calculate_total(), Decimal('36.00'))
-        self.assertEqual(order.total_price, Decimal('36.00'))
+        self.assertEqual(order.calculate_total(), Decimal('39.60'))
+        self.assertEqual(order.total_price, Decimal('39.60'))
 
     def test_can_be_submitted_false_when_no_items(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
@@ -108,7 +108,7 @@ class OrderModelTests(TestCase):
 
         order_item = order.items.first()
         self.assertEqual(order_item.unit_price, Decimal('12.00'))
-        self.assertEqual(order.total_price, Decimal('12.00'))
+        self.assertEqual(order.total_price, Decimal('13.20'))
 
     def test_negative_quantity_is_rejected(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
@@ -124,8 +124,8 @@ class OrderModelTests(TestCase):
         self.assertEqual(order.items.count(), 1)
         order_item = order.items.first()
         self.assertEqual(order_item.combo_id, self.combo.id)
-        self.assertEqual(order_item.total_price, Decimal('36.00'))
-        self.assertEqual(order.total_price, Decimal('36.00'))
+        self.assertEqual(order_item.total_price, Decimal('39.60'))
+        self.assertEqual(order.total_price, Decimal('39.60'))
 
     def test_submit_order_with_generated_slot(self):
         schedule = ServiceSchedule.objects.create(

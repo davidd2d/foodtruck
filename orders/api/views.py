@@ -27,8 +27,9 @@ from .serializers import (
     ServiceScheduleSerializer,
     OrderDashboardSerializer,
     OrderStatusUpdateSerializer,
+    TicketSerializer,
 )
-from ..models import Order, PickupSlot, ServiceSchedule, PARIS_TZ
+from ..models import Order, PickupSlot, ServiceSchedule, Ticket, PARIS_TZ
 from ..exceptions import OrderTransitionError
 from menu.models import Combo, Item
 from ..services.cart_service import CartService
@@ -494,3 +495,16 @@ class OrderStatusUpdateAPIView(APIView):
 
         response_serializer = OrderDashboardSerializer(updated_order)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+
+class TicketViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only endpoint exposing fiscal tickets."""
+
+    serializer_class = TicketSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Ticket.objects.filter(
+            Q(order__user=user) | Q(order__food_truck__owner=user)
+        ).select_related('order', 'order__food_truck').order_by('-issued_at').distinct()

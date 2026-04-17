@@ -1,0 +1,57 @@
+{% load i18n %}
+<div class="col-xl-7">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background-color: {{ foodtruck.get_primary_color }}; color: #ffffff;">
+                    <tr>
+                        <th class="px-4 py-3">{% trans "Item" %}</th>
+                        <th class="px-4 py-3 text-end">{% trans "Quantity" %}</th>
+                        <th class="px-4 py-3 text-end">{% trans "Unit price" %}</th>
+                        <th class="px-4 py-3 text-end">{% trans "Tax" %}</th>
+                        <th class="px-4 py-3 text-end">{% trans "Total" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in ticket_items %}
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="fw-semibold">{{ item.product_name }}</div>
+                            <div class="small text-muted">{{ item.line_type|title }}</div>
+                        </td>
+                        <td class="px-4 py-3 text-end">{{ item.quantity }}</td>
+                        <td class="px-4 py-3 text-end">{{ item.unit_price }} {{ ticket.payload.currency }}</td>
+                        <td class="px-4 py-3 text-end">{{ item.tax_amount }} {{ ticket.payload.currency }}</td>
+                        <td class="px-4 py-3 text-end fw-semibold">{{ item.total_price }} {{ ticket.payload.currency }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="col-xl-3">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h2 class="h5 mb-3">{% trans "Summary" %}</h2>
+            <dl class="mb-0">
+                <div class="d-flex justify-content-between mb-2">
+                    <dt>{% trans "Order" %}</dt>
+                    <dd class="mb-0">#{{ ticket.order_id }}</dd>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <dt>{% trans "Currency" %}</dt>
+                    <dd class="mb-0">{{ ticket.payload.currency }}</dd>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <dt>{% trans "Tax" %}</dt>
+                    <dd class="mb-0">{{ ticket.tax_amount }} {{ ticket.payload.currency }}</dd>
+                </div>
+                <div class="d-flex justify-content-between fw-semibold">
+                    <dt>{% trans "Total" %}</dt>
+                    <dd class="mb-0">{{ ticket.total_amount }} {{ ticket.payload.currency }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+</div>

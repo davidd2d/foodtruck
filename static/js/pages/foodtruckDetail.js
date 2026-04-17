@@ -12,6 +12,7 @@ const pageContainer = document.querySelector('[data-foodtruck-slug]');
 const foodtruckSlug = pageContainer?.dataset.foodtruckSlug;
 const userAuthenticated = pageContainer?.dataset.userAuthenticated === 'true';
 const orderingEnabled = pageContainer?.dataset.orderingEnabled === 'true';
+const paymentCheckoutUrlTemplate = pageContainer?.dataset.paymentCheckoutUrlTemplate || '';
 
 const menuContainer = document.getElementById('menu-container');
 const categoryShortcuts = document.getElementById('category-shortcuts');
@@ -91,6 +92,7 @@ const translations = getDatasetTranslations(pageContainer, {
     noCustomizationOptionsMessage: 'No customization options for this item.',
     selectAtLeastOptionsMessage: 'Please choose at least {count} option(s) for {group}.',
     selectAtMostOptionsMessage: 'You can select up to {count} option(s) for {group}.',
+    redirectingToPaymentMessage: 'Order submitted. Redirecting to payment...',
 });
 const loginUrl = pageContainer?.dataset.loginUrl || '';
 const registerUrl = pageContainer?.dataset.registerUrl || '';
@@ -446,11 +448,13 @@ function initializeCheckoutFlow() {
         refreshCart,
         setCheckoutState,
         userAuthenticated,
+        paymentCheckoutUrlTemplate,
         translations: {
             loginRequiredMessage: translations.loginCheckoutMessage,
             selectSlotMessage: translations.selectSlotMessage,
             cartContinueMessage: translations.cartContinueMessage,
             checkoutLabel: checkoutButton.textContent.trim(),
+            redirectingToPaymentMessage: translations.redirectingToPaymentMessage,
         },
     });
 

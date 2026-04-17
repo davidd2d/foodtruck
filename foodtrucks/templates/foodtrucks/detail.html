@@ -16,6 +16,7 @@
     data-foodtruck-slug="{{ foodtruck.slug }}"
     data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
     data-ordering-enabled="{{ foodtruck.can_accept_orders|yesno:'true,false' }}"
+    data-payment-checkout-url-template="{% url 'payments:checkout' slug=foodtruck.slug order_id=0 %}"
     data-login-url="{% url 'accounts:login' %}"
     data-register-url="{% url 'accounts:register' %}"
     data-loading-menu-message="{% trans 'Loading menu...' %}"
@@ -63,7 +64,8 @@
     data-add-item-to-cart-label="{% trans 'Add item to cart' %}"
     data-no-customization-options-message="{% trans 'No customization options for this item.' %}"
     data-select-at-least-options-message="{% trans 'Please choose at least {count} option(s) for {group}.' %}"
-    data-select-at-most-options-message="{% trans 'You can select up to {count} option(s) for {group}.' %}">
+    data-select-at-most-options-message="{% trans 'You can select up to {count} option(s) for {group}.' %}"
+    data-redirecting-to-payment-message="{% trans 'Order submitted. Redirecting to payment...' %}">
     <div class="row gy-4">
         <div class="col-lg-8">
             {% include 'foodtrucks/components/menu_panel.html' %}

@@ -3,6 +3,7 @@ from decimal import Decimal
 from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from common.models import Tax
 from preferences.models import Preference
 from foodtrucks.models import FoodTruck, Plan, Subscription
 from menu.models import Menu, Category, Item, OptionGroup, Option
@@ -86,12 +87,26 @@ def CategoryFactory(menu=None, name='General', display_order=0):
     )
 
 
-def ItemFactory(category=None, name='Margherita', description='Classic pizza', base_price=Decimal('12.00'), is_available=True, display_order=0):
+def TaxFactory(name='TVA 10%', rate=Decimal('0.1000'), is_default=True):
+    tax, _ = Tax.objects.get_or_create(
+        name=name,
+        defaults={'rate': rate, 'is_default': is_default},
+    )
+    if tax.rate != rate or tax.is_default != is_default:
+        tax.rate = rate
+        tax.is_default = is_default
+        tax.save(update_fields=['rate', 'is_default'])
+    return tax
+
+
+def ItemFactory(category=None, name='Margherita', description='Classic pizza', base_price=Decimal('12.00'), is_available=True, display_order=0, tax=None):
     category = category or CategoryFactory()
+    tax = tax or TaxFactory()
     item = Item.objects.create(
         category=category,
         name=name,
         description=description,
+        tax=tax,
         base_price=base_price,
         is_available=is_available,
         display_order=display_order

@@ -12,6 +12,7 @@ from django.db import models, transaction, OperationalError
 from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from common.services import AuditService
 from menu.models import Combo, Item, Option
 from orders.exceptions import OrderTransitionError
 
@@ -354,6 +355,8 @@ class Order(models.Model):
         Status.READY,
     )
 
+    LEGACY_SUBMITTED_STATUS = 'submitted'
+
     class OrderQuerySet(models.QuerySet):
         """Query helpers for order retrieval in customer and operator contexts."""
 
@@ -423,14 +426,33 @@ class Order(models.Model):
         default=Status.DRAFT,
         help_text=_("Current status of the order")
     )
+    customer_name = models.CharField(max_length=255, blank=True, default='')
+    customer_email = models.EmailField(null=True, blank=True)
+    customer_phone = models.CharField(max_length=32, null=True, blank=True)
+    is_anonymized = models.BooleanField(default=False)
     total_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal('0.00'),
         help_text=_("Total price of the order")
     )
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_("Frozen financial total amount")
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_("Frozen total tax amount")
+    )
+    currency = models.CharField(max_length=3, default='EUR', help_text=_("ISO 4217 currency code"))
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the order was created"))
     submitted_at = models.DateTimeField(null=True, blank=True, help_text=_("When the order was submitted"))
+    paid_at = models.DateTimeField(null=True, blank=True, help_text=_("When the order was paid"))
+    anonymized_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = _("Order")
@@ -441,11 +463,20 @@ class Order(models.Model):
             models.Index(fields=['status']),
             models.Index(fields=['created_at']),
             models.Index(fields=['food_truck']),
+            models.Index(fields=['paid_at']),
         ]
         constraints = [
             models.CheckConstraint(
                 check=models.Q(total_price__gte=0),
                 name='order_total_price_non_negative'
+            ),
+            models.CheckConstraint(
+                check=models.Q(total_amount__gte=0),
+                name='order_total_amount_non_negative'
+            ),
+            models.CheckConstraint(
+                check=models.Q(tax_amount__gte=0),
+                name='order_tax_amount_non_negative'
             ),
         ]
 
@@ -455,10 +486,21 @@ class Order(models.Model):
         owner_email = getattr(self.user, 'email', 'anonymous')
         return f"Order {self.id} - {owner_email}"
 
+    def snapshot_customer_data(self):
+        if not self.user_id or self.is_anonymized:
+            return self
+
+        full_name = getattr(self.user, 'get_full_name', lambda: '')().strip()
+        self.customer_name = self.customer_name or full_name or self.user.email or ''
+        self.customer_email = self.customer_email or getattr(self.user, 'email', None)
+        self.customer_phone = self.customer_phone or getattr(self.user, 'phone', None)
+        return self
+
     @classmethod
     def capacity_reserved_statuses(cls, *, include_drafts=True):
         """Return statuses that should reserve pickup slot capacity."""
         statuses = [
+            cls.LEGACY_SUBMITTED_STATUS,
             cls.Status.PENDING,
             cls.Status.CONFIRMED,
             cls.Status.PREPARING,
@@ -539,14 +581,15 @@ class Order(models.Model):
         # Calculate price and persist the order item
         unit_price = item.get_price_with_options(selected_options)
 
-        order_item = OrderItem.objects.create(
+        order_item = OrderItem(
             order=self,
             item=item,
             quantity=quantity,
             unit_price=unit_price,
-            total_price=unit_price * quantity,
             options=[{'option_id': int(option_id)} for option_id in selected_options]
         )
+        order_item.snapshot_pricing()
+        order_item.save()
 
         if selected_options:
             option_qs = Option.objects.filter(
@@ -565,8 +608,8 @@ class Order(models.Model):
                     price_modifier=option.price_modifier
                 )
 
-        self.total_price = self.calculate_total()
-        self.save(update_fields=['total_price'])
+        self._refresh_draft_financials()
+        self.save(update_fields=['total_price', 'total_amount', 'tax_amount'])
 
     def add_combo(self, combo, quantity):
         """Add a combo to the order as a priced snapshot line."""
@@ -586,17 +629,18 @@ class Order(models.Model):
         if unit_price is None:
             raise ValidationError(f"Combo '{combo.name}' needs a confirmed price before ordering")
 
-        OrderItem.objects.create(
+        order_item = OrderItem(
             order=self,
             combo=combo,
             quantity=quantity,
             unit_price=unit_price,
-            total_price=unit_price * quantity,
             options=[],
         )
+        order_item.snapshot_pricing()
+        order_item.save()
 
-        self.total_price = self.calculate_total()
-        self.save(update_fields=['total_price'])
+        self._refresh_draft_financials()
+        self.save(update_fields=['total_price', 'total_amount', 'tax_amount'])
 
     def calculate_total(self):
         """
@@ -609,6 +653,20 @@ class Order(models.Model):
             total=models.Sum('total_price')
         )['total'] or Decimal('0.00')
 
+    def calculate_tax_total(self):
+        """Calculate the current tax total from item snapshots."""
+        return self.items.aggregate(
+            total=models.Sum('tax_amount')
+        )['total'] or Decimal('0.00')
+
+    def _refresh_draft_financials(self):
+        """Keep draft order financial fields synchronized with line snapshots."""
+        total = self.calculate_total()
+        taxes = self.calculate_tax_total()
+        self.total_price = total
+        self.total_amount = total
+        self.tax_amount = taxes
+
     def clear(self):
         """Remove all draft items from the order and reset totals."""
         if self.status != self.Status.DRAFT:
@@ -616,7 +674,20 @@ class Order(models.Model):
 
         self.items.all().delete()
         self.total_price = Decimal('0.00')
-        self.save(update_fields=['total_price'])
+        self.total_amount = Decimal('0.00')
+        self.tax_amount = Decimal('0.00')
+        self.save(update_fields=['total_price', 'total_amount', 'tax_amount'])
+
+    def freeze_financials(self):
+        """Compute and lock financial snapshot values before payment finalization."""
+        if self.is_paid():
+            raise ValidationError('Cannot freeze financials after payment.')
+
+        self.total_amount = self.calculate_total()
+        self.tax_amount = self.calculate_tax_total()
+        self.total_price = self.total_amount
+        self.save(update_fields=['total_price', 'total_amount', 'tax_amount', 'currency'])
+        return self
 
     def can_be_submitted(self):
         """Return True when the draft order meets all submission requirements."""
@@ -757,32 +828,139 @@ class Order(models.Model):
         except OperationalError:
             raise ValidationError('Pickup slot is no longer available.')
 
-    def is_paid(self):
-        """
-        Check if the order has been paid.
+    def is_paid(self) -> bool:
+        """Return True when the order has a payment timestamp."""
+        return self.paid_at is not None
 
-        Returns:
-            bool: True if order has a successful payment
-        """
-        return hasattr(self, 'payment') and self.payment.is_paid()
+    def assert_mutable(self):
+        """Raise when trying to mutate a paid order."""
+        if self.is_paid():
+            AuditService.log(
+                'order_modification_blocked',
+                self,
+                payload={'operation': 'assert_mutable'},
+                user=self.user,
+            )
+            raise ValidationError('Paid orders are immutable.')
+
+    @transaction.atomic
+    def anonymize(self):
+        """Remove personal data while preserving immutable financial records."""
+        if self.is_anonymized:
+            return self
+
+        anonymized_at = timezone.now()
+        Order.objects.filter(pk=self.pk).update(
+            customer_name='ANONYMIZED',
+            customer_email=None,
+            customer_phone=None,
+            is_anonymized=True,
+            anonymized_at=anonymized_at,
+        )
+        self.refresh_from_db(fields=['customer_name', 'customer_email', 'customer_phone', 'is_anonymized', 'anonymized_at'])
+        AuditService.log(
+            'order_anonymized',
+            self,
+            payload={'anonymized_at': anonymized_at.isoformat(), 'paid_at': self.paid_at.isoformat() if self.paid_at else None},
+            user=self.user,
+        )
+        return self
 
     def mark_as_paid(self):
-        """
-        Preserve backward compatibility for legacy payment hooks.
+        """Mark order as paid once, keeping the operation idempotent."""
+        if self.is_paid():
+            return self
 
-        Payment state now lives in the Payment model and no longer mutates the
-        operational order lifecycle used by the operator dashboard.
+        self.freeze_financials()
 
-        Raises:
-            ValidationError: If order is not in correct state
-        """
-        if not hasattr(self, 'payment'):
-            raise ValidationError('Order has no associated payment.')
+        self.paid_at = timezone.now()
+        if self.status == self.Status.PENDING:
+            self.status = self.Status.CONFIRMED
+            self.save(update_fields=['paid_at', 'status'])
+            AuditService.log('order_paid', self, payload={'status': self.status}, user=self.user)
+            return self
 
-        if not self.payment.is_paid():
-            raise ValidationError('Payment must be paid before marking order as paid.')
-
+        self.save(update_fields=['paid_at'])
+        AuditService.log('order_paid', self, payload={'status': self.status}, user=self.user)
         return self
+
+    def _has_paid_immutable_changes(self) -> bool:
+        """Detect forbidden field changes once the order has been paid."""
+        if not self.pk:
+            return False
+
+        original = Order.objects.filter(pk=self.pk).values(
+            'user_id',
+            'food_truck_id',
+            'pickup_slot_id',
+            'customer_name',
+            'customer_email',
+            'customer_phone',
+            'is_anonymized',
+            'total_price',
+            'total_amount',
+            'tax_amount',
+            'currency',
+            'submitted_at',
+            'paid_at',
+            'anonymized_at',
+        ).first()
+        if not original:
+            return False
+
+        return any([
+            original['user_id'] != self.user_id,
+            original['food_truck_id'] != self.food_truck_id,
+            original['pickup_slot_id'] != self.pickup_slot_id,
+            original['customer_name'] != self.customer_name,
+            original['customer_email'] != self.customer_email,
+            original['customer_phone'] != self.customer_phone,
+            original['is_anonymized'] != self.is_anonymized,
+            original['total_price'] != self.total_price,
+            original['total_amount'] != self.total_amount,
+            original['tax_amount'] != self.tax_amount,
+            original['currency'] != self.currency,
+            original['submitted_at'] != self.submitted_at,
+            original['paid_at'] != self.paid_at,
+            original['anonymized_at'] != self.anonymized_at,
+        ])
+
+    def save(self, *args, **kwargs):
+        """Enforce immutability for paid orders at the model layer."""
+        if not self.pk:
+            self.snapshot_customer_data()
+
+        was_paid = False
+        if self.pk:
+            was_paid = Order.objects.filter(pk=self.pk, paid_at__isnull=False).exists()
+
+        if self.pk and was_paid:
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None:
+                allowed_updates = {'status'}
+                if not set(update_fields).issubset(allowed_updates):
+                    AuditService.log(
+                        'order_modification_blocked',
+                        self,
+                        payload={'update_fields': sorted(list(update_fields))},
+                        user=self.user,
+                    )
+                    raise ValidationError('Paid orders are immutable.')
+            elif self._has_paid_immutable_changes():
+                AuditService.log(
+                    'order_modification_blocked',
+                    self,
+                    payload={'update_fields': None},
+                    user=self.user,
+                )
+                raise ValidationError('Paid orders are immutable.')
+
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of paid orders."""
+        self.assert_mutable()
+        return super().delete(*args, **kwargs)
 
     def clean(self):
         """Validate order constraints."""
@@ -828,10 +1006,21 @@ class OrderItem(models.Model):
         decimal_places=2,
         help_text=_("Price per unit at time of order")
     )
+    tax_rate = models.DecimalField(
+        max_digits=6,
+        decimal_places=4,
+        help_text=_("Tax rate snapshot stored as a fraction")
+    )
+    tax_amount = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_("Tax amount snapshot for this line")
+    )
     total_price = models.DecimalField(
         max_digits=8,
         decimal_places=2,
-        help_text=_("Total price for this item (unit_price * quantity)")
+        help_text=_("Total price for this item including tax")
     )
 
     class Meta:
@@ -857,6 +1046,14 @@ class OrderItem(models.Model):
                 check=models.Q(total_price__gte=0),
                 name='order_item_total_price_non_negative'
             ),
+            models.CheckConstraint(
+                check=models.Q(tax_rate__gte=0),
+                name='order_item_tax_rate_non_negative'
+            ),
+            models.CheckConstraint(
+                check=models.Q(tax_amount__gte=0),
+                name='order_item_tax_amount_non_negative'
+            ),
         ]
 
     def __str__(self):
@@ -874,11 +1071,101 @@ class OrderItem(models.Model):
             return self.combo.name
         return 'Unknown product'
 
+    def _apply_snapshot_totals(self):
+        """Compute totals from the already stored tax snapshot."""
+        subtotal = (self.unit_price or Decimal('0.00')) * (self.quantity or 0)
+        self.tax_amount = (subtotal * (self.tax_rate or Decimal('0.0000'))).quantize(Decimal('0.01'))
+        self.total_price = (subtotal + self.tax_amount).quantize(Decimal('0.01'))
+
+    def _resolve_tax_rate(self):
+        from common.models import Tax
+
+        if self.item_id:
+            return self.item.get_tax_rate()
+
+        default_tax = Tax.objects.default()
+        if default_tax is None:
+            raise ValidationError('No default tax configured.')
+        return default_tax.rate
+
+    def snapshot_pricing(self):
+        """Store all financial data at order time without future tax recomputation."""
+        if self.unit_price is None:
+            raise ValidationError({'unit_price': 'unit_price is required.'})
+        if not self.quantity:
+            raise ValidationError({'quantity': 'quantity is required.'})
+
+        self.tax_rate = self._resolve_tax_rate()
+        self._apply_snapshot_totals()
+        return self
+
+    def clean(self):
+        if self.tax_rate is None:
+            raise ValidationError({'tax_rate': 'tax_rate is required.'})
+
     def save(self, *args, **kwargs):
-        """Ensure total_price consistency."""
-        if self.unit_price and self.quantity:
-            self.total_price = self.unit_price * self.quantity
+        """Prevent writes after payment and store financial snapshots."""
+        if self.order_id and self.order.is_paid():
+            AuditService.log(
+                'order_item_modification_blocked',
+                self,
+                payload={'order_id': self.order_id},
+                user=self.order.user,
+            )
+            raise ValidationError('Order items are immutable after payment.')
+
+        if self.tax_rate is None:
+            self.snapshot_pricing()
+        else:
+            self._apply_snapshot_totals()
+        self.clean()
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None:
+            normalized_fields = set(update_fields)
+            normalized_fields.update({'tax_rate', 'tax_amount', 'total_price'})
+            kwargs['update_fields'] = sorted(normalized_fields)
+
         super().save(*args, **kwargs)
+
+        if self.order_id and self.order.status == Order.Status.DRAFT:
+            self.order._refresh_draft_financials()
+            self.order.save(update_fields=['total_price', 'total_amount', 'tax_amount'])
+
+
+class Ticket(models.Model):
+    """Immutable fiscal ticket snapshot generated once per paid order."""
+
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.PROTECT,
+        related_name='ticket',
+    )
+    number = models.CharField(max_length=32, unique=True)
+    issued_at = models.DateTimeField(default=timezone.now)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payload = models.JSONField(default=dict)
+
+    class Meta:
+        verbose_name = _('Ticket')
+        verbose_name_plural = _('Tickets')
+        ordering = ['-issued_at']
+        indexes = [
+            models.Index(fields=['number']),
+            models.Index(fields=['issued_at']),
+        ]
+        constraints = [
+            models.CheckConstraint(check=models.Q(total_amount__gte=0), name='ticket_total_amount_non_negative'),
+            models.CheckConstraint(check=models.Q(tax_amount__gte=0), name='ticket_tax_amount_non_negative'),
+        ]
+
+    def __str__(self):
+        return self.number
+
+    def save(self, *args, **kwargs):
+        if self.pk and Ticket.objects.filter(pk=self.pk).exists():
+            raise ValidationError('Ticket is immutable after creation.')
+        return super().save(*args, **kwargs)
 
 
 class OrderItemOption(models.Model):

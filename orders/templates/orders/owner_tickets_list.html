@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ foodtruck.name }} - {% trans "Issued tickets" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
+        <div class="col-xl-10">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-body p-4 p-lg-5" style="background: linear-gradient(135deg, {{ foodtruck.get_secondary_color }} 0%, #ffffff 100%);">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <p class="text-uppercase fw-semibold small mb-2">{{ foodtruck.name }}</p>
+                            <h1 class="mb-2">{% trans "Issued tickets" %}</h1>
+                            <p class="text-muted mb-0">{% trans "Review paid tickets by customer for this food truck." %}</p>
+                        </div>
+                        <div class="badge text-bg-dark fs-6">{{ issued_tickets_count }} {% trans "tickets" %}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-1 g-4">
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h2 class="h5 mb-3">{% trans "Customers" %}</h2>
+                    {% if customer_summaries %}
+                        <div class="list-group list-group-flush">
+                            {% for customer in customer_summaries %}
+                                <div class="list-group-item px-0">
+                                    <div class="fw-semibold">{{ customer.order__user__first_name|default:customer.order__user__email }}</div>
+                                    {% if customer.order__user__last_name %}
+                                        <div>{{ customer.order__user__last_name }}</div>
+                                    {% endif %}
+                                    <div class="small text-muted">{{ customer.order__user__email }}</div>
+                                    <div class="small mt-2">{{ customer.ticket_count }} {% trans "ticket(s)" %} · {{ customer.total_amount_sum }} EUR</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">{% trans "No issued tickets yet for this food truck." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-0">
+                    {% if tickets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead style="background-color: {{ foodtruck.get_primary_color }}; color: #ffffff;">
+                                    <tr>
+                                        <th class="px-4 py-3">{% trans "Ticket" %}</th>
+                                        <th class="px-4 py-3">{% trans "Customer" %}</th>
+                                        <th class="px-4 py-3">{% trans "Issued at" %}</th>
+                                        <th class="px-4 py-3 text-end">{% trans "Total" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ticket in tickets %}
+                                    <tr>
+                                        <td class="px-4 py-3">
+                                            <div class="fw-semibold">{{ ticket.number }}</div>
+                                            <div class="text-muted small">{% trans "Order" %} #{{ ticket.order_id }}</div>
+                                        </td>
+                                        <td class="px-4 py-3">{{ ticket.order.user.email }}</td>
+                                        <td class="px-4 py-3">{{ ticket.issued_at|date:"d/m/Y H:i" }}</td>
+                                        <td class="px-4 py-3 text-end fw-semibold">{{ ticket.total_amount }} {{ ticket.order.currency }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 p-lg-5 text-center">
+                            <h2 class="h4 mb-3">{% trans "No issued tickets yet." %}</h2>
+                            <p class="text-muted mb-0">{% trans "Tickets will appear here after successful payments." %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

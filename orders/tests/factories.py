@@ -3,6 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from common.models import Tax
 from foodtrucks.models import FoodTruck, Plan, Subscription
 from menu.models import Menu, Category, Combo, ComboItem, Item, OptionGroup, Option
 from orders.models import PickupSlot, Order
@@ -53,17 +54,31 @@ def MenuFactory(food_truck=None, name='Test Menu'):
     return Menu.objects.create(food_truck=food_truck, name=name)
 
 
+def TaxFactory(name='TVA 10%', rate=Decimal('0.1000'), is_default=True):
+    tax, _ = Tax.objects.get_or_create(
+        name=name,
+        defaults={'rate': rate, 'is_default': is_default},
+    )
+    if tax.rate != rate or tax.is_default != is_default:
+        tax.rate = rate
+        tax.is_default = is_default
+        tax.save(update_fields=['rate', 'is_default'])
+    return tax
+
+
 def CategoryFactory(menu=None, name='Main'):
     menu = menu or MenuFactory()
     return Category.objects.create(menu=menu, name=name)
 
 
-def ItemFactory(category=None, name='Margherita', description='Classic pizza', base_price=Decimal('12.00'), is_available=True):
+def ItemFactory(category=None, name='Margherita', description='Classic pizza', base_price=Decimal('12.00'), is_available=True, tax=None):
     category = category or CategoryFactory()
+    tax = tax or TaxFactory()
     return Item.objects.create(
         category=category,
         name=name,
         description=description,
+        tax=tax,
         base_price=base_price,
         is_available=is_available
     )

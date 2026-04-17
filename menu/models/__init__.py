@@ -4,6 +4,8 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+from common.models import Tax
+
 
 class Menu(models.Model):
     """
@@ -67,6 +69,14 @@ class Item(models.Model):
     )
     name = models.CharField(max_length=200, help_text=_("Name of the item"))
     description = models.TextField(blank=True, help_text=_("Description of the item"))
+    tax = models.ForeignKey(
+        'common.Tax',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='items',
+        help_text=_("Tax configuration applied to this item")
+    )
     base_price = models.DecimalField(
         max_digits=8,
         decimal_places=2,
@@ -93,6 +103,20 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_tax_rate(self):
+        if self.tax_id and self.tax.is_active:
+            return self.tax.rate
+
+        foodtruck = getattr(getattr(self.category, 'menu', None), 'food_truck', None)
+        country = None
+        if foodtruck is not None:
+            country = getattr(foodtruck, 'country', None) or getattr(foodtruck, 'billing_country', None)
+
+        default_tax = Tax.objects.default(country=country)
+        if default_tax is None:
+            raise ValidationError('No default tax configured.')
+        return default_tax.rate
 
     def get_price_with_options(self, selected_options=None):
         """

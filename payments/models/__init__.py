@@ -1,71 +1,45 @@
 from decimal import Decimal
+
 from django.core.exceptions import ValidationError
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from common.services import AuditService
 
 
 class Payment(models.Model):
-    """
-    Represents a payment for a submitted order.
-
-    Tracks the lifecycle of a payment with strictly enforced transitions
-    so that the state machine can stay in sync with order status.
-    """
+    """Represents the Stripe Checkout payment state for one order."""
 
     STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('authorized', 'Authorized'),
         ('paid', 'Paid'),
         ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
     ]
-
-    PROVIDER_CHOICES = [
-        ('stripe', 'Stripe'),
-        ('paypal', 'PayPal'),
-        ('bank_transfer', 'Bank Transfer'),
-    ]
-
-    STATUS_TRANSITIONS = {
-        'pending': {'authorized'},
-        'authorized': {'paid', 'failed'},
-        'paid': {'refunded'},
-    }
 
     order = models.OneToOneField(
         'orders.Order',
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='payment',
-        help_text=_("The order this payment is for")
+        help_text=_("The order this payment is for"),
     )
+    provider = models.CharField(max_length=32, default='stripe', help_text=_("Payment provider"))
+    stripe_session_id = models.CharField(max_length=255, unique=True)
+    stripe_payment_intent = models.CharField(max_length=255, null=True, blank=True)
+    stripe_connect_account_id = models.CharField(max_length=255, null=True, blank=True)
+    transfer_group = models.CharField(max_length=255, null=True, blank=True)
     amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        help_text=_("Payment amount")
-    )
-    currency = models.CharField(
-        max_length=3,
-        default='EUR',
-        help_text=_("Currency code (ISO 4217)")
+        help_text=_("Payment amount"),
     )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='pending',
-        help_text=_("Current payment status")
+        help_text=_("Current payment status"),
     )
-    provider = models.CharField(
-        max_length=50,
-        choices=PROVIDER_CHOICES,
-        default='stripe',
-        help_text=_("Payment provider")
-    )
-    provider_payment_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text=_("Payment ID from the provider")
-    )
+    paid_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the payment was created"))
     updated_at = models.DateTimeField(auto_now=True, help_text=_("When the payment was last updated"))
 
@@ -75,56 +49,99 @@ class Payment(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['status']),
-            models.Index(fields=['provider_payment_id']),
+            models.Index(fields=['paid_at']),
         ]
         constraints = [
             models.CheckConstraint(
                 check=models.Q(amount__gt=0),
-                name='payment_amount_positive'
+                name='payment_amount_positive',
             ),
         ]
 
     def __str__(self):
-        return f"Payment for Order {self.order_id} - {self.amount} {self.currency}"
+        return f"Payment for Order {self.order_id} - {self.amount}"
 
     def is_paid(self):
-        """Return True when the payment reached the paid state."""
         return self.status == 'paid'
 
-    def can_transition_to(self, new_status):
-        """Determine whether transitioning to the provided status is allowed."""
-        if not isinstance(new_status, str):
-            return False
-        allowed = self.STATUS_TRANSITIONS.get(self.status, set())
-        return new_status in allowed
+    @transaction.atomic
+    def mark_as_paid(self, payment_intent_id=None):
+        """Transition to paid and mark the linked order as paid exactly once."""
+        if self.is_paid():
+            return self
 
-    def transition_to(self, new_status, *, provider_payment_id=None):
-        """
-        Transition the payment status through the defined state machine.
+        self.order.freeze_financials()
 
-        The transition is transactional so that the payment cannot land in an
-        intermediate state if saving fails.
-        """
-        new_status = new_status.lower()
+        self.status = 'paid'
+        self.paid_at = timezone.now()
+        if payment_intent_id:
+            self.stripe_payment_intent = payment_intent_id
+            self.save(update_fields=['status', 'paid_at', 'stripe_payment_intent'])
+        else:
+            self.save(update_fields=['status', 'paid_at'])
 
-        if new_status == self.status:
-            raise ValidationError(f"Payment already in '{self.status}' state")
+        AuditService.log(
+            'payment_success',
+            self,
+            payload={'order_id': self.order_id, 'provider': self.provider},
+            user=self.order.user,
+        )
 
-        if not self.can_transition_to(new_status):
-            raise ValidationError(f"Cannot transition from '{self.status}' to '{new_status}'")
+        self.order.mark_as_paid()
 
-        with transaction.atomic():
-            self.status = new_status
-            update_fields = ['status', 'updated_at']
-            if provider_payment_id is not None:
-                self.provider_payment_id = provider_payment_id
-                update_fields.append('provider_payment_id')
-            self.save(update_fields=update_fields)
+        from orders.services.ticket_service import TicketService
+        TicketService.generate_ticket(self.order)
+        return self
+
+    def mark_as_failed(self):
+        """Move a non-paid payment to failed state."""
+        if self.is_paid():
+            raise ValidationError('Cannot fail an already paid payment.')
+        if self.status == 'failed':
+            return self
+
+        self.status = 'failed'
+        self.save(update_fields=['status'])
+        return self
 
     def clean(self):
         """Validate payment data."""
         if self.amount <= Decimal('0.00'):
-            raise ValidationError("Payment amount must be positive")
+            raise ValidationError('Payment amount must be positive')
 
-        if self.currency and len(self.currency) != 3:
-            raise ValidationError("Currency must be a 3-letter code")
+
+class StripeEvent(models.Model):
+    """Stores processed Stripe events to enforce webhook idempotency."""
+
+    stripe_event_id = models.CharField(max_length=255, unique=True)
+    type = models.CharField(max_length=255)
+    processed_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = _('Stripe Event')
+        verbose_name_plural = _('Stripe Events')
+        ordering = ['-processed_at']
+        indexes = [
+            models.Index(fields=['processed_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.type} ({self.stripe_event_id})"
+
+    @classmethod
+    def is_processed(cls, event_id):
+        return cls.objects.filter(stripe_event_id=event_id).exists()
+
+    @classmethod
+    def mark_processed(cls, event_id, event_type):
+        try:
+            _, created = cls.objects.get_or_create(
+                stripe_event_id=event_id,
+                defaults={
+                    'type': event_type,
+                    'processed_at': timezone.now(),
+                },
+            )
+            return created
+        except IntegrityError:
+            return False

@@ -11,10 +11,11 @@ class PaymentSerializer(serializers.ModelSerializer):
             'id',
             'order',
             'amount',
-            'currency',
             'status',
             'provider',
-            'provider_payment_id',
+            'stripe_session_id',
+            'stripe_payment_intent',
+            'paid_at',
             'created_at',
             'updated_at',
         ]

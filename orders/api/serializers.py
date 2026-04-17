@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 import pytz
 
-from ..models import Order, OrderItem, OrderItemOption, PickupSlot, ServiceSchedule
+from ..models import Order, OrderItem, OrderItemOption, PickupSlot, ServiceSchedule, Ticket
 
 PARIS_TZ = pytz.timezone('Europe/Paris')
 
@@ -359,3 +359,24 @@ class OrderSlotAssignmentSerializer(serializers.Serializer):
 class OrderSubmissionSerializer(serializers.Serializer):
     """Serializer for submitting a draft order."""
     order_id = serializers.IntegerField()
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    """Read-only serializer for compliance ticket snapshots."""
+
+    order_id = serializers.IntegerField(source='order.id', read_only=True)
+    currency = serializers.CharField(source='order.currency', read_only=True)
+
+    class Meta:
+        model = Ticket
+        fields = [
+            'id',
+            'number',
+            'order_id',
+            'issued_at',
+            'total_amount',
+            'tax_amount',
+            'currency',
+            'payload',
+        ]
+        read_only_fields = fields

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ foodtruck.name }} - {% trans "My tickets" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
+        <div class="col-xl-10">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-body p-4 p-lg-5" style="background: linear-gradient(135deg, {{ foodtruck.get_secondary_color }} 0%, #ffffff 100%);">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <p class="text-uppercase fw-semibold small mb-2">{{ foodtruck.name }}</p>
+                            <h1 class="mb-2">{% trans "My tickets" %}</h1>
+                            <p class="text-muted mb-0">{% trans "Find all issued tickets for this food truck in one place." %}</p>
+                        </div>
+                        <div>
+                            <a href="{% url 'foodtrucks:foodtruck-detail' slug=foodtruck.slug %}" class="btn btn-outline-dark">
+                                {% trans "Back to menu" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-1">
+        <div class="col-xl-10">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    {% if tickets %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead style="background-color: {{ foodtruck.get_primary_color }}; color: #ffffff;">
+                                    <tr>
+                                        <th class="px-4 py-3">{% trans "Ticket" %}</th>
+                                        <th class="px-4 py-3">{% trans "Issued at" %}</th>
+                                        <th class="px-4 py-3 text-end">{% trans "Tax" %}</th>
+                                        <th class="px-4 py-3 text-end">{% trans "Total" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ticket in tickets %}
+                                    <tr>
+                                        <td class="px-4 py-3">
+                                            <div class="fw-semibold">
+                                                <a class="link-dark text-decoration-none" href="{% url 'orders:ticket-detail-page' slug=foodtruck.slug user_id=request.user.id ticket_id=ticket.id %}">{{ ticket.number }}</a>
+                                            </div>
+                                            <div class="text-muted small">{% trans "Order" %} #{{ ticket.order_id }}</div>
+                                        </td>
+                                        <td class="px-4 py-3">{{ ticket.issued_at|date:"d/m/Y H:i" }}</td>
+                                        <td class="px-4 py-3 text-end">{{ ticket.tax_amount }} {{ ticket.order.currency }}</td>
+                                        <td class="px-4 py-3 text-end fw-semibold">
+                                            {{ ticket.total_amount }} {{ ticket.order.currency }}
+                                            <div class="mt-2 d-flex justify-content-end gap-2 flex-wrap">
+                                                <a class="btn btn-sm btn-dark" href="?ticket={{ ticket.id }}">{% trans "Display" %}</a>
+                                                <a class="btn btn-sm btn-outline-dark" href="{% url 'orders:ticket-detail-page' slug=foodtruck.slug user_id=request.user.id ticket_id=ticket.id %}">{% trans "Open on a dedicated page" %}</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 p-lg-5 text-center">
+                            <h2 class="h4 mb-3">{% trans "No tickets available yet." %}</h2>
+                            <p class="text-muted mb-4">{% trans "Once an order is paid, its ticket will appear here for this food truck." %}</p>
+                            <a href="{% url 'foodtrucks:foodtruck-detail' slug=foodtruck.slug %}" class="btn btn-dark">
+                                {% trans "Browse the menu" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if selected_ticket %}
+    <div class="row justify-content-center mt-1 g-4">
+        <div class="col-xl-10">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-body p-4 p-lg-5" style="background: linear-gradient(135deg, {{ foodtruck.get_secondary_color }} 0%, #ffffff 100%);">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <p class="text-uppercase fw-semibold small mb-2">{{ foodtruck.name }}</p>
+                            <h2 class="mb-2">{{ selected_ticket.number }}</h2>
+                            <p class="text-muted mb-0">{% trans "Issued on" %} {{ selected_ticket.issued_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'orders:ticket-detail-page' slug=foodtruck.slug user_id=request.user.id ticket_id=selected_ticket.id %}" class="btn btn-outline-dark">{% trans "Open on a dedicated page" %}</a>
+                            <button type="button" class="btn btn-dark" onclick="window.print()">{% trans "Print" %}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% include 'orders/partials/_ticket_receipt.html' with ticket=selected_ticket ticket_items=selected_ticket_items %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

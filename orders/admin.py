@@ -1,7 +1,8 @@
 from django.contrib import admin
+from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from common.admin import OwnerRestrictedAdminMixin
-from .models import Location, Order, OrderItem, OrderItemOption, PickupSlot, ServiceSchedule
+from .models import Location, Order, OrderItem, OrderItemOption, PickupSlot, ServiceSchedule, Ticket
 
 
 class ActiveLocationFilter(admin.SimpleListFilter):
@@ -31,17 +32,38 @@ class OrderItemOptionInline(admin.TabularInline):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ('item', 'quantity', 'unit_price', 'total_price')
+    readonly_fields = ('item', 'combo', 'quantity', 'unit_price', 'tax_rate', 'tax_amount', 'total_price')
     inlines = [OrderItemOptionInline]
 
 
 @admin.register(Order)
 class OrderAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('id', 'user', 'food_truck', 'status', 'total_price', 'created_at')
-    search_fields = ('id', 'user__email', 'food_truck__name')
-    list_filter = ('status', 'food_truck', 'created_at')
-    readonly_fields = ('total_price',)
+    list_display = ('id', 'user', 'customer_email', 'food_truck', 'status', 'is_anonymized', 'total_amount', 'tax_amount', 'paid_at', 'created_at')
+    search_fields = ('id', 'user__email', 'customer_email', 'food_truck__name')
+    list_filter = ('status', 'food_truck', 'is_anonymized', 'created_at', 'paid_at')
+    readonly_fields = (
+        'customer_name',
+        'customer_email',
+        'customer_phone',
+        'is_anonymized',
+        'anonymized_at',
+        'total_price',
+        'total_amount',
+        'tax_amount',
+        'currency',
+        'paid_at',
+    )
     inlines = [OrderItemInline]
+    actions = ['anonymize_selected_orders']
+
+    @admin.action(description='Anonymize selected orders')
+    def anonymize_selected_orders(self, request, queryset):
+        anonymized = 0
+        for order in queryset:
+            if order.is_paid() and not order.is_anonymized:
+                order.anonymize()
+                anonymized += 1
+        self.message_user(request, f'{anonymized} order(s) anonymized.', level=messages.SUCCESS)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -126,3 +148,30 @@ class ServiceScheduleAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
 
 # OrderItem and OrderItemOption are managed through inlines, no separate admin needed
 # But if needed, they would be restricted too
+
+
+@admin.register(Ticket)
+class TicketAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
+    list_display = ('number', 'order', 'total_amount', 'tax_amount', 'issued_at')
+    search_fields = ('number', 'order__id', 'order__user__email', 'order__food_truck__name')
+    list_filter = ('issued_at',)
+    readonly_fields = ('order', 'number', 'issued_at', 'total_amount', 'tax_amount', 'payload')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('order__food_truck', 'order__user')
+
+    def _filter_by_food_trucks(self, qs, truck_ids):
+        return qs.filter(order__food_truck_id__in=truck_ids)
+
+    def _object_belongs_to_trucks(self, obj, truck_ids):
+        return obj.order.food_truck_id in truck_ids

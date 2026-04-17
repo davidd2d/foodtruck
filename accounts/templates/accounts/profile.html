@@ -46,6 +46,22 @@
                             {% endif %}
                             </dd>
                         </div>
+                        <div class="account-stat">
+                            <dt>{% trans "My tickets" %}</dt>
+                            <dd>
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'orders:ticket-list-page' slug=foodtruck.slug user_id=request.user.id %}">
+                                    {{ my_ticket_count }}
+                                </a>
+                            </dd>
+                        </div>
+                        <div class="account-stat">
+                            <dt>{% trans "Issued tickets" %}</dt>
+                            <dd>
+                                <a class="btn btn-sm btn-outline-dark" href="{% url 'orders:owner-ticket-list' slug=foodtruck.slug %}">
+                                    {{ issued_tickets_count }}
+                                </a>
+                            </dd>
+                        </div>
                     </dl>
                 </div>
             </div>

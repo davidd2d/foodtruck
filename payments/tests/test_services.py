@@ -28,6 +28,7 @@ class PaymentServiceTests(TestCase):
         self.assertEqual(payment.status, 'pending')
         self.assertEqual(payment.amount, order.calculate_total())
         self.assertEqual(payment.order_id, order.id)
+        self.assertTrue(payment.stripe_session_id.startswith('sim_'))
 
     def test_create_payment_rejects_empty_order(self):
         order = OrderFactory(status='pending')
@@ -42,31 +43,28 @@ class PaymentServiceTests(TestCase):
         with self.assertRaises(ValidationError):
             PaymentService.create_payment(order)
 
-    def test_authorize_payment_transitions_to_authorized(self):
+    def test_authorize_payment_keeps_pending_status(self):
         order = self._prepare_pending_order()
         payment = PaymentService.create_payment(order)
 
         PaymentService.authorize_payment(payment)
 
-        self.assertEqual(payment.status, 'authorized')
+        self.assertEqual(payment.status, 'pending')
 
     def test_capture_payment_keeps_operator_status_unchanged(self):
         order = self._prepare_pending_order()
         payment = PaymentService.create_payment(order)
-        PaymentService.authorize_payment(payment)
-
         PaymentService.capture_payment(payment)
 
         payment.refresh_from_db()
         order.refresh_from_db()
         self.assertEqual(payment.status, 'paid')
-        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.status, 'confirmed')
         self.assertTrue(order.is_paid())
 
     def test_capture_payment_rejects_already_paid_order(self):
         order = self._prepare_pending_order()
         payment = PaymentService.create_payment(order)
-        PaymentService.authorize_payment(payment)
         PaymentService.capture_payment(payment)
 
         with self.assertRaises(ValidationError):
@@ -75,7 +73,6 @@ class PaymentServiceTests(TestCase):
     def test_fail_payment_transitions_to_failed(self):
         order = self._prepare_pending_order()
         payment = PaymentService.create_payment(order)
-        PaymentService.authorize_payment(payment)
         PaymentService.fail_payment(payment)
 
         self.assertEqual(payment.status, 'failed')

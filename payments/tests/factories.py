@@ -40,12 +40,12 @@ def OrderFactory(user=None, food_truck=None, pickup_slot=None, status='pending',
     )
 
 
-def PaymentFactory(order=None, amount=None, status='pending', provider='stripe', currency='EUR'):
+def PaymentFactory(order=None, amount=None, status='pending', provider='stripe', stripe_session_id=None):
     order = order or OrderFactory()
     return Payment.objects.create(
         order=order,
         amount=amount or order.total_price,
         status=status,
         provider=provider,
-        currency=currency
+        stripe_session_id=stripe_session_id or f'sess_{uuid.uuid4().hex}'
     )

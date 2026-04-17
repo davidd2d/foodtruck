@@ -10,12 +10,18 @@ from .views import (
     LocationCreateView,
     LocationUpdateView,
     LocationDeleteView,
+    TicketListView,
+    TicketDetailView,
+    OwnerTicketListView,
 )
 
 app_name = 'orders'
 
 urlpatterns = [
     path('history/', history, name='history'),
+    path('foodtruck/<slug:slug>/users/<int:user_id>/tickets/', TicketListView.as_view(), name='ticket-list-page'),
+    path('foodtruck/<slug:slug>/users/<int:user_id>/tickets/<int:ticket_id>/', TicketDetailView.as_view(), name='ticket-detail-page'),
+    path('foodtruck/<slug:slug>/owner/tickets/', OwnerTicketListView.as_view(), name='owner-ticket-list'),
     path('foodtruck/<slug:slug>/dashboard/', OrderDashboardView.as_view(), name='dashboard'),
     path('foodtruck/<slug:slug>/slots/', manage_pickup_slots, name='manage-pickup-slots'),
     path('foodtruck/<slug:slug>/locations/', LocationListView.as_view(), name='location-list'),

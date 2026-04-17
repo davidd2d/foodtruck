@@ -1,11 +1,15 @@
 from decimal import Decimal
+import csv
+import io
+from datetime import timedelta
 
+from django.utils import timezone
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from accounts.tests.base import JWTAPITestCase
-from orders.tests.factories import CategoryFactory, ItemFactory, MenuFactory, OrderFactory
+from orders.tests.factories import CategoryFactory, FoodTruckFactory, ItemFactory, MenuFactory, OrderFactory
 from payments.models import Payment
 from payments.services.payment_service import PaymentService
 from payments.tests.factories import UserFactory
@@ -59,7 +63,7 @@ class PaymentAPITests(JWTAPITestCase):
         response = self.client.post(reverse('payment-authorize'), {'payment_id': payment.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'authorized')
+        self.assertEqual(response.data['status'], 'pending')
 
     def test_authorize_payment_missing_payment(self):
         self.authenticate_user(self.user)
@@ -71,19 +75,20 @@ class PaymentAPITests(JWTAPITestCase):
         order = self._prepare_order_with_items(self.user)
         self.authenticate_user(self.user)
         payment = PaymentService.create_payment(order)
-        PaymentService.authorize_payment(payment)
 
         response = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], 'paid')
         order.refresh_from_db()
-        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.status, 'confirmed')
 
-    def test_capture_requires_authorized_payment(self):
+    def test_capture_rejects_second_capture(self):
         order = self._prepare_order_with_items(self.user)
         self.authenticate_user(self.user)
         payment = PaymentService.create_payment(order)
+        first = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
 
         response = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
 
@@ -92,7 +97,6 @@ class PaymentAPITests(JWTAPITestCase):
     def test_user_cannot_capture_other_users_payment(self):
         order = self._prepare_order_with_items(self.other_user)
         payment = PaymentService.create_payment(order)
-        PaymentService.authorize_payment(payment)
 
         self.authenticate_user(self.user)
         response = self.client.post(reverse('payment-capture'), {'payment_id': payment.id})
@@ -115,6 +119,48 @@ class PaymentAPITests(JWTAPITestCase):
         self.assertEqual(captured.status_code, status.HTTP_200_OK)
 
         order.refresh_from_db()
-        self.assertEqual(order.status, 'pending')
+        self.assertEqual(order.status, 'confirmed')
         payment = Payment.objects.get(id=payment_id)
         self.assertEqual(payment.status, 'paid')
+
+    def test_owner_can_download_accounting_export_for_owned_truck(self):
+        self.user.is_foodtruck_owner = True
+        self.user.save(update_fields=['is_foodtruck_owner'])
+        food_truck = FoodTruckFactory(owner=self.user)
+        order = OrderFactory(user=self.user, food_truck=food_truck, status='draft')
+        menu = MenuFactory(food_truck=food_truck)
+        category = CategoryFactory(menu=menu)
+        item = ItemFactory(category=category, base_price=Decimal('15.00'))
+        order.add_item(item, quantity=1)
+        order.submit()
+        payment = PaymentService.create_payment(order)
+        PaymentService.capture_payment(payment)
+        order.refresh_from_db()
+        order.__class__.objects.filter(pk=order.pk).update(paid_at=timezone.now() - timedelta(days=1))
+
+        self.authenticate_user(self.user)
+        response = self.client.get(reverse('payment-accounting-export'), {
+            'start_date': str(timezone.localdate() - timedelta(days=7)),
+            'end_date': str(timezone.localdate()),
+            'foodtruck': food_truck.slug,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        rows = list(csv.DictReader(io.StringIO(response.content.decode('utf-8'))))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['food_truck_slug'], food_truck.slug)
+
+    def test_owner_cannot_download_accounting_export_for_other_truck(self):
+        other_owner = UserFactory()
+        other_owner.is_foodtruck_owner = True
+        other_owner.save(update_fields=['is_foodtruck_owner'])
+        other_truck = FoodTruckFactory(owner=other_owner)
+
+        self.authenticate_user(self.user)
+        response = self.client.get(reverse('payment-accounting-export'), {
+            'start_date': str(timezone.localdate() - timedelta(days=7)),
+            'end_date': str(timezone.localdate()),
+            'foodtruck': other_truck.slug,
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

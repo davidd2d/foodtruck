@@ -10,7 +10,24 @@
             <div class="alert alert-success">
                 <h1 class="h4 mb-3">{% trans "Payment successful!" %}</h1>
                 <p class="mb-0">{% trans "Thank you for your order. We'll notify you when it's ready for pickup." %}</p>
-                <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-link mt-3">{% trans "Back to food trucks" %}</a>
+                {% if order %}
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+                        {% if order.ticket %}
+                            <a href="{% url 'orders:ticket-detail-page' slug=order.food_truck.slug user_id=request.user.id ticket_id=order.ticket.id %}" class="btn btn-success">
+                                {% trans "View my ticket" %}
+                            </a>
+                        {% else %}
+                            <a href="{% url 'orders:ticket-list-page' slug=order.food_truck.slug user_id=request.user.id %}" class="btn btn-success">
+                                {% trans "View my tickets" %}
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'foodtrucks:foodtruck-detail' slug=order.food_truck.slug %}" class="btn btn-outline-success">
+                            {% trans "Back to menu" %}
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'foodtrucks:foodtruck-list' %}" class="btn btn-link mt-3">{% trans "Back to food trucks" %}</a>
+                {% endif %}
             </div>
         </div>
     </div>

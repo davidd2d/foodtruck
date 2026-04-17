@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.foodtruck.anonymize-old-orders</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>/Users/david/Documents/foodtruck/scripts/run_anonymize_old_orders.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/david/Documents/foodtruck</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>FOODTRUCK_ROOT</key>
+        <string>/Users/david/Documents/foodtruck</string>
+        <key>FOODTRUCK_PYTHON</key>
+        <string>/Users/david/Documents/foodtruck/venv/bin/python</string>
+        <key>FOODTRUCK_RETENTION_DAYS</key>
+        <string>90</string>
+        <key>FOODTRUCK_RETENTION_BATCH_SIZE</key>
+        <string>500</string>
+    </dict>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>2</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/david/Documents/foodtruck/logs/anonymize-old-orders.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/david/Documents/foodtruck/logs/anonymize-old-orders.log</string>
+</dict>
+</plist>

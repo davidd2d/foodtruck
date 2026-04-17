@@ -5,10 +5,26 @@ from .models import FoodTruck, Plan, Subscription
 
 @admin.register(FoodTruck)
 class FoodTruckAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'owner', 'default_language', 'is_active', 'get_plan')
+    list_display = (
+        'name',
+        'owner',
+        'default_language',
+        'is_active',
+        'stripe_onboarding_completed',
+        'stripe_charges_enabled',
+        'stripe_payouts_enabled',
+        'get_plan',
+    )
     search_fields = ('name',)
-    list_filter = ('default_language', 'is_active',)
+    list_filter = ('default_language', 'is_active', 'stripe_onboarding_completed', 'stripe_charges_enabled', 'stripe_payouts_enabled')
     autocomplete_fields = ('owner', 'supported_preferences')
+    readonly_fields = (
+        'stripe_connect_account_id',
+        'stripe_onboarding_completed',
+        'stripe_details_submitted',
+        'stripe_charges_enabled',
+        'stripe_payouts_enabled',
+    )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

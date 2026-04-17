@@ -210,6 +210,29 @@ class FoodTruck(models.Model):
         help_text=_("SEO-friendly resource slug")
     )
 
+    stripe_connect_account_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_("Stripe Connect account id for seller payouts")
+    )
+    stripe_onboarding_completed = models.BooleanField(
+        default=False,
+        help_text=_("Whether seller onboarding is complete")
+    )
+    stripe_details_submitted = models.BooleanField(
+        default=False,
+        help_text=_("Whether Stripe account details were submitted")
+    )
+    stripe_charges_enabled = models.BooleanField(
+        default=False,
+        help_text=_("Whether Stripe charges are enabled")
+    )
+    stripe_payouts_enabled = models.BooleanField(
+        default=False,
+        help_text=_("Whether Stripe payouts are enabled")
+    )
+
     # Location
     latitude = models.DecimalField(
         max_digits=9,
@@ -245,6 +268,7 @@ class FoodTruck(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['is_active']),
+            models.Index(fields=['stripe_connect_account_id']),
         ]
 
     def __str__(self):

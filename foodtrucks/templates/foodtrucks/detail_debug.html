@@ -8,6 +8,7 @@
     data-foodtruck-slug="{{ foodtruck.slug }}"
     data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
     data-ordering-enabled="{{ foodtruck.can_accept_orders|yesno:'true,false' }}"
+    data-payment-checkout-url-template="{% url 'payments:checkout' slug=foodtruck.slug order_id=0 %}"
     data-recommended-pickup-message="{% trans 'Recommended pickup time selected automatically.' %}"
     data-pickup-now-message="{% trans 'Recommended pickup: right now' %}"
     data-next-pickup-message="{% trans 'Next available slot: {time}' %}"
@@ -17,7 +18,8 @@
     data-no-slots-option-label="{% trans 'No pickup slots available.' %}"
     data-no-slots-message="{% trans 'No pickup slots are currently available.' %}"
     data-load-slots-error-label="{% trans 'Unable to load pickup slots.' %}"
-    data-select-slot-message="{% trans 'Select a pickup slot before checkout.' %}">
+    data-select-slot-message="{% trans 'Select a pickup slot before checkout.' %}"
+    data-redirecting-to-payment-message="{% trans 'Order submitted. Redirecting to payment...' %}">
     <div class="row gy-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm overflow-hidden">

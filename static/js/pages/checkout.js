@@ -8,6 +8,7 @@ export function createCheckoutHandler({
     refreshCart,
     setCheckoutState,
     userAuthenticated,
+    paymentCheckoutUrlTemplate,
     translations = {},
 }) {
     const labels = {
@@ -16,10 +17,18 @@ export function createCheckoutHandler({
         processingLabel: 'Processing...',
         finalizingMessage: 'Finalizing your order...',
         orderSubmittedMessage: 'Order submitted (#{orderId}).',
+        redirectingToPaymentMessage: 'Order submitted. Redirecting to payment...',
         cartContinueMessage: 'Add items to your cart to continue.',
         checkoutErrorMessage: 'Unable to complete checkout.',
         checkoutLabel: checkoutButton?.textContent?.trim() || 'Checkout',
         ...translations,
+    };
+
+    const buildPaymentCheckoutUrl = (orderId) => {
+        if (paymentCheckoutUrlTemplate) {
+            return paymentCheckoutUrlTemplate.replace(/0\/?$/, `${orderId}/`);
+        }
+        return `/payments/checkout/${orderId}/`;
     };
 
     return async function handleCheckout() {
@@ -54,15 +63,13 @@ export function createCheckoutHandler({
             const { order_id } = await checkoutCart();
             await setPickupSlot(order_id, slotId);
             await submitOrder(order_id);
-            await refreshCart();
 
             if (checkoutHelp) {
                 checkoutHelp.classList.remove('text-danger');
                 checkoutHelp.classList.add('text-success');
-                checkoutHelp.textContent = interpolate(labels.orderSubmittedMessage, { orderId: order_id });
+                checkoutHelp.textContent = labels.redirectingToPaymentMessage;
             }
-            slotSelector?.reset(labels.cartContinueMessage);
-            setCheckoutState(false, labels.cartContinueMessage);
+            window.location.assign(buildPaymentCheckoutUrl(order_id));
         } catch (error) {
             if (checkoutHelp) {
                 checkoutHelp.classList.remove('text-success');

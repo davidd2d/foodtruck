@@ -3,16 +3,25 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 
 from django.contrib.auth import logout
 from foodtrucks.models import FoodTruck
+from orders.models import Ticket
 from .models import User
 from .forms import CustomUserCreationForm, OwnerAccountProfileForm, OwnerFoodTruckProfileForm
 from .utils import send_confirmation_email, verify_email_confirmation_token
 
 def register(request):
     if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
+        post_data = request.POST.copy()
+        # Backward compatibility: accept a single "password" key and map it to
+        # the Django UserCreationForm expected fields.
+        if post_data.get('password') and not post_data.get('password1') and not post_data.get('password2'):
+            post_data['password1'] = post_data['password']
+            post_data['password2'] = post_data['password']
+
+        form = CustomUserCreationForm(post_data)
         print("Création d'un nouvel utilisateur")
         if form.is_valid():
             user = form.save(commit=False)
@@ -98,6 +107,11 @@ def profile(request, slug):
                     messages.success(request, _("Your account has been updated."))
                 return redirect('accounts:profile', slug=foodtruck.slug)
 
+    owner_ticket_stats = Ticket.objects.filter(order__food_truck=foodtruck).aggregate(
+        issued_tickets_count=Count('id')
+    )
+    my_ticket_count = Ticket.objects.filter(order__food_truck=foodtruck, order__user=request.user).count()
+
     return render(
         request,
         "accounts/profile.html",
@@ -105,5 +119,7 @@ def profile(request, slug):
             "account_form": account_form,
             "foodtruck_form": foodtruck_form,
             "foodtruck": foodtruck,
+            "issued_tickets_count": owner_ticket_stats['issued_tickets_count'] or 0,
+            "my_ticket_count": my_ticket_count,
         },
     )

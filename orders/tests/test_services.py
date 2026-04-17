@@ -243,4 +243,4 @@ class OrderServiceTests(TestCase):
 
         self.assertEqual(order.items.count(), 1)
         self.assertEqual(order.items.first().combo_id, self.combo.id)
-        self.assertEqual(order.total_price, Decimal('16.00'))
+        self.assertEqual(order.total_price, Decimal('17.60'))

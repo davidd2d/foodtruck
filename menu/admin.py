@@ -19,7 +19,7 @@ class OptionGroupInline(admin.TabularInline):
 class ItemInline(admin.TabularInline):
     model = Item
     extra = 0
-    fields = ('name', 'base_price', 'is_available', 'display_order')
+    fields = ('name', 'tax', 'base_price', 'is_available', 'display_order')
     autocomplete_fields = ('compatible_preferences',)
 
 
@@ -113,9 +113,9 @@ class CategoryAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
 
 @admin.register(Item)
 class ItemAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'category', 'base_price', 'is_available')
+    list_display = ('name', 'category', 'tax', 'base_price', 'is_available')
     search_fields = ('name', 'category__name', 'category__menu__name', 'category__menu__food_truck__name')
-    list_filter = ('is_available', 'category__menu')
+    list_filter = ('is_available', 'tax', 'category__menu')
     autocomplete_fields = ('compatible_preferences',)
     inlines = [OptionGroupInline]
 

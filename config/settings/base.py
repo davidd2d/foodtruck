@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     'parler',
+    'common',
 
     'accounts.apps.AccountsConfig',
     'foodtrucks.apps.FoodtrucksConfig',

@@ -30,6 +30,11 @@ class FoodTruckBrandingTemplateTests(TestCase):
         response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(response, reverse('accounts:profile', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(response, reverse('orders:history'))
+        self.assertContains(response, reverse(
+            'orders:ticket-list-page',
+            kwargs={'slug': self.foodtruck.slug, 'user_id': self.foodtruck.owner.id},
+        ))
+        self.assertContains(response, reverse('orders:owner-ticket-list', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(response, reverse('accounts:logout'))
 
     def test_user_menu_shows_login_when_anonymous(self):

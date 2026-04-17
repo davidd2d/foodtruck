@@ -24,6 +24,7 @@
                         {% if user.is_authenticated %}
                             <li><a class="dropdown-item" href="{% url 'accounts:profile' slug=foodtruck.slug %}">{% trans "Profile" %}</a></li>
                             <li><a class="dropdown-item" href="{% url 'orders:history' %}">{% trans "Orders" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'orders:ticket-list-page' slug=foodtruck.slug user_id=user.id %}">{% trans "My tickets" %}</a></li>
                             {% if user.is_staff %}
                                 <li><a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
                             {% endif %}
@@ -36,6 +37,9 @@
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'orders:location-list' slug=foodtruck.slug %}">{% trans "Locations" %}</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'orders:owner-ticket-list' slug=foodtruck.slug %}">{% trans "Issued tickets" %}</a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}">{% trans "AI Menu" %}</a>

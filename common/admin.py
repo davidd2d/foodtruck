@@ -1,4 +1,5 @@
 from django.contrib import admin
+from common.models import AuditLog, Tax
 
 
 class OwnerRestrictedAdminMixin:
@@ -103,3 +104,28 @@ class OwnerRestrictedAdminMixin:
         the specific ownership check for each model.
         """
         raise NotImplementedError("Subclasses must implement _object_belongs_to_trucks")
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ('action', 'model', 'object_id', 'created_at', 'user')
+    search_fields = ('action', 'model', 'object_id', 'user__email')
+    list_filter = ('action', 'model', 'created_at')
+    readonly_fields = ('action', 'model', 'object_id', 'payload', 'created_at', 'user')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Tax)
+class TaxAdmin(admin.ModelAdmin):
+    list_display = ('name', 'country', 'rate', 'is_active', 'is_default', 'created_at')
+    list_filter = ('country', 'is_active', 'is_default', 'created_at')
+    search_fields = ('name',)
+    readonly_fields = ('created_at',)

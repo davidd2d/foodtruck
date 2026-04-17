@@ -1,9 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Sum
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -11,7 +12,7 @@ from django.views.generic import TemplateView
 
 from foodtrucks.models import FoodTruck
 from .forms import LocationForm
-from .models import Location, Order
+from .models import Location, Order, Ticket
 from menu.services.menu_service import MenuService
 from orders.services.order_service import OrderService
 
@@ -83,6 +84,18 @@ class FoodTruckOwnerMixin(LoginRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         slug = self.kwargs.get('slug')
         self.foodtruck = FoodTruck.objects.filter(slug=slug, owner=request.user, is_active=True).first()
+        if not self.foodtruck:
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_menu_categories(self):
+        return _load_menu_categories(self.foodtruck)
+
+
+class FoodTruckContextMixin(LoginRequiredMixin):
+    def dispatch(self, request, *args, **kwargs):
+        slug = self.kwargs.get('slug')
+        self.foodtruck = FoodTruck.objects.filter(slug=slug, is_active=True).first()
         if not self.foodtruck:
             raise Http404
         return super().dispatch(request, *args, **kwargs)
@@ -219,6 +232,109 @@ class LocationDeleteView(FoodTruckOwnerMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy('orders:location-list', kwargs={'slug': self.foodtruck.slug})
+
+
+class TicketListView(FoodTruckContextMixin, ListView):
+    """Display the authenticated customer's issued tickets for one food truck."""
+
+    model = Ticket
+    template_name = 'orders/tickets_list.html'
+    context_object_name = 'tickets'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        if kwargs.get('user_id') != request.user.id:
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Ticket.objects.filter(
+            order__user_id=self.kwargs['user_id'],
+            order__food_truck=self.foodtruck,
+        ).select_related(
+            'order',
+            'order__food_truck',
+        ).order_by('-issued_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tickets = context['tickets']
+        selected_ticket = None
+        selected_ticket_id = self.request.GET.get('ticket')
+        if selected_ticket_id:
+            selected_ticket = tickets.filter(pk=selected_ticket_id).first()
+        elif tickets.count() == 1:
+            selected_ticket = tickets.first()
+
+        context.update({
+            'foodtruck': self.foodtruck,
+            'categories': self.get_menu_categories(),
+            'ticket_list_url': reverse(
+                'orders:ticket-list-page',
+                kwargs={'slug': self.foodtruck.slug, 'user_id': self.request.user.id},
+            ),
+            'selected_ticket': selected_ticket,
+            'selected_ticket_items': selected_ticket.payload.get('items', []) if selected_ticket else [],
+        })
+        return context
+
+
+class TicketDetailView(FoodTruckContextMixin, TemplateView):
+    """Display one immutable ticket for the authenticated customer."""
+
+    template_name = 'orders/ticket_detail.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        if kwargs.get('user_id') != request.user.id:
+            raise Http404
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ticket = get_object_or_404(
+            Ticket.objects.select_related('order', 'order__food_truck', 'order__user'),
+            pk=self.kwargs['ticket_id'],
+            order__user_id=self.kwargs['user_id'],
+            order__food_truck=self.foodtruck,
+        )
+        context.update({
+            'foodtruck': self.foodtruck,
+            'categories': self.get_menu_categories(),
+            'ticket': ticket,
+            'ticket_items': ticket.payload.get('items', []),
+        })
+        return context
+
+
+class OwnerTicketListView(FoodTruckOwnerMixin, TemplateView):
+    """Display issued tickets for the owned food truck grouped by customer."""
+
+    template_name = 'orders/owner_tickets_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tickets = Ticket.objects.filter(order__food_truck=self.foodtruck).select_related(
+            'order',
+            'order__user',
+        ).order_by('-issued_at')
+
+        customer_summaries = (
+            tickets.values('order__user_id', 'order__user__email', 'order__user__first_name', 'order__user__last_name')
+            .annotate(ticket_count=Count('id'), total_amount_sum=Sum('total_amount'))
+            .order_by('-ticket_count', 'order__user__email')
+        )
+
+        context.update({
+            'foodtruck': self.foodtruck,
+            'categories': self.get_menu_categories(),
+            'customer_summaries': customer_summaries,
+            'tickets': tickets,
+            'issued_tickets_count': tickets.count(),
+        })
+        return context
 
 
 def _format_base_location(foodtruck):

@@ -1,4 +1,5 @@
 from decimal import Decimal
+import uuid
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -34,24 +35,27 @@ class PaymentService:
             order=order,
             amount=total,
             status='pending',
+            stripe_session_id=f'sim_{uuid.uuid4().hex}',
+            stripe_connect_account_id=order.food_truck.stripe_connect_account_id,
+            transfer_group=f'order_{order.id}',
         )
 
     @staticmethod
     def authorize_payment(payment: Payment) -> Payment:
-        """Simulate provider authorization for a pending payment."""
-
-        payment.transition_to('authorized')
+        """Legacy no-op endpoint retained for backward compatibility."""
+        if payment.status != 'pending':
+            raise ValidationError('Only pending payments can remain authorized for checkout.')
         return payment
 
     @staticmethod
     def capture_payment(payment: Payment) -> Payment:
-        """Simulate capture while leaving the operator lifecycle unchanged."""
+        """Capture funds and mark payment/order as paid."""
 
         if payment.order.is_paid():
             raise ValidationError('Order has already been marked as paid.')
 
         with transaction.atomic():
-            payment.transition_to('paid')
+            payment.mark_as_paid(payment_intent_id=payment.stripe_payment_intent)
 
         return payment
 
@@ -59,5 +63,5 @@ class PaymentService:
     def fail_payment(payment: Payment) -> Payment:
         """Bring a payment into the failed state."""
 
-        payment.transition_to('failed')
+        payment.mark_as_failed()
         return payment

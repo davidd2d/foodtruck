@@ -58,7 +58,7 @@ class OrderAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.total_price, Decimal('24.00'))
+        self.assertEqual(order.total_price, Decimal('26.40'))
 
     def test_submit_order_success(self):
         order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
@@ -153,7 +153,7 @@ class OrderAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order.refresh_from_db()
-        self.assertEqual(order.total_price, Decimal('14.00'))
+        self.assertEqual(order.total_price, Decimal('15.40'))
 
     def test_fetch_available_pickup_slots(self):
         url = reverse('foodtruck-pickup-slots', kwargs={'slug': self.foodtruck.slug})
