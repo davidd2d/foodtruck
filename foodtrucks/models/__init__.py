@@ -168,6 +168,11 @@ class FoodTruck(models.Model):
         related_name='foodtrucks',
         help_text=_("The user who owns this food truck")
     )
+
+    class PriceDisplayMode(models.TextChoices):
+        TAX_EXCLUDED = 'tax_excluded', _('Taxes added to displayed prices')
+        TAX_INCLUDED = 'tax_included', _('Taxes included in displayed prices')
+
     default_language = models.CharField(
         max_length=10,
         choices=settings.LANGUAGES,
@@ -176,6 +181,12 @@ class FoodTruck(models.Model):
     )
     name = models.CharField(max_length=200, help_text=_("Name of the food truck"))
     description = models.TextField(blank=True, help_text=_("Description of the food truck"))
+    price_display_mode = models.CharField(
+        max_length=20,
+        choices=PriceDisplayMode.choices,
+        default=PriceDisplayMode.TAX_INCLUDED,
+        help_text=_("Whether displayed prices already include taxes or should show taxes separately")
+    )
     is_active = models.BooleanField(default=True, help_text=_("Whether the food truck is active"))
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the food truck was created"))
 
@@ -277,6 +288,18 @@ class FoodTruck(models.Model):
     def get_content_language(self):
         """Return the primary content language for this food truck."""
         return self.default_language or settings.LANGUAGE_CODE
+
+    def prices_include_tax(self):
+        return self.price_display_mode == self.PriceDisplayMode.TAX_INCLUDED
+
+    def get_display_price(self, amount, tax_rate=None):
+        amount = amount if amount is not None else Decimal('0.00')
+        tax_rate = tax_rate if tax_rate is not None else Decimal('0.0000')
+
+        if not self.prices_include_tax():
+            return amount.quantize(Decimal('0.01'))
+
+        return (amount * (Decimal('1.00') + tax_rate)).quantize(Decimal('0.01'))
 
     def get_default_menu_name(self):
         """Return a default menu name in the food truck content language."""

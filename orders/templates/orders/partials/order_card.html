@@ -12,7 +12,7 @@
             <div class="text-end">
                 <div class="fw-semibold">€{{ order.total_price }}</div>
                 {% if order.is_urgent %}
-                    <span class="badge text-bg-danger mt-1">{% trans "Urgent pickup" %}</span>
+                    <span class="badge text-bg-danger mt-1">{% trans "Pickup soon" %}</span>
                 {% endif %}
             </div>
         </div>
@@ -33,20 +33,36 @@
                             {% endfor %}
                         </div>
                     {% endif %}
+                    {% if item.combo_id and item.options %}
+                        <ul class="small text-muted ps-3 mt-2 mb-0">
+                            {% for component in item.options %}
+                                <li>
+                                    {{ component.quantity }}x {{ component.item_name }}
+                                    {% if component.selected_options %}
+                                        <span class="text-muted">·
+                                            {% for option in component.selected_options %}
+                                                {{ option.name }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </li>
             {% endfor %}
         </ul>
         <div class="d-flex flex-wrap gap-2">
             {% if order.status == 'pending' %}
-                <button type="button" class="btn btn-sm btn-primary js-order-status" data-next-status="confirmed">{% trans "Confirm order" %}</button>
+                <button type="button" class="btn btn-sm btn-primary js-order-status" data-next-status="confirmed">{% trans "Validate order" %}</button>
                 <button type="button" class="btn btn-sm btn-outline-danger js-order-status" data-next-status="cancelled">{% trans "Cancel order" %}</button>
             {% elif order.status == 'confirmed' %}
-                <button type="button" class="btn btn-sm btn-primary js-order-status" data-next-status="preparing">{% trans "Start preparing" %}</button>
+                <button type="button" class="btn btn-sm btn-primary js-order-status" data-next-status="preparing">{% trans "Start preparation" %}</button>
                 <button type="button" class="btn btn-sm btn-outline-danger js-order-status" data-next-status="cancelled">{% trans "Cancel order" %}</button>
             {% elif order.status == 'preparing' %}
-                <button type="button" class="btn btn-sm btn-success js-order-status" data-next-status="ready">{% trans "Mark as ready" %}</button>
+                <button type="button" class="btn btn-sm btn-success js-order-status" data-next-status="ready">{% trans "Mark ready for pickup" %}</button>
             {% elif order.status == 'ready' %}
-                <button type="button" class="btn btn-sm btn-dark js-order-status" data-next-status="completed">{% trans "Complete" %}</button>
+                <button type="button" class="btn btn-sm btn-dark js-order-status" data-next-status="completed">{% trans "Close order" %}</button>
             {% endif %}
         </div>
     </div>

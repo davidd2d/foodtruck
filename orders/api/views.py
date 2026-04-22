@@ -174,6 +174,7 @@ class CartAddView(APIView):
                         foodtruck_slug=serializer.validated_data['foodtruck_slug'],
                         combo_id=serializer.validated_data['combo_id'],
                         quantity=serializer.validated_data['quantity'],
+                        combo_selections=serializer.validated_data.get('combo_selections', []),
                     )
                 else:
                     cart_service.add_item(

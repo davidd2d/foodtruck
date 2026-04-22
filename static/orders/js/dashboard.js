@@ -62,6 +62,21 @@ function escapeHtml(value) {
 }
 
 function renderOrderLine(item) {
+    const comboComponentsMarkup = (item.combo_components || []).length
+        ? `
+            <ul class="small text-muted ps-3 mt-2 mb-0">
+                ${item.combo_components.map((component) => `
+                    <li>
+                        ${escapeHtml(String(component.quantity || 1))}x ${escapeHtml(component.item_name || component.label || '')}
+                        ${(component.selected_options || []).length
+                            ? `<span class="text-muted"> · ${(component.selected_options || []).map((option) => escapeHtml(option.name || '')).join(', ')}</span>`
+                            : ''}
+                    </li>
+                `).join('')}
+            </ul>
+        `
+        : '';
+
     const optionsMarkup = (item.selected_options || []).length
         ? `
             <div class="d-flex flex-wrap gap-1 mt-1">
@@ -80,6 +95,7 @@ function renderOrderLine(item) {
                 <span class="text-nowrap">€${item.total_price}</span>
             </div>
             ${optionsMarkup}
+            ${comboComponentsMarkup}
         </li>
     `;
 }

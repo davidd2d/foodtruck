@@ -115,6 +115,31 @@ class CartServiceTests(TestCase):
         self.assertEqual(cart['items'][0]['combo_id'], self.combo.id)
         self.assertEqual(cart['total_price'], '28.00')
 
+    def test_add_configurable_combo_adds_selected_components_and_discounted_total(self):
+        dessert_category = CategoryFactory(menu=self.category.menu, name='Desserts')
+        dessert = ItemFactory(category=dessert_category, name='Tiramisu', base_price=Decimal('4.00'))
+        option_group = OptionGroupFactory(item=self.item, name='Extras', min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, name='Cheese', price_modifier=Decimal('1.50'))
+        configurable_combo = ComboFactory(category=self.category, combo_price=None, discount_amount=Decimal('2.00'))
+        ComboItemFactory(combo=configurable_combo, source_category=self.category, item=None, display_name='Main')
+        ComboItemFactory(combo=configurable_combo, source_category=dessert_category, item=None, display_name='Dessert')
+
+        self.cart_service.add_combo(
+            foodtruck_slug=self.foodtruck.slug,
+            combo_id=configurable_combo.id,
+            quantity=1,
+            combo_selections=[
+                {'combo_item_id': configurable_combo.combo_items.order_by('id')[0].id, 'item_id': self.item.id, 'selected_options': [option.id]},
+                {'combo_item_id': configurable_combo.combo_items.order_by('id')[1].id, 'item_id': dessert.id, 'selected_options': []},
+            ],
+        )
+
+        cart = self.cart_service.get_cart()
+        self.assertEqual(cart['items'][0]['line_type'], 'combo')
+        self.assertEqual(cart['items'][0]['total_price'], '13.50')
+        self.assertEqual(len(cart['items'][0]['combo_components']), 2)
+        self.assertEqual(cart['items'][0]['combo_components'][0]['selected_options'][0]['name'], 'Cheese')
+
 
 class OrderServiceTests(TestCase):
     def setUp(self):
@@ -244,3 +269,49 @@ class OrderServiceTests(TestCase):
         self.assertEqual(order.items.count(), 1)
         self.assertEqual(order.items.first().combo_id, self.combo.id)
         self.assertEqual(order.total_price, Decimal('17.60'))
+
+    def test_create_order_from_cart_with_configurable_combo_keeps_snapshot(self):
+        dessert_category = CategoryFactory(menu=self.category.menu, name='Desserts')
+        dessert = ItemFactory(category=dessert_category, name='Cookie', base_price=Decimal('3.00'))
+        option_group = OptionGroupFactory(item=self.item, name='Extras', min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, name='Cheese', price_modifier=Decimal('1.00'))
+        configurable_combo = ComboFactory(category=self.category, combo_price=None, discount_amount=Decimal('2.00'))
+        main_component = ComboItemFactory(combo=configurable_combo, source_category=self.category, item=None, display_name='Main')
+        dessert_component = ComboItemFactory(combo=configurable_combo, source_category=dessert_category, item=None, display_name='Dessert')
+
+        session = DummySession()
+        session[CartService.SESSION_KEY] = {
+            'foodtruck_slug': self.foodtruck.slug,
+            'items': [
+                {
+                    'line_key': f'combo:{configurable_combo.id}:snapshot',
+                    'line_type': 'combo',
+                    'item_id': None,
+                    'combo_id': configurable_combo.id,
+                    'item_name': configurable_combo.name,
+                    'component_summary': 'Margherita, Cookie',
+                    'quantity': 1,
+                    'unit_price': '12.00',
+                    'total_price': '12.00',
+                    'combo_components': [
+                        {
+                            'combo_item_id': main_component.id,
+                            'item_id': self.item.id,
+                            'selected_options': [{'option_id': option.id}],
+                        },
+                        {
+                            'combo_item_id': dessert_component.id,
+                            'item_id': dessert.id,
+                            'selected_options': [],
+                        },
+                    ],
+                    'selected_options': [],
+                }
+            ],
+        }
+
+        order = OrderService.create_order_from_cart(self.user, session, pickup_slot_id=self.slot.id)
+
+        self.assertEqual(order.items.count(), 1)
+        self.assertEqual(order.items.first().combo_id, configurable_combo.id)
+        self.assertEqual(len(order.items.first().options), 2)

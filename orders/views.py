@@ -170,7 +170,7 @@ class LocationCreateView(FoodTruckOwnerMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.food_truck = self.foodtruck
-        messages.success(self.request, 'Location saved successfully.')
+        messages.success(self.request, _('Location saved successfully.'))
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -197,7 +197,7 @@ class LocationUpdateView(FoodTruckOwnerMixin, UpdateView):
         return kwargs
 
     def form_valid(self, form):
-        messages.success(self.request, 'Location updated successfully.')
+        messages.success(self.request, _('Location updated successfully.'))
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -221,7 +221,7 @@ class LocationDeleteView(FoodTruckOwnerMixin, DeleteView):
         self.object = self.get_object()
         self.object.is_active = False
         self.object.save(update_fields=['is_active'])
-        messages.success(self.request, 'Location marked as inactive.')
+        messages.success(self.request, _('Location marked as inactive.'))
         return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):

@@ -1,25 +1,40 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Manage combos" %}{% endblock %}
 
 {% block navbar %}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+{% endblock %}
+
 {% block content %}
 {% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
 
-<div class="container py-5">
+<div class="container py-5 foodtruck-order-layout">
     <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 mb-1">{% trans "Manage combos" %}</h1>
-            <p class="text-muted mb-0">{% trans "Review generated combos, confirm pricing and adjust their components before they are ordered." %}</p>
+            <p class="text-muted mb-0">{% trans "Define a simple combo composition and the discount applied when the customer personalizes the menu." %}</p>
+            <p class="small text-muted mb-0 mt-1">
+                {% if prices_include_tax %}
+                    {% trans "Displayed prices are TTC (tax included)." %}
+                {% else %}
+                    {% trans "Displayed prices are HT (tax excluded)." %}
+                {% endif %}
+            </p>
         </div>
-        <a href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Back to AI Menu" %}</a>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'ai_menu:combo-create' slug=foodtruck.slug %}" class="btn btn-primary">{% trans "Add combo" %}</a>
+            <a href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Back to AI Menu" %}</a>
+        </div>
     </div>
 
-    {% if combos %}
+    {% if combo_entries %}
         <div class="row g-4">
-            {% for combo in combos %}
+            {% for entry in combo_entries %}
+                {% with combo=entry.combo %}
                 <div class="col-12 col-lg-6">
                     <div class="card shadow-sm h-100">
                         <div class="card-body">
@@ -31,10 +46,14 @@
                                 </div>
                                 <div class="text-end">
                                     <div class="fw-semibold">
-                                        {% with price=combo.get_effective_price %}
-                                            {% if price %}€{{ price|floatformat:2 }}{% else %}{% trans "Price to confirm" %}{% endif %}
-                                        {% endwith %}
+                                        {% if entry.display_price is not None %}
+                                            €{{ entry.display_price|floatformat:2 }}
+                                            <span class="badge text-bg-light ms-1">{% if prices_include_tax %}TTC{% else %}HT{% endif %}</span>
+                                        {% else %}
+                                            {% trans "Price to confirm" %}
+                                        {% endif %}
                                     </div>
+                                    <div class="small text-muted">-€{{ combo.discount_amount|floatformat:2 }} {% trans "discount" %}</div>
                                     <span class="badge {% if combo.is_available %}text-bg-success{% else %}text-bg-secondary{% endif %}">
                                         {% if combo.is_available %}{% trans "Available" %}{% else %}{% trans "Hidden" %}{% endif %}
                                     </span>
@@ -42,15 +61,23 @@
                             </div>
                             <ul class="small text-muted ps-3 mb-3">
                                 {% for combo_item in combo.combo_items.all %}
-                                    <li>{{ combo_item.quantity }}x {{ combo_item.display_name }}</li>
+                                    <li>
+                                        {{ combo_item.quantity }}x {{ combo_item.display_name }}
+                                        {% if combo_item.source_category_id %}
+                                            · {% trans "customer chooses from" %} {{ combo_item.source_category.name }}
+                                        {% elif combo_item.item_id %}
+                                            · {{ combo_item.item.name }}
+                                        {% endif %}
+                                    </li>
                                 {% empty %}
-                                    <li>{% trans "No components yet." %}</li>
+                                    <li>{% trans "No composition yet." %}</li>
                                 {% endfor %}
                             </ul>
                             <a href="{% url 'ai_menu:combo-edit' slug=foodtruck.slug combo_id=combo.id %}" class="btn btn-primary">{% trans "Edit combo" %}</a>
                         </div>
                     </div>
                 </div>
+                {% endwith %}
             {% endfor %}
         </div>
     {% else %}

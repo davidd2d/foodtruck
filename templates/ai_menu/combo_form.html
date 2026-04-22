@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{{ combo.name }}{% endblock %}
 
 {% block navbar %}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
 <style>
     .combo-edit-shell .card {
         border: 1px solid rgba(0, 0, 0, 0.08);
@@ -48,11 +49,18 @@
 {% block content %}
 {% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
 
-<div class="container py-5 combo-edit-shell">
+<div class="container py-5 combo-edit-shell foodtruck-order-layout">
     <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
         <div>
             <h1 class="h3 mb-1">{{ combo.name }}</h1>
-            <p class="text-muted mb-0">{% trans "Adjust pricing, availability and the components customers will see and order." %}</p>
+            <p class="text-muted mb-0">{% trans "Define the general composition of the combo and the discount applied when the customer builds it." %}</p>
+            <p class="small text-muted mb-0 mt-1">
+                {% if prices_include_tax %}
+                    {% trans "Displayed prices are TTC (tax included)." %}
+                {% else %}
+                    {% trans "Displayed prices are HT (tax excluded)." %}
+                {% endif %}
+            </p>
         </div>
         <a href="{% url 'ai_menu:combo-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Back to combos" %}</a>
     </div>
@@ -64,6 +72,7 @@
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h2 class="h5 mb-3">{% trans "Combo details" %}</h2>
+                        <p class="small text-muted">{% trans "Use a fixed price only if the combo should always cost the same. Otherwise set a discount and let the final customer compose the menu." %}</p>
                         {% for field in form %}
                             {% if field.name == 'is_available' %}
                                 <div class="form-check mb-3">
@@ -75,7 +84,15 @@
                                 </div>
                             {% else %}
                                 <div class="mb-3">
-                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    <label class="form-label" for="{{ field.id_for_label }}">
+                                        {% if field.name == 'combo_price' %}
+                                            {% if prices_include_tax %}{% trans "Combo price (TTC)" %}{% else %}{% trans "Combo price (HT)" %}{% endif %}
+                                        {% elif field.name == 'discount_amount' %}
+                                            {% if prices_include_tax %}{% trans "Combo discount (TTC)" %}{% else %}{% trans "Combo discount (HT)" %}{% endif %}
+                                        {% else %}
+                                            {{ field.label }}
+                                        {% endif %}
+                                    </label>
                                     {{ field }}
                                     {% for error in field.errors %}
                                         <div class="text-danger small mt-1">{{ error }}</div>
@@ -90,18 +107,23 @@
             <div class="col-12 col-lg-7">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h2 class="h5 mb-3">{% trans "Combo components" %}</h2>
+                        <h2 class="h5 mb-3">{% trans "General composition" %}</h2>
+                        <p class="small text-muted">{% trans "For each line, either pin a fixed item or let the customer choose from a category such as Pasta Box, Dessert or Drink." %}</p>
                         {{ formset.management_form }}
                         <div class="vstack gap-3">
                             {% for combo_item_form in formset %}
                                 <div class="combo-component-card rounded p-3 bg-light-subtle">
                                     {{ combo_item_form.id }}
                                     <div class="row g-3 align-items-end">
-                                        <div class="col-12 col-xl-5">
+                                        <div class="col-12 col-xl-4">
                                             <label class="form-label" for="{{ combo_item_form.display_name.id_for_label }}">{{ combo_item_form.display_name.label }}</label>
                                             {{ combo_item_form.display_name }}
                                         </div>
-                                        <div class="col-12 col-md-8 col-xl-4">
+                                        <div class="col-12 col-md-6 col-xl-3">
+                                            <label class="form-label" for="{{ combo_item_form.source_category.id_for_label }}">{{ combo_item_form.source_category.label }}</label>
+                                            {{ combo_item_form.source_category }}
+                                        </div>
+                                        <div class="col-12 col-md-6 col-xl-3">
                                             <label class="form-label" for="{{ combo_item_form.item.id_for_label }}">{{ combo_item_form.item.label }}</label>
                                             {{ combo_item_form.item }}
                                         </div>
@@ -109,7 +131,7 @@
                                             <label class="form-label" for="{{ combo_item_form.quantity.id_for_label }}">{{ combo_item_form.quantity.label }}</label>
                                             {{ combo_item_form.quantity }}
                                         </div>
-                                        <div class="col-6 col-md-3 col-xl-2 combo-number-col">
+                                        <div class="col-6 col-md-3 col-xl-1 combo-number-col">
                                             <label class="form-label" for="{{ combo_item_form.display_order.id_for_label }}">{{ combo_item_form.display_order.label }}</label>
                                             {{ combo_item_form.display_order }}
                                         </div>

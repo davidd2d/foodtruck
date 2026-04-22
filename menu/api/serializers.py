@@ -22,39 +22,70 @@ class ItemSerializer(serializers.ModelSerializer):
     """Serializer for Item model."""
     option_groups = OptionGroupSerializer(many=True, read_only=True)
     compatible_preferences = serializers.StringRelatedField(many=True, read_only=True)
+    display_price = serializers.SerializerMethodField()
+    tax_rate = serializers.SerializerMethodField()
+    prices_include_tax = serializers.SerializerMethodField()
 
     class Meta:
         model = Item
         fields = [
             'id', 'name', 'description', 'base_price', 'is_available',
-            'display_order', 'compatible_preferences', 'option_groups'
+            'display_order', 'compatible_preferences', 'option_groups', 'display_price', 'tax_rate', 'prices_include_tax'
         ]
+
+    def get_tax_rate(self, obj):
+        return obj.get_tax_rate()
+
+    def get_display_price(self, obj):
+        foodtruck = obj.category.menu.food_truck
+        return foodtruck.get_display_price(obj.base_price, obj.get_tax_rate())
+
+    def get_prices_include_tax(self, obj):
+        return obj.category.menu.food_truck.prices_include_tax()
 
 
 class ComboItemSerializer(serializers.ModelSerializer):
     """Serializer for ComboItem model."""
     item_id = serializers.IntegerField(source='item.id', read_only=True)
+    source_category_id = serializers.IntegerField(source='source_category.id', read_only=True)
+    source_category_name = serializers.CharField(source='source_category.name', read_only=True)
 
     class Meta:
         model = ComboItem
-        fields = ['id', 'item_id', 'display_name', 'quantity', 'display_order']
+        fields = ['id', 'item_id', 'source_category_id', 'source_category_name', 'display_name', 'quantity', 'display_order']
 
 
 class ComboSerializer(serializers.ModelSerializer):
     """Serializer for Combo model."""
     combo_items = ComboItemSerializer(many=True, read_only=True)
     effective_price = serializers.SerializerMethodField()
+    is_customizable = serializers.BooleanField(read_only=True)
+    display_price = serializers.SerializerMethodField()
+    tax_rate = serializers.SerializerMethodField()
+    prices_include_tax = serializers.SerializerMethodField()
 
     class Meta:
         model = Combo
         fields = [
-            'id', 'name', 'description', 'combo_price', 'effective_price',
-            'is_available', 'display_order', 'combo_items'
+            'id', 'name', 'description', 'combo_price', 'discount_amount', 'effective_price',
+            'is_available', 'display_order', 'combo_items', 'is_customizable', 'display_price', 'tax_rate', 'prices_include_tax'
         ]
 
     def get_effective_price(self, obj):
         price = obj.get_effective_price()
         return price
+
+    def get_tax_rate(self, obj):
+        return obj.get_tax_rate()
+
+    def get_display_price(self, obj):
+        price = obj.get_effective_price()
+        if price is None:
+            return None
+        return obj.category.menu.food_truck.get_display_price(price, obj.get_tax_rate())
+
+    def get_prices_include_tax(self, obj):
+        return obj.category.menu.food_truck.prices_include_tax()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -71,10 +102,15 @@ class MenuSerializer(serializers.ModelSerializer):
     """Serializer for Menu model."""
     foodtruck = serializers.PrimaryKeyRelatedField(source='food_truck', read_only=True)
     categories = CategorySerializer(many=True, read_only=True)
+    prices_include_tax = serializers.SerializerMethodField()
+    price_display_mode = serializers.CharField(source='food_truck.price_display_mode', read_only=True)
 
     class Meta:
         model = Menu
-        fields = ['id', 'name', 'foodtruck', 'is_active', 'created_at', 'categories']
+        fields = ['id', 'name', 'foodtruck', 'is_active', 'created_at', 'categories', 'prices_include_tax', 'price_display_mode']
+
+    def get_prices_include_tax(self, obj):
+        return obj.food_truck.prices_include_tax()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -104,4 +140,4 @@ class FoodTruckMenuSerializer(MenuSerializer):
     foodtruck = serializers.SlugRelatedField(source='food_truck', read_only=True, slug_field='slug')
 
     class Meta(MenuSerializer.Meta):
-        fields = ['id', 'name', 'foodtruck', 'is_active', 'created_at', 'categories']
+        fields = ['id', 'name', 'foodtruck', 'is_active', 'created_at', 'categories', 'prices_include_tax', 'price_display_mode']

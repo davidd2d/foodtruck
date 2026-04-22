@@ -76,6 +76,7 @@ class OrderService:
                     order.add_combo(
                         combo=combo,
                         quantity=item_line['quantity'],
+                        combo_selections=item_line.get('combo_components', []),
                     )
                     continue
 

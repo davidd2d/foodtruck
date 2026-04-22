@@ -7,17 +7,17 @@ class SlotManager {
 
         this.foodtruckSlug = this.app.dataset.foodtruckSlug;
         this.foodtruckId = this.app.dataset.foodtruckId;
-        this.emptyMessage = this.app.dataset.emptyMessage || 'No slots configured yet.';
-        this.loadingMessage = this.app.dataset.loadingMessage || 'Loading slots...';
-        this.editLabel = this.app.dataset.editLabel || 'Edit slot';
-        this.createLabel = this.app.dataset.createLabel || 'Create pickup slot';
-        this.availableLabel = this.app.dataset.availableLabel || 'Available';
-        this.closedLabel = this.app.dataset.closedLabel || 'Closed';
-        this.deleteLabel = this.app.dataset.deleteLabel || 'Delete';
-        this.loadErrorMessage = this.app.dataset.loadErrorMessage || 'Unable to load slots';
-        this.deleteConfirmMessage = this.app.dataset.deleteConfirmMessage || 'Are you sure you want to delete this slot?';
-        this.deleteErrorMessage = this.app.dataset.deleteErrorMessage || 'Unable to delete slot.';
-        this.loadingAriaLabel = this.app.dataset.loadingAriaLabel || 'Loading';
+        this.emptyMessage = this.app.dataset.emptyMessage || 'Aucun créneau configuré pour le moment.';
+        this.loadingMessage = this.app.dataset.loadingMessage || 'Chargement des créneaux...';
+        this.editLabel = this.app.dataset.editLabel || 'Modifier le créneau';
+        this.createLabel = this.app.dataset.createLabel || 'Créer un créneau de retrait';
+        this.availableLabel = this.app.dataset.availableLabel || 'Disponible';
+        this.closedLabel = this.app.dataset.closedLabel || 'Fermé';
+        this.deleteLabel = this.app.dataset.deleteLabel || 'Supprimer';
+        this.loadErrorMessage = this.app.dataset.loadErrorMessage || 'Impossible de charger les créneaux';
+        this.deleteConfirmMessage = this.app.dataset.deleteConfirmMessage || 'Voulez-vous vraiment supprimer ce créneau ?';
+        this.deleteErrorMessage = this.app.dataset.deleteErrorMessage || 'Impossible de supprimer ce créneau.';
+        this.loadingAriaLabel = this.app.dataset.loadingAriaLabel || 'Chargement';
 
         this.tableBody = this.app.querySelector('#slot-table-body');
         this.modal = new bootstrap.Modal(document.querySelector('#slotModal'));

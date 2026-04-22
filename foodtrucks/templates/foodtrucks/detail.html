@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-5"
+<div class="container py-5 foodtruck-order-layout"
     data-foodtruck-slug="{{ foodtruck.slug }}"
     data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
     data-ordering-enabled="{{ foodtruck.can_accept_orders|yesno:'true,false' }}"
@@ -61,8 +61,14 @@
     data-no-slots-option-label="{% trans 'No pickup slots available.' %}"
     data-load-slots-error-label="{% trans 'Unable to load pickup slots.' %}"
     data-customize-item-title="{% trans 'Customize {item}' %}"
+    data-compose-combo-title="{% trans 'Compose {combo}' %}"
     data-add-item-to-cart-label="{% trans 'Add item to cart' %}"
+    data-add-combo-to-cart-label="{% trans 'Add combo to cart' %}"
+    data-compose-combo-label="{% trans 'Compose combo' %}"
     data-no-customization-options-message="{% trans 'No customization options for this item.' %}"
+    data-select-item-for-component-message="{% trans 'Choose an item for {component}.' %}"
+    data-estimated-combo-price-label="{% trans 'Estimated combo price' %}"
+    data-customer-chooses-from-label="{% trans 'Customer chooses from {category}' %}"
     data-select-at-least-options-message="{% trans 'Please choose at least {count} option(s) for {group}.' %}"
     data-select-at-most-options-message="{% trans 'You can select up to {count} option(s) for {group}.' %}"
     data-redirecting-to-payment-message="{% trans 'Order submitted. Redirecting to payment...' %}">

@@ -91,6 +91,13 @@
                                     <div class="text-danger small mt-1">{{ foodtruck_form.default_language.errors }}</div>
                                 {% endif %}
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="{{ foodtruck_form.price_display_mode.id_for_label }}">{{ foodtruck_form.price_display_mode.label }}</label>
+                                {{ foodtruck_form.price_display_mode }}
+                                {% if foodtruck_form.price_display_mode.errors %}
+                                    <div class="text-danger small mt-1">{{ foodtruck_form.price_display_mode.errors }}</div>
+                                {% endif %}
+                            </div>
                             <div class="col-12">
                                 <label class="form-label" for="{{ foodtruck_form.description.id_for_label }}">{{ foodtruck_form.description.label }}</label>
                                 {{ foodtruck_form.description }}

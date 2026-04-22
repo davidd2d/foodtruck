@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Catalogue and pricing" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+<style>
+    .menu-category-card {
+        border-radius: 24px;
+        scroll-margin-top: 7rem;
+    }
+
+    .menu-entity-card {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 18px;
+        background: #fff;
+    }
+
+    .menu-entity-card + .menu-entity-card {
+        margin-top: 1rem;
+    }
+
+    .menu-entity-meta {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .menu-control-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    .menu-option-shell {
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.9) 0%, rgba(255, 255, 255, 1) 100%);
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .menu-option-card {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 16px;
+        background: #fff;
+    }
+
+    .menu-option-row {
+        display: grid;
+        grid-template-columns: minmax(180px, 1.6fr) minmax(140px, 0.8fr) minmax(110px, 0.6fr) minmax(110px, 0.6fr);
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .menu-autosave-status {
+        min-width: 7rem;
+        display: inline-flex;
+        justify-content: flex-end;
+    }
+
+    @media (max-width: 991px) {
+        .menu-option-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
+
+<div class="container py-5"
+    id="menu-catalog-app"
+    data-csrf-token="{{ csrf_token }}"
+    data-saving-label="{% trans 'Saving...' %}"
+    data-saved-label="{% trans 'Saved' %}"
+    data-error-label="{% trans 'Error' %}">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="mb-2">{% trans "Catalogue and pricing" %}</h1>
+            <p class="text-muted mb-0">{% trans "Update live prices and temporarily disable dishes without leaving the owner space." %}</p>
+            <p class="small text-muted mb-0 mt-1">
+                {% if prices_include_tax %}
+                    {% trans "Displayed prices are TTC (tax included)." %}
+                {% else %}
+                    {% trans "Displayed prices are HT (tax excluded)." %}
+                {% endif %}
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'menu:import' slug=foodtruck.slug %}" class="btn btn-primary">{% trans "Importer une carte" %}</a>
+            <a href="{% url 'menu:dashboard' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Gestion de carte" %}</a>
+        </div>
+    </div>
+
+    {% if not active_menu %}
+        <div class="alert alert-warning">{% trans "No active menu is available yet. Import a menu first." %}</div>
+    {% endif %}
+
+    {% for section in sections %}
+        <section class="card border-0 shadow-sm mb-4 menu-category-card" id="category-{{ section.category.id }}">
+            <div class="card-body p-4 p-lg-5">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mb-4">
+                    <h2 class="h4 mb-0">{{ section.category.name }}</h2>
+                    <span class="badge text-bg-light">{{ section.items|length }} {% trans "items" %}{% if section.combos %} · {{ section.combos|length }} {% trans "combos" %}{% endif %}</span>
+                </div>
+
+                {% if section.items %}
+                    <div class="mb-4">
+                        {% for entry in section.items %}
+                            <article class="menu-entity-card overflow-hidden">
+                                <div class="p-4 js-menu-autosave-row" data-update-url="{% url 'menu:update-item' slug=foodtruck.slug item_id=entry.item.id %}" data-kind="item" data-name="{{ entry.item.name }}">
+                                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mb-3">
+                                        <div>
+                                            <h3 class="h5 mb-1">{{ entry.item.name }}</h3>
+                                            {% if entry.item.description %}<p class="text-muted mb-2">{{ entry.item.description }}</p>{% endif %}
+                                            <div class="menu-entity-meta">{% trans "Taxe effective" %} : {{ entry.tax_label }}</div>
+                                        </div>
+                                        <span class="small text-muted menu-autosave-status" aria-live="polite"></span>
+                                    </div>
+
+                                    <div class="menu-control-grid">
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">{% if prices_include_tax %}{% trans "Price (TTC)" %}{% else %}{% trans "Price (HT)" %}{% endif %}</label>
+                                            {{ entry.form.base_price }}
+                                        </div>
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">{% trans "Tax" %}</label>
+                                            {{ entry.form.tax }}
+                                        </div>
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">{% trans "Active" %}</label>
+                                            <div class="form-check form-switch mb-0 pt-2">
+                                                {{ entry.form.is_available }}
+                                            </div>
+                                        </div>
+                                        {% if entry.option_groups %}
+                                            <div class="text-lg-end">
+                                                <label class="form-label small text-muted mb-1 d-block">{% trans "Options" %}</label>
+                                                <span class="badge text-bg-light">{{ entry.option_groups|length }} {% trans "group(s)" %}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {% if entry.option_groups %}
+                                    <div class="menu-option-shell">
+                                        <div class="p-4">
+                                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mb-3">
+                                                <div>
+                                                    <h4 class="h6 mb-1">{% trans "Options du plat" %}</h4>
+                                                    <p class="small text-muted mb-0">{% trans "Les options sont rattachées à ce plat. Leur supplément est éditable ici, mais leur taxe est automatiquement celle du plat." %}</p>
+                                                </div>
+                                                <span class="badge text-bg-light">{% trans "Produit" %} : {{ entry.item.name }} · {% trans "Taxe" %} : {{ entry.tax_label }}</span>
+                                            </div>
+
+                                            {% for option_group in entry.option_groups %}
+                                                <section class="menu-option-card p-3 {% if not forloop.last %}mb-3{% endif %}">
+                                                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-2 mb-3">
+                                                        <div>
+                                                            <div class="fw-semibold">{{ option_group.group.name }}</div>
+                                                            <div class="small text-muted">
+                                                                {% trans "Affectation" %} : {{ entry.item.name }}
+                                                                {% if option_group.group.required %} · {% trans "Required" %}{% endif %}
+                                                            </div>
+                                                        </div>
+                                                        <div class="small text-muted">{% trans "Fiscalité" %} : {% trans "hérite du plat" %}</div>
+                                                    </div>
+
+                                                    {% for option_entry in option_group.options %}
+                                                        <div class="menu-option-row js-menu-autosave-row {% if not forloop.last %}mb-3{% endif %}" data-update-url="{% url 'menu:update-option' slug=foodtruck.slug option_id=option_entry.option.id %}" data-kind="option" data-name="{{ option_entry.option.name }}">
+                                                            <div>
+                                                                <div class="fw-semibold">{{ option_entry.option.name }}</div>
+                                                                <div class="small text-muted">{% trans "Produit lié" %} : {{ option_entry.assigned_item_name }} · {% trans "Taxe héritée" %} : {{ option_entry.inherited_tax_label }}</div>
+                                                            </div>
+                                                            <div>
+                                                                <label class="form-label small text-muted mb-1">{% if prices_include_tax %}{% trans "Price modifier (TTC)" %}{% else %}{% trans "Price modifier (HT)" %}{% endif %}</label>
+                                                                {{ option_entry.form.price_modifier }}
+                                                            </div>
+                                                            <div>
+                                                                <label class="form-label small text-muted mb-1">{% trans "Active" %}</label>
+                                                                <div class="form-check form-switch mb-0 pt-2">
+                                                                    {{ option_entry.form.is_available }}
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-lg-end">
+                                                                <label class="form-label small text-muted mb-1 d-block">{% trans "Status" %}</label>
+                                                                <span class="small text-muted menu-autosave-status" aria-live="polite"></span>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                </section>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if section.combos %}
+                    <h3 class="h5 mb-3">{% trans "Combos" %}</h3>
+                    <div>
+                        {% for entry in section.combos %}
+                            <article class="menu-entity-card p-4 js-menu-autosave-row" data-update-url="{% url 'menu:update-combo' slug=foodtruck.slug combo_id=entry.combo.id %}" data-kind="combo" data-name="{{ entry.combo.name }}">
+                                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start gap-3 mb-3">
+                                    <div>
+                                        <h4 class="h5 mb-1">{{ entry.combo.name }}</h4>
+                                        {% if entry.combo.description %}<p class="text-muted mb-2">{{ entry.combo.description }}</p>{% endif %}
+                                        <div class="menu-entity-meta">{% trans "Taxe effective" %} : {{ entry.tax_label }}</div>
+                                    </div>
+                                    <span class="small text-muted menu-autosave-status" aria-live="polite"></span>
+                                </div>
+
+                                <div class="menu-control-grid">
+                                    <div>
+                                        <label class="form-label small text-muted mb-1">{% if prices_include_tax %}{% trans "Price (TTC)" %}{% else %}{% trans "Price (HT)" %}{% endif %}</label>
+                                        {{ entry.form.combo_price }}
+                                    </div>
+                                    <div>
+                                        <label class="form-label small text-muted mb-1">{% trans "Tax" %}</label>
+                                        {{ entry.form.tax }}
+                                    </div>
+                                    <div>
+                                        <label class="form-label small text-muted mb-1">{% trans "Active" %}</label>
+                                        <div class="form-check form-switch mb-0 pt-2">
+                                            {{ entry.form.is_available }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    {% empty %}
+        <div class="alert alert-info mb-0">{% trans "This menu has no categories yet." %}</div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/menu/catalog.js' %}"></script>
+{% endblock %}

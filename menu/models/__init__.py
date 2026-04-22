@@ -229,12 +229,26 @@ class Combo(models.Model):
     )
     name = models.CharField(max_length=200, help_text=_("Name of the combo"))
     description = models.TextField(blank=True, help_text=_("Description of the combo"))
+    tax = models.ForeignKey(
+        'common.Tax',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='combos',
+        help_text=_("Tax configuration applied to this combo")
+    )
     combo_price = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         null=True,
         blank=True,
         help_text=_("Explicit combo price when known")
+    )
+    discount_amount = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text=_("Owner-defined reduction applied to the composed combo")
     )
     is_available = models.BooleanField(default=True, help_text=_("Whether the combo is available"))
     display_order = models.PositiveIntegerField(default=0, help_text=_("Order for display"))
@@ -270,7 +284,102 @@ class Combo(models.Model):
         if resolved_items != len(combo_items):
             return None
 
-        return total
+        return max(Decimal('0.00'), total - (self.discount_amount or Decimal('0.00')))
+
+    @property
+    def is_customizable(self):
+        return self.combo_items.filter(source_category__isnull=False).exists()
+
+    def build_order_snapshot(self, combo_selections=None):
+        combo_selections = combo_selections or []
+        selection_map = {
+            int(selection.get('combo_item_id')): selection
+            for selection in combo_selections
+            if selection.get('combo_item_id')
+        }
+
+        combo_items = list(
+            self.combo_items.select_related('item__category', 'source_category').order_by('display_order', 'id')
+        )
+        if not combo_items:
+            raise ValidationError(f"Combo '{self.name}' has no composition.")
+
+        subtotal = Decimal('0.00')
+        components = []
+
+        for combo_item in combo_items:
+            selected_payload = selection_map.get(combo_item.id, {})
+            chosen_item = combo_item.resolve_selected_item(selected_payload.get('item_id'))
+            selected_options = []
+            for option_entry in selected_payload.get('selected_options', []):
+                if isinstance(option_entry, dict):
+                    option_id = option_entry.get('option_id')
+                else:
+                    option_id = option_entry
+                if option_id is None:
+                    continue
+                selected_options.append(int(option_id))
+
+            chosen_item.validate_options(selected_options)
+            component_unit_price = chosen_item.get_price_with_options(selected_options)
+            subtotal += component_unit_price * combo_item.quantity
+
+            option_objects = Option.objects.filter(
+                id__in=selected_options,
+                group__item=chosen_item,
+                is_available=True,
+            )
+            option_map = {option.id: option for option in option_objects}
+            components.append({
+                'combo_item_id': combo_item.id,
+                'label': combo_item.display_name,
+                'item_id': chosen_item.id,
+                'item_name': chosen_item.name,
+                'quantity': combo_item.quantity,
+                'source_category_id': combo_item.source_category_id,
+                'source_category_name': combo_item.source_category.name if combo_item.source_category_id else '',
+                'selected_options': [
+                    {
+                        'option_id': option_id,
+                        'name': option_map[option_id].name,
+                        'price_modifier': str(option_map[option_id].price_modifier),
+                    }
+                    for option_id in selected_options
+                    if option_id in option_map
+                ],
+            })
+
+        unit_price = self.combo_price if self.combo_price is not None else max(
+            Decimal('0.00'),
+            subtotal - (self.discount_amount or Decimal('0.00')),
+        )
+
+        component_summary = ', '.join(
+            f"{component['quantity']}x {component['item_name']}" if component['quantity'] > 1 else component['item_name']
+            for component in components
+        )
+
+        return {
+            'unit_price': unit_price,
+            'subtotal': subtotal,
+            'discount_amount': self.discount_amount or Decimal('0.00'),
+            'component_summary': component_summary,
+            'components': components,
+        }
+
+    def get_tax_rate(self):
+        if self.tax_id and self.tax.is_active:
+            return self.tax.rate
+
+        foodtruck = getattr(getattr(self.category, 'menu', None), 'food_truck', None)
+        country = None
+        if foodtruck is not None:
+            country = getattr(foodtruck, 'country', None) or getattr(foodtruck, 'billing_country', None)
+
+        default_tax = Tax.objects.default(country=country)
+        if default_tax is None:
+            raise ValidationError('No default tax configured.')
+        return default_tax.rate
 
 
 class ComboItem(models.Model):
@@ -294,6 +403,14 @@ class ComboItem(models.Model):
         related_name='combo_memberships',
         help_text=_("Resolved menu item for this combo component when available")
     )
+    source_category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='combo_components',
+        help_text=_("Category from which the customer chooses the item for this combo component")
+    )
     display_name = models.CharField(max_length=200, help_text=_("Display name of the combo component"))
     quantity = models.PositiveIntegerField(default=1, help_text=_("Quantity of this component in the combo"))
     display_order = models.PositiveIntegerField(default=0, help_text=_("Order for display"))
@@ -305,6 +422,40 @@ class ComboItem(models.Model):
 
     def __str__(self):
         return f"{self.combo.name} - {self.display_name}"
+
+    def clean(self):
+        if not self.item_id and not self.source_category_id:
+            raise ValidationError("A combo component needs either a fixed item or a source category.")
+
+        if self.item_id and self.source_category_id and self.item.category_id != self.source_category_id:
+            raise ValidationError("The fixed item must belong to the selected source category.")
+
+    def resolve_selected_item(self, selected_item_id=None):
+        if self.item_id and not self.source_category_id:
+            if selected_item_id and int(selected_item_id) != self.item_id:
+                raise ValidationError(f"{self.display_name} is fixed and cannot be replaced.")
+            if not self.item.is_available_now():
+                raise ValidationError(f"Item '{self.item.name}' is not available.")
+            return self.item
+
+        if not selected_item_id:
+            raise ValidationError(f"Choose an item for '{self.display_name}'.")
+
+        try:
+            selected_item = Item.objects.prefetch_related('option_groups__options').get(pk=selected_item_id)
+        except Item.DoesNotExist as exc:
+            raise ValidationError(f"Selected item for '{self.display_name}' does not exist.") from exc
+
+        if self.source_category_id and selected_item.category_id != self.source_category_id:
+            raise ValidationError(f"Selected item does not belong to '{self.display_name}'.")
+
+        if self.combo.category.menu_id != selected_item.category.menu_id:
+            raise ValidationError("Selected combo item must belong to the same menu.")
+
+        if not selected_item.is_available_now():
+            raise ValidationError(f"Item '{selected_item.name}' is not available.")
+
+        return selected_item
 
 
 class OptionGroup(models.Model):
@@ -365,3 +516,6 @@ class Option(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_tax_rate(self):
+        return self.group.item.get_tax_rate()

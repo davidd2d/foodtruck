@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Working Hours" %}{% endblock %}
+{% block title %}{% trans "Service hours" %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/schedules/working-hours.css' %}">
@@ -28,8 +28,8 @@
     data-preset-unavailable-message="{% trans 'Preset not available.' %}">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
         <div>
-            <h1 class="mb-1">{% trans "Working Hours" %}</h1>
-            <p class="text-muted mb-0">{% trans "Define the days and time windows when your foodtruck is available." %}</p>
+            <h1 class="mb-1">{% trans "Service hours" %}</h1>
+            <p class="text-muted mb-0">{% trans "Define when your foodtruck accepts orders and serves customers." %}</p>
         </div>
         <div class="ms-md-3">
             <button type="button" class="btn btn-outline-primary" id="refresh-schedules">

@@ -8,6 +8,7 @@ from menu.tests.factories import (
     OptionGroupFactory,
     OptionFactory,
 )
+from foodtrucks.tests.factories import TaxFactory
 
 
 class ItemModelTests(TestCase):
@@ -40,3 +41,12 @@ class ItemModelTests(TestCase):
 
         with self.assertRaises(ValidationError):
             self.item.validate_options([option.id])
+
+    def test_option_inherits_tax_rate_from_parent_item(self):
+        tax = TaxFactory(rate=Decimal('0.2000'), is_default=False)
+        self.item.tax = tax
+        self.item.save(update_fields=['tax'])
+        option_group = OptionGroupFactory(item=self.item, min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, price_modifier=Decimal('2.75'))
+
+        self.assertEqual(option.get_tax_rate(), tax.rate)

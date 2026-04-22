@@ -12,3 +12,6 @@ typing_extensions==4.13.2
 djangorestframework-simplejwt==5.3.1
 pytz==2026.1
 stripe==11.6.0
+geopy==2.4.1
+certifi==2026.2.27
+pypdf==5.4.0

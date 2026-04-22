@@ -78,6 +78,7 @@ class OwnerFoodTruckProfileForm(forms.ModelForm):
             'name',
             'description',
             'default_language',
+            'price_display_mode',
             'logo',
             'primary_color',
             'secondary_color',
@@ -86,6 +87,7 @@ class OwnerFoodTruckProfileForm(forms.ModelForm):
             'name': _('Food truck name'),
             'description': _('Food truck description'),
             'default_language': _('Content language'),
+            'price_display_mode': _('Displayed price mode'),
             'logo': _('Logo'),
             'primary_color': _('Primary color'),
             'secondary_color': _('Secondary color'),
@@ -93,6 +95,7 @@ class OwnerFoodTruckProfileForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
             'default_language': forms.Select(attrs={'class': 'form-select'}),
+            'price_display_mode': forms.Select(attrs={'class': 'form-select'}),
             'logo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'primary_color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),
             'secondary_color': forms.TextInput(attrs={'class': 'form-control form-control-color', 'type': 'color'}),

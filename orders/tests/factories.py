@@ -84,24 +84,27 @@ def ItemFactory(category=None, name='Margherita', description='Classic pizza', b
     )
 
 
-def ComboFactory(category=None, name='Lunch Combo', description='Combo', combo_price=Decimal('15.00'), is_available=True, display_order=0):
+def ComboFactory(category=None, name='Lunch Combo', description='Combo', combo_price=Decimal('15.00'), discount_amount=Decimal('0.00'), is_available=True, display_order=0):
     category = category or CategoryFactory()
     return Combo.objects.create(
         category=category,
         name=name,
         description=description,
         combo_price=combo_price,
+        discount_amount=discount_amount,
         is_available=is_available,
         display_order=display_order,
     )
 
 
-def ComboItemFactory(combo=None, item=None, display_name='Combo Item', quantity=1, display_order=0):
+def ComboItemFactory(combo=None, item=None, source_category=None, display_name='Combo Item', quantity=1, display_order=0):
     combo = combo or ComboFactory()
-    item = item or ItemFactory(category=combo.category, name=display_name)
+    if item is None and source_category is None:
+        item = ItemFactory(category=combo.category, name=display_name)
     return ComboItem.objects.create(
         combo=combo,
         item=item,
+        source_category=source_category,
         display_name=display_name,
         quantity=quantity,
         display_order=display_order,

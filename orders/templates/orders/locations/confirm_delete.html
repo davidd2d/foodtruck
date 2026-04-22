@@ -1,20 +1,41 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load static i18n %}
 
-{% block title %}{% trans "Delete location" %}{% endblock %}
+{% block title %}{{ foodtruck.name }} - {% trans "Delete location" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+<link rel="stylesheet" href="{% static 'orders/css/locations.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="card shadow-sm">
-        <div class="card-body text-center">
-            <h1 class="h4 mb-3">{% trans "Delete location" %}</h1>
-            <p class="mb-4">{% trans "Are you sure you want to mark this location as inactive?" %}</p>
-            <p class="text-muted small">{{ object.get_full_address }}</p>
-            <form method="post">
-                {% csrf_token %}
-                <div class="d-flex justify-content-center gap-2">
-                    <button type="submit" class="btn btn-danger">{% trans "Confirm" %}</button>
-                    <a href="{% url 'orders:location-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+    <div class="row justify-content-center g-4">
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-body p-4 p-lg-5 location-hero" style="background: linear-gradient(135deg, {{ foodtruck.get_secondary_color }} 0%, #ffffff 100%);">
+                    <p class="text-uppercase fw-semibold small mb-2">{{ foodtruck.name }}</p>
+                    <h1 class="h4 mb-2">{% trans "Delete location" %}</h1>
+                    <p class="text-muted mb-0">{% trans "Deactivate this pickup location without losing its history." %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-lg-5 text-center">
+                    <p class="mb-4">{% trans "Are you sure you want to mark this location as inactive?" %}</p>
+                    <p class="text-muted small mb-4">{{ object.get_full_address }}</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                            <button type="submit" class="btn btn-danger">{% trans "Confirm" %}</button>
+                            <a href="{% url 'orders:location-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                        </div>
+                    </form>
                 </div>
             </form>
         </div>

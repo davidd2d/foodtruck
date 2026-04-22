@@ -3,6 +3,7 @@ import { interpolate } from '../i18n.js';
 const defaultTranslations = {
     priceToConfirmLabel: 'Price to confirm',
     addComboLabel: 'Add combo',
+    composeComboLabel: 'Compose combo',
     comboBadgeLabel: 'Combo',
     requiredLabel: 'Required',
     optionalLabel: 'Optional',
@@ -18,20 +19,22 @@ export function renderComboItem(combo, orderingEnabled = true, translations = {}
     const labels = { ...defaultTranslations, ...translations };
     const comboItems = (combo.combo_items || []).map((comboItem) => {
         const quantity = comboItem.quantity > 1 ? `${comboItem.quantity}x ` : '';
-        return `<li>${quantity}${comboItem.display_name}</li>`;
+        const sourceHint = comboItem.source_category_name ? ` <span class="text-muted">(${comboItem.source_category_name})</span>` : '';
+        return `<li>${quantity}${comboItem.display_name}${sourceHint}</li>`;
     }).join('');
 
-    const effectivePrice = combo.combo_price ?? combo.effective_price;
-    const canOrder = orderingEnabled && effectivePrice !== null && effectivePrice !== undefined;
+    const effectivePrice = combo.display_price ?? combo.combo_price ?? combo.effective_price;
+    const canOrder = orderingEnabled && (combo.is_customizable || (effectivePrice !== null && effectivePrice !== undefined));
     const priceMarkup = effectivePrice !== null && effectivePrice !== undefined
         ? `€${parseFloat(effectivePrice).toFixed(2)}`
         : labels.priceToConfirmLabel;
+    const actionLabel = combo.is_customizable ? labels.composeComboLabel : labels.addComboLabel;
     const orderingMarkup = canOrder ? `
         <div class="d-flex flex-wrap align-items-center gap-2 mt-3 js-orderable-entry">
             <label class="form-label small mb-0" for="combo-quantity-${combo.id}">${labels.quantityLabel}</label>
             <input id="combo-quantity-${combo.id}" type="number" min="1" value="1" class="form-control form-control-sm menu-item-quantity" style="width: 84px;">
-            <button type="button" class="btn btn-sm btn-warning add-to-cart" data-combo-id="${combo.id}" data-default-label="${labels.addComboLabel}">
-                ${labels.addComboLabel}
+            <button type="button" class="btn btn-sm btn-warning add-to-cart" data-combo-id="${combo.id}" data-default-label="${actionLabel}">
+                ${actionLabel}
             </button>
         </div>
     ` : '';
@@ -69,7 +72,7 @@ export function renderMenuItem(item, itemIndex, orderingEnabled = true, translat
                         <h4 class="h6 mb-1">${item.name}</h4>
                         <p class="text-muted mb-2">${item.description || ''}</p>
                         <div class="mb-0">
-                            <strong>${labels.priceLabel}:</strong> €${parseFloat(item.base_price).toFixed(2)}
+                            <strong>${labels.priceLabel}:</strong> €${parseFloat(item.display_price ?? item.base_price).toFixed(2)}
                         </div>
                     </div>
                     <div class="col-md-4 d-flex justify-content-md-end">

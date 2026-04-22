@@ -1,34 +1,152 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load static i18n %}
 
-{% block title %}{% trans "Location" %}{% endblock %}
+{% block title %}{{ foodtruck.name }} - {% trans "Location" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+<link rel="stylesheet" href="{% static 'orders/css/locations.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h1 class="h4 mb-4">{% trans "Location" %}</h1>
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        {% for field in form %}
-                            <div class="mb-3">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'orders:location-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Back" %}</a>
-                            <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+    <div class="row justify-content-center g-4">
+        <div class="col-xl-10">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-body p-4 p-lg-5 location-hero" style="background: linear-gradient(135deg, {{ foodtruck.get_secondary_color }} 0%, #ffffff 100%);">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                        <div>
+                            <p class="text-uppercase fw-semibold small mb-2">{{ foodtruck.name }}</p>
+                            <h1 class="mb-2">{% if form.instance.pk %}{% trans "Edit location" %}{% else %}{% trans "Add location" %}{% endif %}</h1>
+                            <p class="text-muted mb-0">{% trans "Use an address or GPS coordinates. Missing values will be completed automatically." %}</p>
                         </div>
-                    </form>
+                        <a href="{% url 'orders:location-list' slug=foodtruck.slug %}" class="btn btn-outline-dark">{% trans "Back to locations" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-10">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4 p-lg-5">
+                            <form method="post" novalidate>
+                                {% csrf_token %}
+
+                                <div class="location-form-section mb-4">
+                                    <h2 class="h5 mb-3">{% trans "Identity" %}</h2>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            {{ form.name.label_tag }}
+                                            {{ form.name }}
+                                            {% if form.name.help_text %}<div class="form-text">{{ form.name.help_text }}</div>{% endif %}
+                                            {% for error in form.name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        <div class="col-12">
+                                            {{ form.notes.label_tag }}
+                                            {{ form.notes }}
+                                            {% if form.notes.help_text %}<div class="form-text">{{ form.notes.help_text }}</div>{% endif %}
+                                            {% for error in form.notes.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="location-form-section mb-4">
+                                    <h2 class="h5 mb-3">{% trans "Postal address" %}</h2>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            {{ form.address_line_1.label_tag }}
+                                            {{ form.address_line_1 }}
+                                            {% if form.address_line_1.help_text %}<div class="form-text">{{ form.address_line_1.help_text }}</div>{% endif %}
+                                            {% for error in form.address_line_1.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        <div class="col-12">
+                                            {{ form.address_line_2.label_tag }}
+                                            {{ form.address_line_2 }}
+                                            {% if form.address_line_2.help_text %}<div class="form-text">{{ form.address_line_2.help_text }}</div>{% endif %}
+                                            {% for error in form.address_line_2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {{ form.postal_code.label_tag }}
+                                            {{ form.postal_code }}
+                                            {% for error in form.postal_code.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {{ form.city.label_tag }}
+                                            {{ form.city }}
+                                            {% for error in form.city.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {{ form.country.label_tag }}
+                                            {{ form.country }}
+                                            {% for error in form.country.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="location-form-section mb-4">
+                                    <h2 class="h5 mb-3">{% trans "GPS coordinates" %}</h2>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            {{ form.latitude.label_tag }}
+                                            {{ form.latitude }}
+                                            {% if form.latitude.help_text %}<div class="form-text">{{ form.latitude.help_text }}</div>{% endif %}
+                                            {% for error in form.latitude.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ form.longitude.label_tag }}
+                                            {{ form.longitude }}
+                                            {% if form.longitude.help_text %}<div class="form-text">{{ form.longitude.help_text }}</div>{% endif %}
+                                            {% for error in form.longitude.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {% for error in form.non_field_errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                <div class="form-check form-switch mb-4">
+                                    {{ form.is_active }}
+                                    {{ form.is_active.label_tag }}
+                                    {% for error in form.is_active.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+
+                                <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
+                                    <a href="{% url 'orders:location-list' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+                                    <button type="submit" class="btn btn-dark">{% trans "Save location" %}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <h2 class="h5 mb-3">{% trans "How it works" %}</h2>
+                            <div class="location-side-note mb-3">
+                                <strong>{% trans "Address first" %}</strong>
+                                <p class="mb-0 text-muted">{% trans "Enter the postal address and the platform will determine GPS coordinates automatically." %}</p>
+                            </div>
+                            <div class="location-side-note mb-3">
+                                <strong>{% trans "Coordinates first" %}</strong>
+                                <p class="mb-0 text-muted">{% trans "Enter latitude and longitude if the spot is easier to define from a map or event pin." %}</p>
+                            </div>
+                            <div class="location-side-note">
+                                <strong>{% trans "Operational use" %}</strong>
+                                <p class="mb-0 text-muted">{% trans "These locations are reused in schedules and customer pickup flows for this food truck." %}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

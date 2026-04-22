@@ -4,8 +4,9 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
+from django.utils.translation import gettext as _
 
-from ai_menu.forms import ComboItemFormSet, ComboOwnerForm
+from ai_menu.forms import ComboCreateForm, ComboItemFormSet, ComboOwnerForm
 from ai_menu.models import AIRecommendation
 from ai_menu.services.dashboard import (
     AIRecommendationDecisionError,
@@ -13,7 +14,7 @@ from ai_menu.services.dashboard import (
     AIRecommendationRateLimitError,
 )
 from foodtrucks.models import FoodTruck
-from menu.models import Combo, Item
+from menu.models import Category, Combo, Item
 from menu.services.menu_service import MenuService
 
 
@@ -36,12 +37,61 @@ def combo_list(request, slug):
     foodtruck = _get_owner_foodtruck(request.user, slug)
     combos = Combo.objects.filter(
         category__menu__food_truck=foodtruck,
-    ).select_related('category').prefetch_related('combo_items__item').order_by('category__display_order', 'display_order', 'name')
+    ).select_related('category').prefetch_related('combo_items__item', 'combo_items__source_category').order_by('category__display_order', 'display_order', 'name')
+
+    combo_entries = []
+    for combo in combos:
+        effective_price = combo.get_effective_price()
+        display_price = None
+        if effective_price is not None:
+            display_price = foodtruck.get_display_price(effective_price, combo.get_tax_rate())
+        combo_entries.append({
+            'combo': combo,
+            'display_price': display_price,
+        })
 
     return render(request, 'ai_menu/combo_list.html', {
         'foodtruck': foodtruck,
         'categories': _get_menu_categories(foodtruck),
-        'combos': combos,
+        'combo_entries': combo_entries,
+        'prices_include_tax': foodtruck.prices_include_tax(),
+    })
+
+
+@login_required
+def combo_create(request, slug):
+    """Create a new combo for one food truck, then redirect to composition editing."""
+    foodtruck = _get_owner_foodtruck(request.user, slug)
+    active_menu = foodtruck.menus.filter(is_active=True).first()
+    available_categories = active_menu.categories.order_by('display_order', 'name') if active_menu else Category.objects.none()
+
+    if not available_categories.exists():
+        messages.error(request, _('Create an active menu category before adding combos.'))
+        return redirect('ai_menu:combo-list', slug=foodtruck.slug)
+
+    if request.method == 'POST':
+        form = ComboCreateForm(
+            request.POST,
+            foodtruck=foodtruck,
+            available_categories=available_categories,
+        )
+        if form.is_valid():
+            combo = form.save()
+            messages.success(request, _('Combo created successfully. You can now define its composition.'))
+            return redirect('ai_menu:combo-edit', slug=foodtruck.slug, combo_id=combo.id)
+    else:
+        initial_category = available_categories.first()
+        form = ComboCreateForm(
+            foodtruck=foodtruck,
+            available_categories=available_categories,
+            initial={'category': initial_category},
+        )
+
+    return render(request, 'ai_menu/combo_create.html', {
+        'foodtruck': foodtruck,
+        'categories': _get_menu_categories(foodtruck),
+        'form': form,
+        'prices_include_tax': foodtruck.prices_include_tax(),
     })
 
 
@@ -57,18 +107,30 @@ def combo_edit(request, slug, combo_id):
     available_items = Item.objects.filter(
         category__menu__food_truck=foodtruck,
     ).select_related('category').order_by('category__display_order', 'display_order', 'name')
+    available_categories = foodtruck.menus.filter(is_active=True).first().categories.order_by('display_order', 'name') if foodtruck.menus.filter(is_active=True).exists() else []
 
     if request.method == 'POST':
-        form = ComboOwnerForm(request.POST, instance=combo)
-        formset = ComboItemFormSet(request.POST, instance=combo, available_items=available_items, prefix='combo_items')
+        form = ComboOwnerForm(request.POST, instance=combo, foodtruck=foodtruck)
+        formset = ComboItemFormSet(
+            request.POST,
+            instance=combo,
+            available_items=available_items,
+            available_categories=available_categories,
+            prefix='combo_items',
+        )
         if form.is_valid() and formset.is_valid():
             form.save()
             formset.save()
-            messages.success(request, 'Combo updated successfully.')
+            messages.success(request, _('Combo updated successfully.'))
             return redirect('ai_menu:combo-edit', slug=foodtruck.slug, combo_id=combo.id)
     else:
-        form = ComboOwnerForm(instance=combo)
-        formset = ComboItemFormSet(instance=combo, available_items=available_items, prefix='combo_items')
+        form = ComboOwnerForm(instance=combo, foodtruck=foodtruck)
+        formset = ComboItemFormSet(
+            instance=combo,
+            available_items=available_items,
+            available_categories=available_categories,
+            prefix='combo_items',
+        )
 
     return render(request, 'ai_menu/combo_form.html', {
         'foodtruck': foodtruck,
@@ -76,6 +138,7 @@ def combo_edit(request, slug, combo_id):
         'combo': combo,
         'form': form,
         'formset': formset,
+        'prices_include_tax': foodtruck.prices_include_tax(),
     })
 
 

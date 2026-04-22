@@ -7,9 +7,9 @@ class ItemAIRecommendations {
         this.decisionSelector = '.js-ai-recommendation-action';
         this.app = document.getElementById('ai-menu-dashboard-app');
         this.translations = getDatasetTranslations(this.app, {
-            loadingRecommendationsMessage: 'Loading AI recommendations...',
-            analyzeErrorMessage: 'Unable to analyze this item.',
-            decisionErrorMessage: 'Unable to update this recommendation.',
+            loadingRecommendationsMessage: 'Chargement des recommandations IA...',
+            analyzeErrorMessage: 'Impossible d\'analyser cet article.',
+            decisionErrorMessage: 'Impossible de mettre à jour cette recommandation.',
         });
         if (!document.querySelector(this.analyzeSelector) && !document.querySelector(this.decisionSelector)) {
             return;

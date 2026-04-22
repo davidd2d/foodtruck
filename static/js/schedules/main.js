@@ -8,22 +8,22 @@ let schedulerBootstrapped = false;
 let isLoadingSchedules = false;
 const scheduleApp = document.getElementById('schedule-app');
 const translations = getDatasetTranslations(scheduleApp, {
-    editLabel: 'Edit',
-    deleteLabel: 'Delete',
-    noWindowsDefinedLabel: 'No windows defined',
-    windowsCountLabel: '{count} window(s)',
-    editTimeWindowLabel: 'Edit time window',
-    addTimeWindowLabel: 'Add time window',
-    savingLabel: 'Saving...',
-    saveLabel: 'Save',
-    ordersPerDurationLabel: '{count} orders / {minutes} min',
-    loadSchedulesErrorMessage: 'Unable to load schedules.',
-    deleteWindowConfirmation: 'Delete this time window?',
-    windowRemovedMessage: 'Time window removed.',
-    deleteScheduleErrorMessage: 'Unable to delete schedule.',
-    windowUpdatedMessage: 'Time window updated.',
-    windowAddedMessage: 'Time window added.',
-    presetUnavailableMessage: 'Preset not available.',
+    editLabel: 'Modifier',
+    deleteLabel: 'Supprimer',
+    noWindowsDefinedLabel: 'Aucune plage définie',
+    windowsCountLabel: '{count} plage(s)',
+    editTimeWindowLabel: 'Modifier la plage horaire',
+    addTimeWindowLabel: 'Ajouter une plage horaire',
+    savingLabel: 'Enregistrement...',
+    saveLabel: 'Enregistrer',
+    ordersPerDurationLabel: '{count} commandes / {minutes} min',
+    loadSchedulesErrorMessage: 'Impossible de charger les horaires.',
+    deleteWindowConfirmation: 'Supprimer cette plage horaire ?',
+    windowRemovedMessage: 'Plage horaire supprimée.',
+    deleteScheduleErrorMessage: 'Impossible de supprimer cet horaire.',
+    windowUpdatedMessage: 'Plage horaire mise à jour.',
+    windowAddedMessage: 'Plage horaire ajoutée.',
+    presetUnavailableMessage: 'Préréglage indisponible.',
 });
 
 function determineDefaultDay() {

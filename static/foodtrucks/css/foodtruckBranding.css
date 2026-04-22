@@ -1,9 +1,65 @@
+body.has-foodtruck-navbar main {
+    padding-top: calc(var(--foodtruck-navbar-height, 148px) + 0.75rem);
+}
+
+.foodtruck-order-layout,
+#cart-panel,
+#menu-container [id^="category-"] {
+    scroll-margin-top: calc(var(--foodtruck-navbar-height, 148px) + 0.75rem);
+}
+
+.foodtruck-order-navbar {
+    z-index: 1040;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+body:not(.has-foodtruck-navbar) .foodtruck-order-layout {
+    padding-top: calc(var(--foodtruck-navbar-height, 148px) + 1.25rem);
+}
+
 .category-nav {
     scrollbar-width: none;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .category-nav::-webkit-scrollbar {
     display: none;
+}
+
+.foodtruck-category-rail {
+    white-space: nowrap;
+}
+
+.foodtruck-category-chip {
+    flex: 0 0 auto;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.72rem;
+    border-radius: 999px;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.foodtruck-category-rail {
+    gap: 0.25rem;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+}
+
+.foodtruck-category-rail .foodtruck-category-chip {
+    scroll-snap-align: start;
+}
+
+.foodtruck-cart-icon {
+    display: block;
+}
+
+#nav-cart-link {
+    line-height: 1;
+}
+
+#cart-panel.sticky-top {
+    top: calc(var(--foodtruck-navbar-height, 148px) + 0.75rem) !important;
 }
 
 .foodtruck-header img {
@@ -13,4 +69,88 @@
 
 .navbar-brand {
     cursor: pointer;
+}
+
+.foodtruck-user-menu {
+    min-width: 320px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.foodtruck-user-menu .dropdown-header {
+    white-space: normal;
+}
+
+.foodtruck-submenu-toggle {
+    font-weight: 600;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+}
+
+.foodtruck-submenu-toggle:hover,
+.foodtruck-submenu-toggle:focus {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.foodtruck-submenu-toggle::after {
+    display: none;
+}
+
+.foodtruck-menu-badge {
+    min-width: 2.5rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #495057;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.04em;
+}
+
+.foodtruck-submenu-chevron {
+    font-size: 1rem;
+    line-height: 1;
+    transform: rotate(90deg);
+    transition: transform 0.2s ease;
+}
+
+.foodtruck-submenu-toggle.collapsed .foodtruck-submenu-chevron {
+    transform: rotate(0deg);
+}
+
+.foodtruck-submenu {
+    padding-bottom: 0.35rem;
+}
+
+.foodtruck-submenu-item {
+    padding-left: 2rem;
+    font-size: 0.95rem;
+}
+
+.foodtruck-submenu-item.active {
+    background-color: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.foodtruck-user-menu .dropdown-divider + .dropdown-header {
+    padding-top: 0.25rem;
+}
+
+@media (max-width: 576px) {
+    .foodtruck-user-menu {
+        min-width: min(88vw, 320px);
+    }
+
+    #foodtruck-title {
+        max-width: 9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #foodtruck-description-toggle {
+        display: none;
+    }
 }

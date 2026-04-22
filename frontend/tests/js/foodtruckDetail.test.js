@@ -56,6 +56,48 @@ const sampleMenu = {
       ],
       combos: [],
     },
+    {
+      id: 2,
+      name: 'Desserts',
+      items: [
+        {
+          id: 20,
+          name: 'Tiramisu',
+          description: 'Dessert maison',
+          base_price: '4.00',
+          option_groups: [],
+        },
+      ],
+      combos: [
+        {
+          id: 90,
+          name: 'Menu Pasta + Dessert',
+          description: 'Compose ton menu',
+          combo_price: null,
+          discount_amount: '2.00',
+          effective_price: null,
+          is_customizable: true,
+          combo_items: [
+            {
+              id: 901,
+              display_name: 'Pasta Box',
+              item_id: null,
+              source_category_id: 1,
+              source_category_name: 'Pasta Box',
+              quantity: 1,
+            },
+            {
+              id: 902,
+              display_name: 'Dessert',
+              item_id: null,
+              source_category_id: 2,
+              source_category_name: 'Desserts',
+              quantity: 1,
+            },
+          ],
+        },
+      ],
+    },
   ],
 };
 
@@ -110,7 +152,13 @@ function buildPageHtml({ authenticated }) {
       data-load-slots-error-label="Unable to load pickup slots."
       data-customize-item-title="Customize {item}"
       data-add-item-to-cart-label="Add item to cart"
+      data-compose-combo-title="Compose {combo}"
+      data-add-combo-to-cart-label="Add combo to cart"
+      data-compose-combo-label="Compose combo"
       data-no-customization-options-message="No customization options for this item."
+      data-select-item-for-component-message="Choose an item for {component}."
+      data-estimated-combo-price-label="Estimated combo price"
+      data-customer-chooses-from-label="Customer chooses from {category}"
       data-select-at-least-options-message="Please choose at least {count} option(s) for {group}."
       data-select-at-most-options-message="You can select up to {count} option(s) for {group}.">
       <div id="category-shortcuts"></div>
@@ -134,6 +182,17 @@ function buildPageHtml({ authenticated }) {
         <div id="item-order-options"></div>
         <input id="item-order-quantity" type="number" value="1" min="1">
         <button id="item-order-submit" type="submit">Add item to cart</button>
+      </form>
+    </div>
+    <div class="modal" id="comboOrderModal">
+      <form id="combo-order-form">
+        <h5 id="comboOrderModalLabel"></h5>
+        <div id="combo-order-error" class="d-none"></div>
+        <p id="combo-order-description" class="d-none"></p>
+        <div id="combo-order-components"></div>
+        <div id="combo-order-price"></div>
+        <input id="combo-order-quantity" type="number" value="1" min="1">
+        <button id="combo-order-submit" type="submit">Add combo to cart</button>
       </form>
     </div>
     <div class="modal" id="authRequiredModal">
@@ -230,5 +289,37 @@ describe('foodtruckDetail ordering flow', () => {
 
     expect(mocked.addCartItem).not.toHaveBeenCalled();
     expect(document.getElementById('item-order-error').textContent).toContain('Please choose at least 1 option(s) for AI Free Customizations.');
+  });
+
+  it('ouvre le modal combo puis ajoute un combo configurable avec ses sélections', async () => {
+    document.body.innerHTML = buildPageHtml({ authenticated: true });
+
+    await import('../../../static/js/pages/foodtruckDetail.js');
+
+    await waitFor(() => expect(document.querySelector('[data-combo-id="90"]')).not.toBeNull());
+    await waitFor(() => expect(modalInstances.has('comboOrderModal')).toBe(true));
+    fireEvent.click(document.querySelector('[data-combo-id="90"]'));
+
+    expect(modalInstances.get('comboOrderModal').show).toHaveBeenCalledTimes(1);
+
+    const selects = document.querySelectorAll('.combo-component-item-select');
+    fireEvent.change(selects[0], { target: { value: '10' } });
+    fireEvent.change(selects[1], { target: { value: '20' } });
+
+    await waitFor(() => expect(document.querySelector('#combo-order-components .menu-option')).not.toBeNull());
+    const firstOption = document.querySelector('#combo-order-components .menu-option');
+    fireEvent.click(firstOption);
+    fireEvent.submit(document.getElementById('combo-order-form'));
+
+    await waitFor(() => expect(mocked.addCartItem).toHaveBeenCalledTimes(1));
+    expect(mocked.addCartItem).toHaveBeenCalledWith({
+      foodtruck_slug: 'cucina-di-pastaz',
+      combo_id: 90,
+      quantity: 1,
+      combo_selections: [
+        { combo_item_id: 901, item_id: 10, selected_options: [301] },
+        { combo_item_id: 902, item_id: 20, selected_options: [] },
+      ],
+    });
   });
 });

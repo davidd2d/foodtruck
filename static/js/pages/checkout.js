@@ -12,15 +12,15 @@ export function createCheckoutHandler({
     translations = {},
 }) {
     const labels = {
-        loginRequiredMessage: 'Please log in before submitting an order.',
-        selectSlotMessage: 'Select a pickup slot before checkout.',
-        processingLabel: 'Processing...',
-        finalizingMessage: 'Finalizing your order...',
-        orderSubmittedMessage: 'Order submitted (#{orderId}).',
-        redirectingToPaymentMessage: 'Order submitted. Redirecting to payment...',
-        cartContinueMessage: 'Add items to your cart to continue.',
-        checkoutErrorMessage: 'Unable to complete checkout.',
-        checkoutLabel: checkoutButton?.textContent?.trim() || 'Checkout',
+        loginRequiredMessage: 'Veuillez vous connecter avant de valider une commande.',
+        selectSlotMessage: 'Sélectionnez un créneau de retrait avant de valider.',
+        processingLabel: 'Traitement...',
+        finalizingMessage: 'Finalisation de votre commande...',
+        orderSubmittedMessage: 'Commande envoyée (#{orderId}).',
+        redirectingToPaymentMessage: 'Commande envoyée. Redirection vers le paiement...',
+        cartContinueMessage: 'Ajoutez des articles à votre panier pour continuer.',
+        checkoutErrorMessage: 'Impossible de finaliser la commande.',
+        checkoutLabel: checkoutButton?.textContent?.trim() || 'Valider',
         ...translations,
     };
 

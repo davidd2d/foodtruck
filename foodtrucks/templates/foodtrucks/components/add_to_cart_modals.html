@@ -26,6 +26,38 @@
     </div>
 </div>
 
+<div class="modal fade" id="comboOrderModal" tabindex="-1" aria-labelledby="comboOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <form class="modal-content" id="combo-order-form">
+            <div class="modal-header">
+                <h5 class="modal-title" id="comboOrderModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body">
+                <div id="combo-order-error" class="alert alert-danger d-none" role="alert"></div>
+                <p id="combo-order-description" class="text-muted small d-none"></p>
+                <div id="combo-order-components"></div>
+            </div>
+            <div class="modal-footer justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div>
+                        <div class="small text-muted">{% trans 'Estimated combo price' %}</div>
+                        <div class="fw-semibold" id="combo-order-price">€0.00</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0" for="combo-order-quantity">{% trans 'Quantity' %}</label>
+                        <input id="combo-order-quantity" type="number" min="1" value="1" class="form-control" style="width: 88px;">
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans 'Cancel' %}</button>
+                    <button type="submit" class="btn btn-warning" id="combo-order-submit">{% trans 'Add combo to cart' %}</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal fade" id="authRequiredModal" tabindex="-1" aria-labelledby="authRequiredModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

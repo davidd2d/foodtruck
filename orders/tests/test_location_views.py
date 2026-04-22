@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
@@ -54,6 +55,46 @@ class LocationViewsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Location.objects.filter(food_truck=self.foodtruck).count(), 1)
 
+    @patch('orders.forms.LocationGeocodingService.geocode_address')
+    def test_owner_can_create_location_with_address_only(self, mock_geocode_address):
+        mock_geocode_address.return_value = (Decimal('48.856600'), Decimal('2.352200'))
+        self.client_login(self.owner)
+        url = reverse('orders:location-create', kwargs={'slug': self.foodtruck.slug})
+
+        payload = self._location_payload()
+        payload['latitude'] = ''
+        payload['longitude'] = ''
+        response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        location = Location.objects.get(food_truck=self.foodtruck)
+        self.assertEqual(location.latitude, Decimal('48.856600'))
+        self.assertEqual(location.longitude, Decimal('2.352200'))
+
+    @patch('orders.forms.LocationGeocodingService.reverse_geocode')
+    def test_owner_can_create_location_with_coordinates_only(self, mock_reverse_geocode):
+        mock_reverse_geocode.return_value = {
+            'address_line_1': '10 Rue de Rivoli',
+            'address_line_2': '',
+            'postal_code': '75001',
+            'city': 'Paris',
+            'country': 'France',
+        }
+        self.client_login(self.owner)
+        url = reverse('orders:location-create', kwargs={'slug': self.foodtruck.slug})
+
+        payload = self._location_payload()
+        payload['address_line_1'] = ''
+        payload['postal_code'] = ''
+        payload['city'] = ''
+        payload['country'] = ''
+        response = self.client.post(url, data=payload)
+
+        self.assertEqual(response.status_code, 302)
+        location = Location.objects.get(food_truck=self.foodtruck)
+        self.assertEqual(location.address_line_1, '10 Rue de Rivoli')
+        self.assertEqual(location.postal_code, '75001')
+
     def test_owner_can_edit_location(self):
         location = Location.objects.create(food_truck=self.foodtruck, **{
             'address_line_1': '123', 'postal_code': '75000', 'city': 'Paris', 'country': 'France',
@@ -88,4 +129,4 @@ class LocationViewsTests(TestCase):
         self.client_login(self.owner)
         url = reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug})
         response = self.client.get(url)
-        self.assertContains(response, 'Locations')
+        self.assertContains(response, 'Lieux de vente')

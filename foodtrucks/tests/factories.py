@@ -50,7 +50,7 @@ def PlanFactory(name='Standard Plan', code='pro', price=Decimal('29.99'), allows
     return plan
 
 
-def FoodTruckFactory(owner=None, name='Test Truck', description='Test description', latitude=40.7128, longitude=-74.0060, is_active=True, default_language='en'):
+def FoodTruckFactory(owner=None, name='Test Truck', description='Test description', latitude=40.7128, longitude=-74.0060, is_active=True, default_language='en', price_display_mode='tax_included'):
     owner = owner or UserFactory()
     if not owner.is_foodtruck_owner:
         owner.is_foodtruck_owner = True
@@ -58,6 +58,7 @@ def FoodTruckFactory(owner=None, name='Test Truck', description='Test descriptio
     foodtruck = FoodTruck.objects.create(
         owner=owner,
         default_language=default_language,
+        price_display_mode=price_display_mode,
         name=name,
         description=description,
         latitude=latitude,

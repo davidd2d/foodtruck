@@ -175,6 +175,32 @@ class Location(models.Model):
     def has_coordinates(self) -> bool:
         return self.latitude is not None and self.longitude is not None
 
+    def resolve_geodata(self, geocoding_service=None):
+        """Fill missing address or coordinates from the available location data."""
+        if self.has_address() and self.has_coordinates():
+            return self
+
+        if geocoding_service is None:
+            from orders.services.location_geocoding_service import LocationGeocodingService
+            geocoding_service = LocationGeocodingService
+
+        if self.has_address() and not self.has_coordinates():
+            latitude, longitude = geocoding_service.geocode_address(self.get_full_address())
+            self.latitude = latitude
+            self.longitude = longitude
+            return self
+
+        if self.has_coordinates() and not self.has_address():
+            resolved = geocoding_service.reverse_geocode(float(self.latitude), float(self.longitude))
+            self.address_line_1 = resolved.get('address_line_1', self.address_line_1)
+            self.address_line_2 = resolved.get('address_line_2', self.address_line_2)
+            self.postal_code = resolved.get('postal_code', self.postal_code)
+            self.city = resolved.get('city', self.city)
+            self.country = resolved.get('country', self.country)
+            return self
+
+        return self
+
 
 def _haversine_distance(lat1, lng1, lat2, lng2):
     R = 6371
@@ -611,7 +637,7 @@ class Order(models.Model):
         self._refresh_draft_financials()
         self.save(update_fields=['total_price', 'total_amount', 'tax_amount'])
 
-    def add_combo(self, combo, quantity):
+    def add_combo(self, combo, quantity, combo_selections=None):
         """Add a combo to the order as a priced snapshot line."""
         if self.status != self.Status.DRAFT:
             raise ValidationError("Cannot modify order after submission")
@@ -625,19 +651,29 @@ class Order(models.Model):
         if quantity <= 0:
             raise ValidationError("Quantity must be positive")
 
-        unit_price = combo.get_effective_price()
-        if unit_price is None:
-            raise ValidationError(f"Combo '{combo.name}' needs a confirmed price before ordering")
+        snapshot = combo.build_order_snapshot(combo_selections=combo_selections)
+        unit_price = snapshot['unit_price']
 
         order_item = OrderItem(
             order=self,
             combo=combo,
             quantity=quantity,
             unit_price=unit_price,
-            options=[],
+            options=snapshot['components'],
         )
         order_item.snapshot_pricing()
         order_item.save()
+
+        for component in snapshot['components']:
+            for option in component.get('selected_options', []):
+                option_obj = Option.objects.filter(pk=option['option_id']).first()
+                if option_obj is None:
+                    continue
+                OrderItemOption.objects.create(
+                    order_item=order_item,
+                    option=option_obj,
+                    price_modifier=option_obj.price_modifier,
+                )
 
         self._refresh_draft_financials()
         self.save(update_fields=['total_price', 'total_amount', 'tax_amount'])

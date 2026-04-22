@@ -291,3 +291,30 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         order = Order.objects.get(id=response.data['order_id'])
         self.assertEqual(order.items.first().combo_id, self.combo.id)
+
+    def test_cart_add_configurable_combo_accepts_component_payload(self):
+        dessert_category = CategoryFactory(menu=self.category.menu, name='Desserts')
+        dessert = ItemFactory(category=dessert_category, name='Cookie', base_price=Decimal('3.00'))
+        option_group = OptionGroupFactory(item=self.item, name='Extras', min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, name='Cheese', price_modifier=Decimal('1.00'))
+        configurable_combo = ComboFactory(category=self.category, combo_price=None, discount_amount=Decimal('2.00'))
+        main_component = ComboItemFactory(combo=configurable_combo, source_category=self.category, item=None, display_name='Main')
+        dessert_component = ComboItemFactory(combo=configurable_combo, source_category=dessert_category, item=None, display_name='Dessert')
+
+        add_response = self.client.post(
+            reverse('cart-add'),
+            {
+                'foodtruck_slug': self.foodtruck.slug,
+                'combo_id': configurable_combo.id,
+                'quantity': 1,
+                'combo_selections': [
+                    {'combo_item_id': main_component.id, 'item_id': self.item.id, 'selected_options': [option.id]},
+                    {'combo_item_id': dessert_component.id, 'item_id': dessert.id, 'selected_options': []},
+                ],
+            },
+            format='json'
+        )
+
+        self.assertEqual(add_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(add_response.data['items'][0]['line_type'], 'combo')
+        self.assertEqual(len(add_response.data['items'][0]['combo_components']), 2)

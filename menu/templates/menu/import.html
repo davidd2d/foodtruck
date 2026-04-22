@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Import a menu" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
+
+<div class="container py-5">
+    <div class="row justify-content-center g-4">
+        <div class="col-xl-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                        <div>
+                            <h1 class="mb-2">{% trans "Import a menu" %}</h1>
+                            <p class="text-muted mb-0">{% trans "Mix raw text, photos, or PDF files. The imported menu replaces the current live menu and keeps the previous one archived." %}</p>
+                        </div>
+                        <a href="{% url 'menu:catalog' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Catalogue et prix" %}</a>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="row g-4">
+                        {% csrf_token %}
+                        <div class="col-12">
+                            <label for="{{ form.raw_text.id_for_label }}" class="form-label fw-semibold">{{ form.raw_text.label }}</label>
+                            {{ form.raw_text }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="menu-images" class="form-label fw-semibold">{% trans "Menu photos" %}</label>
+                            <input id="menu-images" type="file" name="images" accept="image/*" multiple class="form-control">
+                            <div class="form-text">{% trans "Use clear photos of the printed menu, blackboard, or flyers." %}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="menu-documents" class="form-label fw-semibold">{% trans "PDF menu" %}</label>
+                            <input id="menu-documents" type="file" name="documents" accept="application/pdf,.pdf" multiple class="form-control">
+                            <div class="form-text">{% trans "Import one or several PDF menus. Their text is extracted before AI parsing." %}</div>
+                        </div>
+                        <div class="col-12">
+                            <label for="{{ form.source_url.id_for_label }}" class="form-label fw-semibold">{{ form.source_url.label }}</label>
+                            {{ form.source_url }}
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary">{% trans "Import and publish menu" %}</button>
+                            <a href="{% url 'menu:dashboard' slug=foodtruck.slug %}" class="btn btn-outline-secondary">{% trans "Back" %}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h2 class="h5 mb-3">{% trans "What happens next" %}</h2>
+                    <ul class="small text-muted ps-3 mb-0">
+                        <li>{% trans "The current active menu is archived, not deleted." %}</li>
+                        <li>{% trans "A new live menu is generated from the imported sources." %}</li>
+                        <li>{% trans "You can immediately adjust prices and availability from the catalogue page." %}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

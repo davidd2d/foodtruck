@@ -17,6 +17,7 @@ class FoodTruckSerializer(serializers.ModelSerializer):
             'id',
             'slug',
             'default_language',
+            'price_display_mode',
             'name',
             'description',
             'logo',

@@ -31,9 +31,9 @@ class ComboItemInline(admin.TabularInline):
 
 @admin.register(Combo)
 class ComboAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'category', 'combo_price', 'is_available')
+    list_display = ('name', 'category', 'tax', 'combo_price', 'is_available')
     search_fields = ('name', 'category__name', 'category__menu__food_truck__name')
-    list_filter = ('is_available', 'category__menu')
+    list_filter = ('is_available', 'tax', 'category__menu')
     inlines = [ComboItemInline]
 
     def get_queryset(self, request):

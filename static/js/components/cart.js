@@ -21,10 +21,10 @@ export function renderCartItem(item, translations = {}) {
             <div>
                 <div class="fw-semibold">${item.item_name}</div>
                 <div class="small text-muted">${optionSummary}</div>
-                <div class="small text-muted">${labels.quantityLabel} ${item.quantity} • €${parseFloat(item.unit_price).toFixed(2)} ${labels.eachLabel}</div>
+                <div class="small text-muted">${labels.quantityLabel} ${item.quantity} • €${parseFloat(item.display_unit_price ?? item.unit_price).toFixed(2)} ${labels.eachLabel}</div>
             </div>
             <div class="text-end">
-                <div class="fw-semibold">€${parseFloat(item.total_price).toFixed(2)}</div>
+                <div class="fw-semibold">€${parseFloat(item.display_total_price ?? item.total_price).toFixed(2)}</div>
                 <button type="button" class="btn btn-link btn-sm text-danger cart-remove" data-line-key="${item.line_key}">
                     ${labels.removeLabel}
                 </button>
@@ -46,7 +46,7 @@ export function renderCart(cart, translations = {}) {
     return {
         empty: false,
         markup: itemsMarkup,
-        total: parseFloat(cart.total_price).toFixed(2),
+            total: parseFloat(cart.display_total_price ?? cart.total_price).toFixed(2),
         itemCount: cart.item_count,
     };
 }

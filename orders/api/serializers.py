@@ -228,10 +228,11 @@ class OrderDashboardItemSerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source='product_name', read_only=True)
     line_type = serializers.CharField(read_only=True)
     selected_options = serializers.SerializerMethodField()
+    combo_components = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderItem
-        fields = ['item_name', 'line_type', 'quantity', 'unit_price', 'total_price', 'selected_options']
+        fields = ['item_name', 'line_type', 'quantity', 'unit_price', 'total_price', 'selected_options', 'combo_components']
 
     def get_selected_options(self, obj):
         return [
@@ -241,6 +242,11 @@ class OrderDashboardItemSerializer(serializers.ModelSerializer):
             }
             for selected_option in obj.selected_options.all()
         ]
+
+    def get_combo_components(self, obj):
+        if not obj.combo_id:
+            return []
+        return obj.options or []
 
 
 class OrderDashboardSerializer(serializers.ModelSerializer):
@@ -285,6 +291,11 @@ class AddItemSerializer(serializers.Serializer):
         required=False,
         allow_empty=True
     )
+    combo_selections = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        allow_empty=True,
+    )
 
     def validate(self, attrs):
         item_id = attrs.get('item_id')
@@ -293,6 +304,8 @@ class AddItemSerializer(serializers.Serializer):
             raise serializers.ValidationError('Provide exactly one of item_id or combo_id.')
         if combo_id and attrs.get('selected_options'):
             raise serializers.ValidationError('Combos do not support selected_options.')
+        if item_id and attrs.get('combo_selections'):
+            raise serializers.ValidationError('combo_selections are only supported for combos.')
         return attrs
 
 
@@ -304,9 +317,12 @@ class CartItemSerializer(serializers.Serializer):
     combo_id = serializers.IntegerField(required=False, allow_null=True)
     item_name = serializers.CharField()
     component_summary = serializers.CharField(required=False, allow_blank=True)
+    combo_components = serializers.ListField(child=serializers.DictField(), required=False)
     quantity = serializers.IntegerField()
     unit_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    display_unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    display_total_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
     selected_options = serializers.ListField(child=serializers.DictField(), required=False)
 
 
@@ -315,7 +331,9 @@ class CartSerializer(serializers.Serializer):
     foodtruck_slug = serializers.CharField(allow_null=True)
     items = CartItemSerializer(many=True)
     total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    display_total_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
     item_count = serializers.IntegerField()
+    prices_include_tax = serializers.BooleanField(required=False)
 
 
 class AddCartItemSerializer(serializers.Serializer):
@@ -329,6 +347,11 @@ class AddCartItemSerializer(serializers.Serializer):
         required=False,
         allow_empty=True
     )
+    combo_selections = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        allow_empty=True,
+    )
 
     def validate(self, attrs):
         item_id = attrs.get('item_id')
@@ -337,6 +360,8 @@ class AddCartItemSerializer(serializers.Serializer):
             raise serializers.ValidationError('Provide exactly one of item_id or combo_id.')
         if combo_id and attrs.get('selected_options'):
             raise serializers.ValidationError('Combos do not support selected_options.')
+        if item_id and attrs.get('combo_selections'):
+            raise serializers.ValidationError('combo_selections are only supported for combos.')
         return attrs
 
 

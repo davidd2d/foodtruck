@@ -3,15 +3,15 @@ import { interpolate } from '../i18n.js';
 const scheduleStore = new Map();
 const TOTAL_DAYS = 7;
 const translations = {
-    editLabel: 'Edit',
-    deleteLabel: 'Delete',
-    noWindowsDefinedLabel: 'No windows defined',
-    windowsCountLabel: '{count} window(s)',
-    editTimeWindowLabel: 'Edit time window',
-    addTimeWindowLabel: 'Add time window',
-    savingLabel: 'Saving...',
-    saveLabel: 'Save',
-    ordersPerDurationLabel: '{count} orders / {minutes} min',
+    editLabel: 'Modifier',
+    deleteLabel: 'Supprimer',
+    noWindowsDefinedLabel: 'Aucune plage définie',
+    windowsCountLabel: '{count} plage(s)',
+    editTimeWindowLabel: 'Modifier la plage horaire',
+    addTimeWindowLabel: 'Ajouter une plage horaire',
+    savingLabel: 'Enregistrement...',
+    saveLabel: 'Enregistrer',
+    ordersPerDurationLabel: '{count} commandes / {minutes} min',
 };
 
 export function configureScheduleUiTranslations(customTranslations = {}) {

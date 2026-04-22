@@ -1,4 +1,5 @@
 from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 from django.test import TestCase
 from django.utils import timezone
@@ -67,6 +68,12 @@ class FoodTruckModelTests(TestCase):
         foodtruck.subscription.save()
         self.assertTrue(foodtruck.has_active_subscription())
         self.assertTrue(foodtruck.can_accept_orders())
+
+    def test_get_display_price_can_include_tax(self):
+        foodtruck = FoodTruckFactory()
+        foodtruck.price_display_mode = foodtruck.PriceDisplayMode.TAX_INCLUDED
+
+        self.assertEqual(foodtruck.get_display_price(Decimal('10.00'), Decimal('0.1000')), Decimal('11.00'))
 
 
 class FoodTruckPickupSlotTests(TestCase):

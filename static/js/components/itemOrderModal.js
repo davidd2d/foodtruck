@@ -18,6 +18,9 @@ function buildOptionControl(group, itemId) {
     return (group.options || []).map((option) => {
         const inputType = isRadio ? 'radio' : 'checkbox';
         const optionId = `item-${itemId}-option-${option.id}`;
+        const priceModifier = Number(option.price_modifier || 0);
+        const itemTaxRate = Number(group.item_tax_rate || 0);
+        const displayModifier = group.prices_include_tax ? priceModifier * (1 + itemTaxRate) : priceModifier;
         return `
             <div class="form-check mb-2">
                 <input
@@ -29,7 +32,7 @@ function buildOptionControl(group, itemId) {
                     value="${option.id}"
                 />
                 <label class="form-check-label" for="${optionId}">
-                    ${option.name} <span class="text-muted">(+€${parseFloat(option.price_modifier).toFixed(2)})</span>
+                    ${option.name} <span class="text-muted">(+€${displayModifier.toFixed(2)})</span>
                 </label>
             </div>
         `;
@@ -56,7 +59,7 @@ export function renderItemOrderModalBody(item, translations = {}) {
                     ${group.max_choices ? `• ${labels.maxLabel} ${group.max_choices}` : ''}
                 </small>
             </div>
-            ${buildOptionControl(group, item.id)}
+            ${buildOptionControl({ ...group, item_tax_rate: item.tax_rate, prices_include_tax: item.prices_include_tax }, item.id)}
         </section>
     `).join('');
 }

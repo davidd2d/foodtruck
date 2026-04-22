@@ -127,6 +127,30 @@ class OrderModelTests(TestCase):
         self.assertEqual(order_item.total_price, Decimal('39.60'))
         self.assertEqual(order.total_price, Decimal('39.60'))
 
+    def test_add_combo_uses_selected_items_and_discount_snapshot(self):
+        dessert_category = CategoryFactory(menu=self.category.menu, name='Desserts')
+        dessert = ItemFactory(category=dessert_category, name='Cookie', base_price=Decimal('3.00'))
+        option_group = OptionGroupFactory(item=self.item, name='Extras', min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, name='Cheese', price_modifier=Decimal('1.00'))
+        configurable_combo = ComboFactory(category=self.category, combo_price=None, discount_amount=Decimal('2.00'))
+        main_component = ComboItemFactory(combo=configurable_combo, source_category=self.category, item=None, display_name='Main')
+        dessert_component = ComboItemFactory(combo=configurable_combo, source_category=dessert_category, item=None, display_name='Dessert')
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=self.pickup_slot)
+
+        order.add_combo(
+            configurable_combo,
+            quantity=1,
+            combo_selections=[
+                {'combo_item_id': main_component.id, 'item_id': self.item.id, 'selected_options': [option.id]},
+                {'combo_item_id': dessert_component.id, 'item_id': dessert.id, 'selected_options': []},
+            ],
+        )
+
+        order_item = order.items.first()
+        self.assertEqual(order_item.unit_price, Decimal('14.00'))
+        self.assertEqual(len(order_item.options), 2)
+        self.assertEqual(order_item.selected_options.count(), 1)
+
     def test_submit_order_with_generated_slot(self):
         schedule = ServiceSchedule.objects.create(
             food_truck=self.foodtruck,

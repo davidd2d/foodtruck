@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static i18n %}
 
-{% block title %}{{ foodtruck.name }} - {% trans "Issued tickets" %}{% endblock %}
+{% block title %}{{ foodtruck.name }} - {% trans "Billing and tickets" %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
@@ -20,8 +20,8 @@
                     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
                         <div>
                             <p class="text-uppercase fw-semibold small mb-2">{{ foodtruck.name }}</p>
-                            <h1 class="mb-2">{% trans "Issued tickets" %}</h1>
-                            <p class="text-muted mb-0">{% trans "Review paid tickets by customer for this food truck." %}</p>
+                            <h1 class="mb-2">{% trans "Billing and tickets" %}</h1>
+                            <p class="text-muted mb-0">{% trans "Review paid tickets grouped by customer for this food truck." %}</p>
                         </div>
                         <div class="badge text-bg-dark fs-6">{{ issued_tickets_count }} {% trans "tickets" %}</div>
                     </div>
@@ -34,7 +34,7 @@
         <div class="col-xl-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
-                    <h2 class="h5 mb-3">{% trans "Customers" %}</h2>
+                    <h2 class="h5 mb-3">{% trans "Clients" %}</h2>
                     {% if customer_summaries %}
                         <div class="list-group list-group-flush">
                             {% for customer in customer_summaries %}
@@ -49,7 +49,7 @@
                             {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted mb-0">{% trans "No issued tickets yet for this food truck." %}</p>
+                        <p class="text-muted mb-0">{% trans "No paid tickets yet for this food truck." %}</p>
                     {% endif %}
                 </div>
             </div>
@@ -85,8 +85,8 @@
                         </div>
                     {% else %}
                         <div class="p-4 p-lg-5 text-center">
-                            <h2 class="h4 mb-3">{% trans "No issued tickets yet." %}</h2>
-                            <p class="text-muted mb-0">{% trans "Tickets will appear here after successful payments." %}</p>
+                            <h2 class="h4 mb-3">{% trans "No paid tickets yet." %}</h2>
+                            <p class="text-muted mb-0">{% trans "Paid tickets will appear here after successful payments." %}</p>
                         </div>
                     {% endif %}
                 </div>
