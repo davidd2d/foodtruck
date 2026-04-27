@@ -37,7 +37,7 @@ def combo_list(request, slug):
     foodtruck = _get_owner_foodtruck(request.user, slug)
     combos = Combo.objects.filter(
         category__menu__food_truck=foodtruck,
-    ).select_related('category').prefetch_related('combo_items__item', 'combo_items__source_category').order_by('category__display_order', 'display_order', 'name')
+    ).select_related('category').prefetch_related('combo_items__item', 'combo_items__fixed_items', 'combo_items__source_category').order_by('category__display_order', 'display_order', 'name')
 
     combo_entries = []
     for combo in combos:
@@ -100,7 +100,7 @@ def combo_edit(request, slug, combo_id):
     """Allow a food truck owner to edit a generated combo and its components."""
     foodtruck = _get_owner_foodtruck(request.user, slug)
     combo = get_object_or_404(
-        Combo.objects.select_related('category__menu__food_truck').prefetch_related('combo_items'),
+        Combo.objects.select_related('category__menu__food_truck').prefetch_related('combo_items__fixed_items', 'combo_items__item'),
         pk=combo_id,
         category__menu__food_truck=foodtruck,
     )
@@ -138,6 +138,14 @@ def combo_edit(request, slug, combo_id):
         'combo': combo,
         'form': form,
         'formset': formset,
+        'available_items_payload': [
+            {
+                'id': item.id,
+                'name': item.name,
+                'category_id': item.category_id,
+            }
+            for item in available_items
+        ],
         'prices_include_tax': foodtruck.prices_include_tax(),
     })
 

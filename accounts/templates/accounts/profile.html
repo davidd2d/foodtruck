@@ -4,6 +4,11 @@
 {% block title %}{% trans "Owner profile" %}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/accounts/forms.css' %}">
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with foodtruck=foodtruck categories=categories %}
 {% endblock %}
 
 {% block content %}

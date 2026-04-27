@@ -23,6 +23,7 @@ class MenuService:
                 'categories__items__option_groups__options',
                 'categories__items__compatible_preferences',
                 'categories__combos__combo_items__item',
+                'categories__combos__combo_items__fixed_items',
             )
             .order_by('-created_at')
             .first()

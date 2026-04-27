@@ -123,9 +123,11 @@
                                             <label class="form-label" for="{{ combo_item_form.source_category.id_for_label }}">{{ combo_item_form.source_category.label }}</label>
                                             {{ combo_item_form.source_category }}
                                         </div>
-                                        <div class="col-12 col-md-6 col-xl-3">
-                                            <label class="form-label" for="{{ combo_item_form.item.id_for_label }}">{{ combo_item_form.item.label }}</label>
-                                            {{ combo_item_form.item }}
+                                        <div class="col-12 col-xl-4">
+                                            <label class="form-label">{{ combo_item_form.fixed_items.label }}</label>
+                                            <div class="combo-fixed-items" data-empty-label="{% trans 'No fixed item available for this category.' %}">
+                                                {{ combo_item_form.fixed_items }}
+                                            </div>
                                         </div>
                                         <div class="col-6 col-md-3 col-xl-1 combo-number-col">
                                             <label class="form-label" for="{{ combo_item_form.quantity.id_for_label }}">{{ combo_item_form.quantity.label }}</label>
@@ -160,4 +162,64 @@
         </div>
     </form>
 </div>
+
+{{ available_items_payload|json_script:"combo-edit-items-payload" }}
+
+<script>
+    (function () {
+        const payloadNode = document.getElementById('combo-edit-items-payload');
+        if (!payloadNode) {
+            return;
+        }
+
+        let allItems = [];
+        try {
+            allItems = JSON.parse(payloadNode.textContent || '[]');
+        } catch (error) {
+            return;
+        }
+
+        const rows = document.querySelectorAll('.combo-component-card');
+        rows.forEach((row) => {
+            const sourceCategorySelect = row.querySelector('select[name$="-source_category"]');
+            const fixedItemsContainer = row.querySelector('.combo-fixed-items');
+            const checkboxItems = Array.from(row.querySelectorAll('input[type="checkbox"][name$="-fixed_items"]'));
+            if (!sourceCategorySelect || !fixedItemsContainer || !checkboxItems.length) {
+                return;
+            }
+
+            const emptyMessage = document.createElement('p');
+            emptyMessage.className = 'small text-muted mb-0 d-none';
+            emptyMessage.textContent = fixedItemsContainer.dataset.emptyLabel || 'No fixed item available for this category.';
+            fixedItemsContainer.appendChild(emptyMessage);
+
+            function refreshFixedItemChoices() {
+                const selectedCategoryId = sourceCategorySelect.value;
+                let visibleCount = 0;
+
+                checkboxItems.forEach((checkbox) => {
+                    const categoryId = checkbox.dataset.categoryId;
+                    const wrapper = checkbox.closest('div') || checkbox.closest('label');
+                    if (!wrapper) {
+                        return;
+                    }
+
+                    const shouldShow = !selectedCategoryId || String(categoryId) === String(selectedCategoryId);
+                    wrapper.classList.toggle('d-none', !shouldShow);
+
+                    if (!shouldShow) {
+                        checkbox.checked = false;
+                    } else {
+                        visibleCount += 1;
+                    }
+                });
+
+                emptyMessage.classList.toggle('d-none', visibleCount > 0);
+            }
+
+            refreshFixedItemChoices();
+            sourceCategorySelect.addEventListener('change', refreshFixedItemChoices);
+        });
+    })();
+</script>
 {% endblock %}

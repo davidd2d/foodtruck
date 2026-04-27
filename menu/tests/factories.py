@@ -54,7 +54,8 @@ def ComboItemFactory(combo=None, item=None, source_category=None, display_name='
     combo = combo or ComboFactory()
     if item is None and source_category is None:
         item = ItemFactory(category=combo.category, name=display_name)
-    return ComboItem.objects.create(
+
+    combo_item = ComboItem.objects.create(
         combo=combo,
         item=item,
         source_category=source_category,
@@ -62,6 +63,11 @@ def ComboItemFactory(combo=None, item=None, source_category=None, display_name='
         quantity=quantity,
         display_order=display_order,
     )
+
+    if item is not None:
+        combo_item.fixed_items.add(item)
+
+    return combo_item
 
 
 def OptionGroupFactory(item=None, name='Size', required=False, min_choices=0, max_choices=None):

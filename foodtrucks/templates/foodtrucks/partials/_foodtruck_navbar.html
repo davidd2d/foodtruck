@@ -41,7 +41,6 @@
                                 </button>
                                 <div class="collapse {% if current_url == 'profile' or current_url == 'history' or current_url == 'ticket-list-page' %}show {% endif %}foodtruck-submenu" id="foodtruck-account-submenu">
                                     <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'profile' %}active{% endif %}" href="{% url 'accounts:profile' slug=foodtruck.slug %}">{% trans "Profile" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'history' %}active{% endif %}" href="{% url 'orders:history' %}">{% trans "Mes commandes" %}</a>
                                     <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'ticket-list-page' %}active{% endif %}" href="{% url 'orders:ticket-list-page' slug=foodtruck.slug user_id=user.id %}">{% trans "Mes tickets" %}</a>
                                     {% if user.is_staff %}
                                         <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'admin' %}active{% endif %}" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>

@@ -437,6 +437,18 @@ function getComboCandidates(comboItem) {
         return (menuCategoriesById.get(String(comboItem.source_category_id))?.items || []).filter((item) => item.is_available !== false);
     }
 
+    if (Array.isArray(comboItem.fixed_items) && comboItem.fixed_items.length) {
+        return comboItem.fixed_items
+            .map((fixedItem) => menuItemsById.get(String(fixedItem.id)) || fixedItem)
+            .filter((item) => item && item.is_available !== false);
+    }
+
+    if (Array.isArray(comboItem.fixed_item_ids) && comboItem.fixed_item_ids.length) {
+        return comboItem.fixed_item_ids
+            .map((fixedItemId) => menuItemsById.get(String(fixedItemId)))
+            .filter((item) => item && item.is_available !== false);
+    }
+
     if (comboItem.item_id) {
         const fixedItem = menuItemsById.get(String(comboItem.item_id));
         return fixedItem ? [fixedItem] : [];
@@ -449,6 +461,7 @@ function buildComboComponentMarkup(comboItem) {
     const candidates = getComboCandidates(comboItem);
     const selectedItemId = comboItem.item_id || (candidates.length ? candidates[0].id : '');
     const requiresChoice = Boolean(comboItem.source_category_id);
+    const allowsMultipleFixed = !requiresChoice && candidates.length > 1;
     const sourceHint = comboItem.source_category_name
         ? interpolate(translations.customerChoosesFromLabel, { category: comboItem.source_category_name })
         : '';
@@ -458,6 +471,11 @@ function buildComboComponentMarkup(comboItem) {
             <option value="">${interpolate(translations.selectItemForComponentMessage, { component: comboItem.display_name })}</option>
             ${candidates.map((item) => `<option value="${item.id}" ${Number(selectedItemId) === Number(item.id) ? 'selected' : ''}>${item.name} - €${parseFloat(item.display_price ?? item.base_price).toFixed(2)}</option>`).join('')}
         </select>
+    ` : allowsMultipleFixed ? `
+        ${candidates.map((item) => `
+            <input type="hidden" class="combo-component-item-select" data-combo-item-id="${comboItem.id}" value="${item.id}">
+            <div class="fw-medium">${item.name}</div>
+        `).join('')}
     ` : `
         <input type="hidden" class="combo-component-item-select" data-combo-item-id="${comboItem.id}" value="${selectedItemId}">
         <div class="fw-medium">${candidates[0]?.name || comboItem.display_name}</div>
@@ -479,32 +497,47 @@ function buildComboComponentMarkup(comboItem) {
 }
 
 function renderComboComponentOptions(section) {
-    const itemSelect = section.querySelector('.combo-component-item-select');
+    const itemSelectElements = Array.from(section.querySelectorAll('.combo-component-item-select'));
     const optionsContainer = section.querySelector('.combo-component-options');
-    const selectedItemId = itemSelect?.value;
 
     if (!optionsContainer) {
         return;
     }
 
-    if (!selectedItemId) {
+    const selectedItemIds = itemSelectElements
+        .map((itemSelect) => itemSelect?.value)
+        .filter((itemId) => Boolean(itemId));
+
+    if (!selectedItemIds.length) {
         optionsContainer.innerHTML = '';
         return;
     }
 
-    const selectedItem = menuItemsById.get(String(selectedItemId));
-    if (!selectedItem) {
-        optionsContainer.innerHTML = '';
-        return;
-    }
+    optionsContainer.innerHTML = selectedItemIds.map((selectedItemId) => {
+        const selectedItem = menuItemsById.get(String(selectedItemId));
+        if (!selectedItem) {
+            return '';
+        }
 
-    optionsContainer.innerHTML = renderItemOrderModalBody(selectedItem, {
-        requiredLabel: translations.requiredLabel,
-        optionalLabel: translations.optionalLabel,
-        minLabel: translations.minLabel,
-        maxLabel: translations.maxLabel,
-        noCustomizationOptionsMessage: translations.noCustomizationOptionsMessage,
-    });
+        const optionsMarkup = renderItemOrderModalBody(selectedItem, {
+            requiredLabel: translations.requiredLabel,
+            optionalLabel: translations.optionalLabel,
+            minLabel: translations.minLabel,
+            maxLabel: translations.maxLabel,
+            noCustomizationOptionsMessage: translations.noCustomizationOptionsMessage,
+        });
+
+        const itemTitle = selectedItemIds.length > 1
+            ? `<div class="fw-medium small mb-2">${selectedItem.name}</div>`
+            : '';
+
+        return `
+            <div class="combo-component-options-item mb-3" data-item-id="${selectedItem.id}">
+                ${itemTitle}
+                ${optionsMarkup}
+            </div>
+        `;
+    }).join('');
 }
 
 function updateComboOrderPricePreview(combo) {
@@ -520,23 +553,26 @@ function updateComboOrderPricePreview(combo) {
     let subtotal = 0;
     combo.combo_items.forEach((comboItem) => {
         const section = comboOrderComponents?.querySelector(`[data-combo-item-id="${comboItem.id}"]`);
-        const selectedItemId = section?.querySelector('.combo-component-item-select')?.value;
-        if (!selectedItemId) {
-            return;
-        }
+        const itemSelectElements = Array.from(section?.querySelectorAll('.combo-component-item-select') || []);
+        const selectedItemIds = itemSelectElements
+            .map((itemSelect) => itemSelect?.value)
+            .filter((itemId) => Boolean(itemId));
 
-        const selectedItem = menuItemsById.get(String(selectedItemId));
-        if (!selectedItem) {
-            return;
-        }
-
-        subtotal += parseFloat(selectedItem.base_price || 0) * Number(comboItem.quantity || 1);
-        const selectedOptions = getSelectedOptionIds(section.querySelector('.combo-component-options'));
-        selectedOptions.forEach((optionId) => {
-            const option = (selectedItem.option_groups || []).flatMap((group) => group.options || []).find((entry) => Number(entry.id) === Number(optionId));
-            if (option) {
-                subtotal += parseFloat(option.price_modifier || 0) * Number(comboItem.quantity || 1);
+        selectedItemIds.forEach((selectedItemId) => {
+            const selectedItem = menuItemsById.get(String(selectedItemId));
+            if (!selectedItem) {
+                return;
             }
+
+            subtotal += parseFloat(selectedItem.base_price || 0) * Number(comboItem.quantity || 1);
+            const scopedOptionsContainer = section.querySelector(`[data-item-id="${selectedItemId}"]`) || section.querySelector('.combo-component-options');
+            const selectedOptions = getSelectedOptionIds(scopedOptionsContainer);
+            selectedOptions.forEach((optionId) => {
+                const option = (selectedItem.option_groups || []).flatMap((group) => group.options || []).find((entry) => Number(entry.id) === Number(optionId));
+                if (option) {
+                    subtotal += parseFloat(option.price_modifier || 0) * Number(comboItem.quantity || 1);
+                }
+            });
         });
     });
 
@@ -578,38 +614,52 @@ function collectComboSelections(combo) {
 
     for (const comboItem of combo.combo_items || []) {
         const section = comboOrderComponents?.querySelector(`[data-combo-item-id="${comboItem.id}"]`);
-        const selectedItemId = section?.querySelector('.combo-component-item-select')?.value;
+        const itemSelectElements = Array.from(section?.querySelectorAll('.combo-component-item-select') || []);
+        const selectedItemIds = itemSelectElements
+            .map((itemSelect) => itemSelect?.value)
+            .filter((itemId) => Boolean(itemId));
+        const requiresChoice = Boolean(comboItem.source_category_id);
 
-        if (!selectedItemId) {
+        if (requiresChoice && !selectedItemIds.length) {
             return {
                 valid: false,
                 message: interpolate(translations.selectItemForComponentMessage, { component: comboItem.display_name }),
             };
         }
 
-        const selectedItem = menuItemsById.get(String(selectedItemId));
-        if (!selectedItem) {
+        if (!requiresChoice && !selectedItemIds.length) {
             return {
                 valid: false,
                 message: interpolate(translations.selectItemForComponentMessage, { component: comboItem.display_name }),
             };
         }
 
-        const selectedOptions = getSelectedOptionIds(section.querySelector('.combo-component-options'));
-        const validation = validateItemSelection(selectedItem, selectedOptions, {
-            selectAtLeastOptionsMessage: translations.selectAtLeastOptionsMessage,
-            selectAtMostOptionsMessage: translations.selectAtMostOptionsMessage,
-        });
+        for (const selectedItemId of selectedItemIds) {
+            const selectedItem = menuItemsById.get(String(selectedItemId));
+            if (!selectedItem) {
+                return {
+                    valid: false,
+                    message: interpolate(translations.selectItemForComponentMessage, { component: comboItem.display_name }),
+                };
+            }
 
-        if (!validation.valid) {
-            return validation;
+            const scopedOptionsContainer = section.querySelector(`[data-item-id="${selectedItemId}"]`) || section.querySelector('.combo-component-options');
+            const selectedOptions = getSelectedOptionIds(scopedOptionsContainer);
+            const validation = validateItemSelection(selectedItem, selectedOptions, {
+                selectAtLeastOptionsMessage: translations.selectAtLeastOptionsMessage,
+                selectAtMostOptionsMessage: translations.selectAtMostOptionsMessage,
+            });
+
+            if (!validation.valid) {
+                return validation;
+            }
+
+            selections.push({
+                combo_item_id: comboItem.id,
+                item_id: Number(selectedItemId),
+                selected_options: selectedOptions,
+            });
         }
-
-        selections.push({
-            combo_item_id: comboItem.id,
-            item_id: Number(selectedItemId),
-            selected_options: selectedOptions,
-        });
     }
 
     return { valid: true, selections };

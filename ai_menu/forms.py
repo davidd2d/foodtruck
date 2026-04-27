@@ -7,6 +7,20 @@ from common.models import Tax
 from menu.models import Category, Combo, ComboItem, Item
 
 
+class FixedItemCheckboxSelectMultiple(forms.CheckboxSelectMultiple):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.item_category_map = {}
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        value_str = '' if value is None else str(value)
+        category_id = self.item_category_map.get(value_str)
+        if category_id is not None:
+            option['attrs']['data-category-id'] = str(category_id)
+        return option
+
+
 def _quantize_price(value):
     return Decimal(value).quantize(Decimal('0.01'))
 
@@ -113,30 +127,82 @@ class ComboCreateForm(ComboOwnerForm):
 
 
 class ComboItemForm(forms.ModelForm):
+    fixed_items = forms.ModelMultipleChoiceField(
+        queryset=Item.objects.none(),
+        required=False,
+        widget=FixedItemCheckboxSelectMultiple,
+        label=_('Fixed item'),
+    )
+
     class Meta:
         model = ComboItem
-        fields = ['display_name', 'source_category', 'item', 'quantity', 'display_order']
+        fields = ['display_name', 'source_category', 'fixed_items', 'quantity', 'display_order']
         labels = {
             'display_name': _('Display name'),
             'source_category': _('Customer choice category'),
-            'item': _('Fixed item'),
+            'fixed_items': _('Fixed item'),
             'quantity': _('Quantity'),
             'display_order': _('Display order'),
         }
         widgets = {
             'display_name': forms.TextInput(attrs={'class': 'form-control'}),
             'source_category': forms.Select(attrs={'class': 'form-select'}),
-            'item': forms.Select(attrs={'class': 'form-select'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control text-center', 'min': '1', 'step': '1'}),
             'display_order': forms.NumberInput(attrs={'class': 'form-control text-center', 'min': '0', 'step': '1'}),
         }
 
     def __init__(self, *args, available_items=None, available_categories=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['item'].queryset = available_items or Item.objects.none()
+        available_items = available_items or Item.objects.none()
+        self.fields['fixed_items'].queryset = available_items
+        self.fields['fixed_items'].widget.item_category_map = {
+            str(item.id): item.category_id
+            for item in available_items
+        }
         self.fields['source_category'].queryset = available_categories or Category.objects.none()
         self.fields['source_category'].required = False
-        self.fields['item'].required = False
+
+        source_category_id = self.data.get(self.add_prefix('source_category')) or self.initial.get('source_category')
+        if source_category_id:
+            self.fields['fixed_items'].queryset = available_items.filter(category_id=source_category_id)
+
+        if self.instance.pk and not self.instance.fixed_items.exists() and self.instance.item_id:
+            self.initial['fixed_items'] = [self.instance.item_id]
+
+    def clean(self):
+        cleaned_data = super().clean()
+        source_category = cleaned_data.get('source_category')
+        fixed_items = cleaned_data.get('fixed_items') or []
+
+        if not source_category and not fixed_items:
+            raise forms.ValidationError(_('A combo component needs either fixed item(s) or a source category.'))
+
+        if source_category and any(item.category_id != source_category.id for item in fixed_items):
+            raise forms.ValidationError(_('All fixed items must belong to the selected source category.'))
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+
+        if commit:
+            fixed_items = self.cleaned_data.get('fixed_items')
+            if fixed_items is not None:
+                instance.fixed_items.set(fixed_items)
+                instance.item = fixed_items.first() if fixed_items else None
+                instance.save(update_fields=['item'])
+        else:
+            self._pending_fixed_items = self.cleaned_data.get('fixed_items')
+
+        return instance
+
+    def save_m2m(self):
+        super().save_m2m()
+        fixed_items = getattr(self, '_pending_fixed_items', None)
+        if fixed_items is not None and self.instance.pk:
+            self.instance.fixed_items.set(fixed_items)
+            self.instance.item = fixed_items.first() if fixed_items else None
+            self.instance.save(update_fields=['item'])
 
 
 class BaseComboItemFormSet(BaseInlineFormSet):

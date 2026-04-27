@@ -412,7 +412,7 @@ msgstr "Nom affiché"
 #, fuzzy
 #| msgid "Name of the category"
 msgid "Customer choice category"
-msgstr "Nom de la catégorie"
+msgstr "Catégorie de choix client"
 
 #: ai_menu/forms.py:122
 msgid "Fixed item"
@@ -1574,26 +1574,20 @@ msgid "Saving..."
 msgstr "Enregistrement..."
 
 #: menu/templates/menu/catalog.html:77
-#, fuzzy
-#| msgid "Save"
 msgid "Saved"
-msgstr "Enregistrer"
+msgstr "Enregistré"
 
 #: menu/templates/menu/catalog.html:78 templates/menu_test.html:40
 msgid "Error"
 msgstr "Erreur"
 
 #: menu/templates/menu/catalog.html:82
-#, fuzzy
-#| msgid ""
-#| "Import a new menu, adjust live prices, and temporarily disable dishes "
-#| "without going through Django admin."
 msgid ""
 "Update live prices and temporarily disable dishes without leaving the owner "
 "space."
 msgstr ""
-"Importez une nouvelle carte, ajustez les prix en ligne et désactivez "
-"temporairement des plats sans passer par l'administration Django."
+"Mettez à jour les prix en ligne et désactivez temporairement des plats sans "
+"quitter l'espace propriétaire."
 
 #: menu/templates/menu/catalog.html:85 templates/ai_menu/combo_create.html:22
 #: templates/ai_menu/combo_form.html:59 templates/ai_menu/combo_list.html:22
@@ -1606,11 +1600,8 @@ msgid "Displayed prices are HT (tax excluded)."
 msgstr "Les prix affichés sont en HT (taxes exclues)."
 
 #: menu/templates/menu/catalog.html:98
-#, fuzzy
-#| msgid "No active menu is currently published. Start with an import."
 msgid "No active menu is available yet. Import a menu first."
 msgstr "Aucun menu actif n'est disponible pour l'instant. Importez d'abord un menu."
-"Aucune carte active n'est publiée actuellement. Commencez par un import."
 
 #: menu/templates/menu/catalog.html:106 menu/templates/menu/dashboard.html:43
 #: templates/ai_menu/dashboard.html:44 templates/menu_test.html:32
@@ -1618,26 +1609,20 @@ msgid "items"
 msgstr "articles"
 
 #: menu/templates/menu/catalog.html:106 menu/templates/menu/dashboard.html:43
-#, fuzzy
-#| msgid "Combo"
 msgid "combos"
-msgstr "Menu combo"
+msgstr "combos"
 
 #: menu/templates/menu/catalog.html:118 menu/templates/menu/catalog.html:212
 msgid "Taxe effective"
 msgstr "Taxe effective"
 
 #: menu/templates/menu/catalog.html:125 menu/templates/menu/catalog.html:219
-#, fuzzy
-#| msgid "Combo price (TTC)"
 msgid "Price (TTC)"
-msgstr "Prix du combo (TTC)"
+msgstr "Prix (TTC)"
 
 #: menu/templates/menu/catalog.html:125 menu/templates/menu/catalog.html:219
-#, fuzzy
-#| msgid "Combo price (HT)"
 msgid "Price (HT)"
-msgstr "Prix du combo (HT)"
+msgstr "Prix (HT)"
 
 #: menu/templates/menu/catalog.html:133 menu/templates/menu/catalog.html:182
 #: menu/templates/menu/catalog.html:227
@@ -1650,16 +1635,16 @@ msgid "group(s)"
 msgstr "groupe(s)"
 
 #: menu/templates/menu/catalog.html:152
-#, fuzzy
-#| msgid "Option Group"
 msgid "Options du plat"
-msgstr "Groupe d'options"
+msgstr "Options du plat"
 
 #: menu/templates/menu/catalog.html:153
 msgid ""
 "Les options sont rattachées à ce plat. Leur supplément est éditable ici, "
 "mais leur taxe est automatiquement celle du plat."
 msgstr ""
+"Les options sont rattachées à ce plat. Leur supplément est éditable ici, "
+"mais leur taxe est automatiquement celle du plat."
 
 #: menu/templates/menu/catalog.html:155
 msgid "Produit"
@@ -1670,10 +1655,8 @@ msgid "Taxe"
 msgstr "Taxe"
 
 #: menu/templates/menu/catalog.html:164
-#, fuzzy
-#| msgid "Actions"
 msgid "Affectation"
-msgstr "Actions"
+msgstr "Affectation"
 
 #: menu/templates/menu/catalog.html:168
 msgid "Fiscalité"
@@ -1696,10 +1679,8 @@ msgid "Price modifier (TTC)"
 msgstr "Supplément de prix (TTC)"
 
 #: menu/templates/menu/catalog.html:178
-#, fuzzy
-#| msgid "Price modifier at time of order"
 msgid "Price modifier (HT)"
-msgstr "Modificateur de prix au moment de la commande"
+msgstr "Supplément de prix (HT)"
 
 #: menu/templates/menu/catalog.html:188
 #: orders/templates/orders/slot_management.html:53
@@ -1707,10 +1688,8 @@ msgid "Status"
 msgstr "Statut"
 
 #: menu/templates/menu/catalog.html:240
-#, fuzzy
-#| msgid "The menu this category belongs to"
 msgid "This menu has no categories yet."
-msgstr "Le menu auquel appartient cette catégorie"
+msgstr "Ce menu n'a pas encore de catégories."
 
 #: menu/templates/menu/dashboard.html:4 menu/templates/menu/dashboard.html:21
 msgid "Menu management"
@@ -1771,12 +1750,12 @@ msgid ""
 "Mix raw text, photos, or PDF files. The imported menu replaces the current "
 "live menu and keeps the previous one archived."
 msgstr ""
+"Mélangez du texte brut, des photos ou des fichiers PDF. Le menu importé "
+"remplace le menu en ligne actuel et conserve le précédent en archive."
 
 #: menu/templates/menu/import.html:41
-#, fuzzy
-#| msgid "Menus"
 msgid "Menu photos"
-msgstr "Menus"
+msgstr "Photos du menu"
 
 #: menu/templates/menu/import.html:43
 msgid "Use clear photos of the printed menu, blackboard, or flyers."
@@ -1790,12 +1769,12 @@ msgstr "Menu PDF"
 msgid ""
 "Import one or several PDF menus. Their text is extracted before AI parsing."
 msgstr ""
+"Importez un ou plusieurs menus PDF. Leur texte est extrait avant l'analyse "
+"IA."
 
 #: menu/templates/menu/import.html:55
-#, fuzzy
-#| msgid "Import a menu"
 msgid "Import and publish menu"
-msgstr "Importer une carte"
+msgstr "Importer et publier le menu"
 
 #: menu/templates/menu/import.html:56
 msgid "Back"
@@ -1814,15 +1793,11 @@ msgid "A new live menu is generated from the imported sources."
 msgstr "Un nouveau menu est généré à partir des sources importées."
 
 #: menu/templates/menu/import.html:69
-#, fuzzy
-#| msgid ""
-#| "Update dish prices and availability on the current menu from a single "
-#| "owner page."
 msgid ""
 "You can immediately adjust prices and availability from the catalogue page."
 msgstr ""
-"Mettez à jour les prix et la disponibilité des plats de la carte actuelle "
-"depuis une seule page propriétaire."
+"Vous pouvez immédiatement ajuster les prix et la disponibilité depuis la "
+"page catalogue."
 
 #: menu/views.py:142
 msgid "Add text, photos, or at least one PDF to import a menu."
@@ -2949,6 +2924,8 @@ msgid ""
 "Define the general composition of the combo and the discount applied when "
 "the customer builds it."
 msgstr ""
+"Définissez la composition générale du combo et la remise appliquée lorsque "
+"le client le compose."
 
 #: templates/ai_menu/combo_form.html:74
 msgid "Combo details"
@@ -2959,6 +2936,8 @@ msgid ""
 "Use a fixed price only if the combo should always cost the same. Otherwise "
 "set a discount and let the final customer compose the menu."
 msgstr ""
+"Utilisez un prix fixe seulement si le combo doit toujours coûter la même "
+"chose. Sinon, définissez une remise et laissez le client composer le menu."
 
 #: templates/ai_menu/combo_form.html:110
 msgid "General composition"
@@ -2969,6 +2948,8 @@ msgid ""
 "For each line, either pin a fixed item or let the customer choose from a "
 "category such as Pasta Box, Dessert or Drink."
 msgstr ""
+"Pour chaque ligne, choisissez soit un élément fixe, soit laissez le client "
+"choisir dans une catégorie comme Pasta Box, Dessert ou Drink."
 
 #: templates/ai_menu/combo_form.html:142
 msgid "Remove this component"
@@ -2988,6 +2969,8 @@ msgid ""
 "Define a simple combo composition and the discount applied when the customer "
 "personalizes the menu."
 msgstr ""
+"Définissez une composition simple du combo et la remise appliquée lorsque le "
+"client personnalise le menu."
 
 #: templates/ai_menu/combo_list.html:30
 msgid "Back to AI Menu"
@@ -3010,10 +2993,8 @@ msgid "customer chooses from"
 msgstr "le client choisit parmi"
 
 #: templates/ai_menu/combo_list.html:73
-#, fuzzy
-#| msgid "No components yet."
 msgid "No composition yet."
-msgstr "Aucun composant pour le moment."
+msgstr "Aucune composition pour le moment."
 
 #: templates/ai_menu/combo_list.html:76
 #: templates/ai_menu/partials/recommendations_panel.html:141

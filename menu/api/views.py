@@ -40,6 +40,7 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
             'categories__items__compatible_preferences',
             'categories__items__option_groups__options',
             'categories__combos__combo_items__item',
+            'categories__combos__combo_items__fixed_items',
         ).filter(is_active=True)
 
         item_search = self.request.query_params.get('item_search')

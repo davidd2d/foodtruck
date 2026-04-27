@@ -26,7 +26,7 @@ class ItemInline(admin.TabularInline):
 class ComboItemInline(admin.TabularInline):
     model = ComboItem
     extra = 0
-    fields = ('display_name', 'item', 'quantity', 'display_order')
+    fields = ('display_name', 'source_category', 'item', 'quantity', 'display_order')
 
 
 @admin.register(Combo)
@@ -50,12 +50,12 @@ class ComboAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
 @admin.register(ComboItem)
 class ComboItemAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
     list_display = ('display_name', 'combo', 'item', 'quantity')
-    search_fields = ('display_name', 'combo__name', 'combo__category__menu__food_truck__name', 'item__name')
+    search_fields = ('display_name', 'combo__name', 'combo__category__menu__food_truck__name', 'item__name', 'fixed_items__name')
     list_filter = ('combo__category__menu',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.select_related('combo__category__menu__food_truck', 'item')
+        return qs.select_related('combo__category__menu__food_truck', 'item').prefetch_related('fixed_items')
 
     def _filter_by_food_trucks(self, qs, truck_ids):
         return qs.filter(combo__category__menu__food_truck_id__in=truck_ids)

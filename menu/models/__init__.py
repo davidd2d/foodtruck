@@ -270,19 +270,22 @@ class Combo(models.Model):
         if self.combo_price is not None:
             return self.combo_price
 
-        combo_items = list(self.combo_items.select_related('item'))
+        combo_items = list(
+            self.combo_items.select_related('item', 'source_category').prefetch_related('fixed_items')
+        )
         if not combo_items:
             return None
 
         total = Decimal('0.00')
-        resolved_items = 0
         for combo_item in combo_items:
-            if combo_item.item_id:
-                total += combo_item.item.base_price * combo_item.quantity
-                resolved_items += 1
+            if combo_item.source_category_id:
+                return None
 
-        if resolved_items != len(combo_items):
-            return None
+            fixed_items = combo_item.get_fixed_items()
+            if not fixed_items:
+                return None
+
+            total += sum(fixed_item.base_price for fixed_item in fixed_items) * combo_item.quantity
 
         return max(Decimal('0.00'), total - (self.discount_amount or Decimal('0.00')))
 
@@ -290,16 +293,59 @@ class Combo(models.Model):
     def is_customizable(self):
         return self.combo_items.filter(source_category__isnull=False).exists()
 
+    @staticmethod
+    def _normalize_selected_options(selected_options_payload):
+        selected_options = []
+        for option_entry in selected_options_payload or []:
+            if isinstance(option_entry, dict):
+                option_id = option_entry.get('option_id')
+            else:
+                option_id = option_entry
+            if option_id is None:
+                continue
+            selected_options.append(int(option_id))
+        return selected_options
+
+    def _append_component_snapshot(self, components, combo_item, chosen_item, selected_options):
+        option_objects = Option.objects.filter(
+            id__in=selected_options,
+            group__item=chosen_item,
+            is_available=True,
+        )
+        option_map = {option.id: option for option in option_objects}
+
+        components.append({
+            'combo_item_id': combo_item.id,
+            'label': combo_item.display_name,
+            'item_id': chosen_item.id,
+            'item_name': chosen_item.name,
+            'quantity': combo_item.quantity,
+            'source_category_id': combo_item.source_category_id,
+            'source_category_name': combo_item.source_category.name if combo_item.source_category_id else '',
+            'selected_options': [
+                {
+                    'option_id': option_id,
+                    'name': option_map[option_id].name,
+                    'price_modifier': str(option_map[option_id].price_modifier),
+                }
+                for option_id in selected_options
+                if option_id in option_map
+            ],
+        })
+
     def build_order_snapshot(self, combo_selections=None):
         combo_selections = combo_selections or []
-        selection_map = {
-            int(selection.get('combo_item_id')): selection
-            for selection in combo_selections
-            if selection.get('combo_item_id')
-        }
+        selection_map = {}
+        for selection in combo_selections:
+            combo_item_id = selection.get('combo_item_id')
+            if not combo_item_id:
+                continue
+            selection_map.setdefault(int(combo_item_id), []).append(selection)
 
         combo_items = list(
-            self.combo_items.select_related('item__category', 'source_category').order_by('display_order', 'id')
+            self.combo_items.select_related('item__category', 'source_category')
+            .prefetch_related('fixed_items', 'fixed_items__option_groups__options')
+            .order_by('display_order', 'id')
         )
         if not combo_items:
             raise ValidationError(f"Combo '{self.name}' has no composition.")
@@ -308,46 +354,40 @@ class Combo(models.Model):
         components = []
 
         for combo_item in combo_items:
-            selected_payload = selection_map.get(combo_item.id, {})
-            chosen_item = combo_item.resolve_selected_item(selected_payload.get('item_id'))
-            selected_options = []
-            for option_entry in selected_payload.get('selected_options', []):
-                if isinstance(option_entry, dict):
-                    option_id = option_entry.get('option_id')
-                else:
-                    option_id = option_entry
-                if option_id is None:
-                    continue
-                selected_options.append(int(option_id))
+            selected_payloads = selection_map.get(combo_item.id, [])
 
-            chosen_item.validate_options(selected_options)
-            component_unit_price = chosen_item.get_price_with_options(selected_options)
-            subtotal += component_unit_price * combo_item.quantity
+            if combo_item.source_category_id:
+                selected_payload = selected_payloads[0] if selected_payloads else {}
+                chosen_item = combo_item.resolve_selected_item(selected_payload.get('item_id'))
+                selected_options = self._normalize_selected_options(selected_payload.get('selected_options', []))
 
-            option_objects = Option.objects.filter(
-                id__in=selected_options,
-                group__item=chosen_item,
-                is_available=True,
-            )
-            option_map = {option.id: option for option in option_objects}
-            components.append({
-                'combo_item_id': combo_item.id,
-                'label': combo_item.display_name,
-                'item_id': chosen_item.id,
-                'item_name': chosen_item.name,
-                'quantity': combo_item.quantity,
-                'source_category_id': combo_item.source_category_id,
-                'source_category_name': combo_item.source_category.name if combo_item.source_category_id else '',
-                'selected_options': [
-                    {
-                        'option_id': option_id,
-                        'name': option_map[option_id].name,
-                        'price_modifier': str(option_map[option_id].price_modifier),
-                    }
-                    for option_id in selected_options
-                    if option_id in option_map
-                ],
-            })
+                chosen_item.validate_options(selected_options)
+                component_unit_price = chosen_item.get_price_with_options(selected_options)
+                subtotal += component_unit_price * combo_item.quantity
+                self._append_component_snapshot(components, combo_item, chosen_item, selected_options)
+                continue
+
+            fixed_items = combo_item.get_fixed_items()
+            if not fixed_items:
+                raise ValidationError(f"{combo_item.display_name} requires at least one fixed item.")
+
+            payload_by_item_id = {
+                int(payload['item_id']): payload
+                for payload in selected_payloads
+                if payload.get('item_id')
+            }
+
+            for fixed_item in fixed_items:
+                if not fixed_item.is_available_now():
+                    raise ValidationError(f"Item '{fixed_item.name}' is not available.")
+
+                selected_payload = payload_by_item_id.get(fixed_item.id, {})
+                selected_options = self._normalize_selected_options(selected_payload.get('selected_options', []))
+
+                fixed_item.validate_options(selected_options)
+                component_unit_price = fixed_item.get_price_with_options(selected_options)
+                subtotal += component_unit_price * combo_item.quantity
+                self._append_component_snapshot(components, combo_item, fixed_item, selected_options)
 
         unit_price = self.combo_price if self.combo_price is not None else max(
             Decimal('0.00'),
@@ -401,7 +441,13 @@ class ComboItem(models.Model):
         null=True,
         blank=True,
         related_name='combo_memberships',
-        help_text=_("Resolved menu item for this combo component when available")
+        help_text=_("Legacy fixed item for this combo component")
+    )
+    fixed_items = models.ManyToManyField(
+        Item,
+        blank=True,
+        related_name='fixed_combo_components',
+        help_text=_("Fixed menu items always included for this combo component")
     )
     source_category = models.ForeignKey(
         Category,
@@ -423,20 +469,45 @@ class ComboItem(models.Model):
     def __str__(self):
         return f"{self.combo.name} - {self.display_name}"
 
+    def get_fixed_items(self):
+        fixed_items = list(self.fixed_items.all())
+        if fixed_items:
+            return fixed_items
+        if self.item_id:
+            return [self.item]
+        return []
+
     def clean(self):
-        if not self.item_id and not self.source_category_id:
-            raise ValidationError("A combo component needs either a fixed item or a source category.")
+        has_fixed_items = bool(self.item_id)
+        if self.pk:
+            has_fixed_items = has_fixed_items or self.fixed_items.exists()
+
+        if not has_fixed_items and not self.source_category_id:
+            raise ValidationError("A combo component needs either fixed item(s) or a source category.")
 
         if self.item_id and self.source_category_id and self.item.category_id != self.source_category_id:
             raise ValidationError("The fixed item must belong to the selected source category.")
 
+        if self.pk and self.source_category_id and self.fixed_items.exclude(category_id=self.source_category_id).exists():
+            raise ValidationError("All fixed items must belong to the selected source category.")
+
     def resolve_selected_item(self, selected_item_id=None):
-        if self.item_id and not self.source_category_id:
-            if selected_item_id and int(selected_item_id) != self.item_id:
-                raise ValidationError(f"{self.display_name} is fixed and cannot be replaced.")
-            if not self.item.is_available_now():
-                raise ValidationError(f"Item '{self.item.name}' is not available.")
-            return self.item
+        if not self.source_category_id:
+            fixed_items = self.get_fixed_items()
+            if not fixed_items:
+                raise ValidationError(f"{self.display_name} has no fixed item configured.")
+
+            if selected_item_id:
+                fixed_ids = {fixed_item.id for fixed_item in fixed_items}
+                if int(selected_item_id) not in fixed_ids:
+                    raise ValidationError(f"{self.display_name} is fixed and cannot be replaced.")
+                chosen_item = next(fixed_item for fixed_item in fixed_items if fixed_item.id == int(selected_item_id))
+            else:
+                chosen_item = fixed_items[0]
+
+            if not chosen_item.is_available_now():
+                raise ValidationError(f"Item '{chosen_item.name}' is not available.")
+            return chosen_item
 
         if not selected_item_id:
             raise ValidationError(f"Choose an item for '{self.display_name}'.")
@@ -446,7 +517,7 @@ class ComboItem(models.Model):
         except Item.DoesNotExist as exc:
             raise ValidationError(f"Selected item for '{self.display_name}' does not exist.") from exc
 
-        if self.source_category_id and selected_item.category_id != self.source_category_id:
+        if selected_item.category_id != self.source_category_id:
             raise ValidationError(f"Selected item does not belong to '{self.display_name}'.")
 
         if self.combo.category.menu_id != selected_item.category.menu_id:

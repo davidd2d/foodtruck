@@ -65,6 +65,8 @@
                                         {{ combo_item.quantity }}x {{ combo_item.display_name }}
                                         {% if combo_item.source_category_id %}
                                             · {% trans "customer chooses from" %} {{ combo_item.source_category.name }}
+                                        {% elif combo_item.fixed_items.exists %}
+                                            · {{ combo_item.fixed_items.all|join:", " }}
                                         {% elif combo_item.item_id %}
                                             · {{ combo_item.item.name }}
                                         {% endif %}

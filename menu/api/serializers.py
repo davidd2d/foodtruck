@@ -46,13 +46,55 @@ class ItemSerializer(serializers.ModelSerializer):
 
 class ComboItemSerializer(serializers.ModelSerializer):
     """Serializer for ComboItem model."""
-    item_id = serializers.IntegerField(source='item.id', read_only=True)
+    item_id = serializers.SerializerMethodField()
+    fixed_item_ids = serializers.SerializerMethodField()
+    fixed_items = serializers.SerializerMethodField()
     source_category_id = serializers.IntegerField(source='source_category.id', read_only=True)
     source_category_name = serializers.CharField(source='source_category.name', read_only=True)
 
     class Meta:
         model = ComboItem
-        fields = ['id', 'item_id', 'source_category_id', 'source_category_name', 'display_name', 'quantity', 'display_order']
+        fields = [
+            'id', 'item_id', 'fixed_item_ids', 'fixed_items', 'source_category_id',
+            'source_category_name', 'display_name', 'quantity', 'display_order'
+        ]
+
+    def get_item_id(self, obj):
+        fixed_ids = self.get_fixed_item_ids(obj)
+        if fixed_ids:
+            return fixed_ids[0]
+        return None
+
+    def get_fixed_item_ids(self, obj):
+        fixed_ids = list(obj.fixed_items.values_list('id', flat=True))
+        if fixed_ids:
+            return fixed_ids
+        if obj.item_id:
+            return [obj.item_id]
+        return []
+
+    def get_fixed_items(self, obj):
+        fixed_qs = obj.fixed_items.all()
+        if fixed_qs.exists():
+            return [
+                {
+                    'id': item.id,
+                    'name': item.name,
+                    'base_price': str(item.base_price),
+                    'is_available': item.is_available,
+                }
+                for item in fixed_qs
+            ]
+
+        if obj.item_id:
+            return [{
+                'id': obj.item.id,
+                'name': obj.item.name,
+                'base_price': str(obj.item.base_price),
+                'is_available': obj.item.is_available,
+            }]
+
+        return []
 
 
 class ComboSerializer(serializers.ModelSerializer):

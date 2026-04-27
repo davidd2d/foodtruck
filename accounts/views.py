@@ -76,6 +76,8 @@ def profile_redirect(request):
 @login_required
 def profile(request, slug):
     foodtruck = get_object_or_404(FoodTruck, slug=slug, owner=request.user)
+    active_menu = foodtruck.menus.filter(is_active=True).first()
+    categories = active_menu.categories.order_by('display_order', 'name') if active_menu else []
 
     account_form = OwnerAccountProfileForm(instance=request.user)
     foodtruck_form = OwnerFoodTruckProfileForm(instance=foodtruck)
@@ -119,6 +121,7 @@ def profile(request, slug):
             "account_form": account_form,
             "foodtruck_form": foodtruck_form,
             "foodtruck": foodtruck,
+            "categories": categories,
             "issued_tickets_count": owner_ticket_stats['issued_tickets_count'] or 0,
             "my_ticket_count": my_ticket_count,
         },
