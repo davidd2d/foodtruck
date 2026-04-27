@@ -254,10 +254,12 @@ class OrderDashboardSerializer(serializers.ModelSerializer):
 
     pickup_time = serializers.DateTimeField(source='pickup_slot.start_time', read_only=True)
     items = OrderDashboardItemSerializer(many=True, read_only=True)
+    payment_method = serializers.CharField(read_only=True)
+    payment_method_label = serializers.CharField(source='get_payment_method_display', read_only=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'status', 'pickup_time', 'total_price', 'items']
+        fields = ['id', 'status', 'pickup_time', 'total_price', 'payment_method', 'payment_method_label', 'items']
 
 
 class OrderStatusUpdateSerializer(serializers.Serializer):
@@ -370,9 +372,20 @@ class RemoveCartItemSerializer(serializers.Serializer):
     line_key = serializers.CharField()
 
 
+class UpdateCartItemSerializer(serializers.Serializer):
+    """Serializer for updating one cart line quantity."""
+    line_key = serializers.CharField()
+    quantity = serializers.IntegerField(min_value=1)
+
+
 class CartCheckoutSerializer(serializers.Serializer):
     """Serializer for creating an order from the cart."""
     pickup_slot = serializers.IntegerField(required=False)
+    payment_method = serializers.ChoiceField(
+        choices=Order.PaymentMethod.choices,
+        required=False,
+        default=Order.PaymentMethod.ONLINE,
+    )
 
 
 class OrderSlotAssignmentSerializer(serializers.Serializer):

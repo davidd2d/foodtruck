@@ -17,6 +17,7 @@ class PaymentPageView(LoginRequiredMixin, TemplateView):
             Order.objects.select_related('pickup_slot', 'food_truck').prefetch_related('items'),
             pk=self.kwargs['order_id'],
             user=self.request.user,
+            payment_method=Order.PaymentMethod.ONLINE,
             food_truck__slug=self.kwargs['slug'],
         )
         context.update({

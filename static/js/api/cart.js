@@ -11,3 +11,7 @@ export async function addCartItem(payload) {
 export async function removeCartItem(lineKey) {
     return apiClient.post('/cart/remove/', { line_key: lineKey });
 }
+
+export async function updateCartItemQuantity(lineKey, quantity) {
+    return apiClient.post('/cart/update/', { line_key: lineKey, quantity });
+}

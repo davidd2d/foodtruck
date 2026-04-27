@@ -33,9 +33,14 @@
                     {% endif %}
                 </div>
             </div>
-            <button id="checkout-button" type="button" class="btn btn-primary w-100" disabled>
-                {% trans "Checkout" %}
-            </button>
+            <div class="d-grid gap-2">
+                <button id="checkout-button" type="button" class="btn btn-primary w-100" disabled>
+                    {% trans "Pay online" %}
+                </button>
+                <button id="checkout-on-site-button" type="button" class="btn btn-outline-primary w-100" disabled>
+                    {% trans "Pay at the food truck" %}
+                </button>
+            </div>
             <div id="checkout-help" class="mt-2 text-center text-muted small d-none"></div>
         </div>
 

@@ -6,6 +6,7 @@ const mocked = vi.hoisted(() => ({
   fetchCart: vi.fn(),
   addCartItem: vi.fn(),
   removeCartItem: vi.fn(),
+  updateCartItemQuantity: vi.fn(),
   fetchPickupSlots: vi.fn(),
   createCheckoutHandler: vi.fn(() => vi.fn()),
 }));
@@ -18,6 +19,7 @@ vi.mock('../../../static/js/api/cart.js', () => ({
   fetchCart: mocked.fetchCart,
   addCartItem: mocked.addCartItem,
   removeCartItem: mocked.removeCartItem,
+  updateCartItemQuantity: mocked.updateCartItemQuantity,
 }));
 
 vi.mock('../../../static/js/api/slots.js', () => ({
@@ -153,6 +155,8 @@ function buildPageHtml({ authenticated }) {
       data-option-label-prefix="Option"
       data-no-extras-selected="No extras selected"
       data-quantity-short-label="Qty"
+      data-decrease-quantity-label="Decrease quantity"
+      data-increase-quantity-label="Increase quantity"
       data-each-label="each"
       data-remove-label="Remove"
       data-cart-empty-message="Your cart is empty."
@@ -184,7 +188,10 @@ function buildPageHtml({ authenticated }) {
       data-estimated-combo-price-label="Estimated combo price"
       data-customer-chooses-from-label="Customer chooses from {category}"
       data-select-at-least-options-message="Please choose at least {count} option(s) for {group}."
-      data-select-at-most-options-message="You can select up to {count} option(s) for {group}.">
+      data-select-at-most-options-message="You can select up to {count} option(s) for {group}."
+      data-pay-online-label="Pay online"
+      data-pay-on-site-label="Pay at the food truck"
+      data-pay-on-site-submitted-message="Order submitted. Pay at the food truck on pickup.">
       <div id="category-shortcuts"></div>
       <div id="menu-container"></div>
       <a id="nav-cart-count"></a>
@@ -194,6 +201,7 @@ function buildPageHtml({ authenticated }) {
       <div id="cart-items"></div>
       <div id="cart-total"></div>
       <button id="checkout-button">Checkout</button>
+      <button id="checkout-on-site-button">Pay at the food truck</button>
       <div id="checkout-help" class="d-none"></div>
       <select id="pickup-slot-select"></select>
       <div id="pickup-slot-help"></div>
@@ -236,6 +244,7 @@ describe('foodtruckDetail ordering flow', () => {
     mocked.fetchCart.mockReset();
     mocked.addCartItem.mockReset();
     mocked.removeCartItem.mockReset();
+    mocked.updateCartItemQuantity.mockReset();
     mocked.fetchPickupSlots.mockReset();
     mocked.createCheckoutHandler.mockReset();
     globalThis.bootstrap = {
@@ -250,10 +259,11 @@ describe('foodtruckDetail ordering flow', () => {
     };
 
     mocked.fetchFoodtruckMenu.mockResolvedValue(sampleMenu);
-    mocked.fetchCart.mockResolvedValue({ items: [], total_price: '0.00', item_count: 0 });
+    mocked.fetchCart.mockResolvedValue({ items: [], total_price: '0.00', display_total_price: '0.00', item_count: 0 });
     mocked.fetchPickupSlots.mockResolvedValue([]);
-    mocked.addCartItem.mockResolvedValue({ items: [], total_price: '0.00', item_count: 1 });
-    mocked.removeCartItem.mockResolvedValue({ items: [], total_price: '0.00', item_count: 0 });
+    mocked.addCartItem.mockResolvedValue({ items: [], total_price: '0.00', display_total_price: '0.00', item_count: 1 });
+    mocked.removeCartItem.mockResolvedValue({ items: [], total_price: '0.00', display_total_price: '0.00', item_count: 0 });
+    mocked.updateCartItemQuantity.mockResolvedValue({ items: [], total_price: '0.00', display_total_price: '0.00', item_count: 0 });
     mocked.createCheckoutHandler.mockReturnValue(vi.fn());
   });
 
@@ -345,5 +355,52 @@ describe('foodtruckDetail ordering flow', () => {
         { combo_item_id: 902, item_id: 20, selected_options: [] },
       ],
     });
+  });
+
+  it('met a jour la quantite depuis le panier', async () => {
+    document.body.innerHTML = buildPageHtml({ authenticated: true });
+    mocked.fetchCart.mockResolvedValue({
+      items: [{
+        line_key: 'item:10:',
+        line_type: 'item',
+        item_id: 10,
+        combo_id: null,
+        item_name: 'Sauce Pesto Roquette',
+        quantity: 1,
+        unit_price: '7.90',
+        total_price: '7.90',
+        display_unit_price: '7.90',
+        display_total_price: '7.90',
+        selected_options: [],
+      }],
+      total_price: '7.90',
+      display_total_price: '7.90',
+      item_count: 1,
+    });
+    mocked.updateCartItemQuantity.mockResolvedValue({
+      items: [{
+        line_key: 'item:10:',
+        line_type: 'item',
+        item_id: 10,
+        combo_id: null,
+        item_name: 'Sauce Pesto Roquette',
+        quantity: 2,
+        unit_price: '7.90',
+        total_price: '15.80',
+        display_unit_price: '7.90',
+        display_total_price: '15.80',
+        selected_options: [],
+      }],
+      total_price: '15.80',
+      display_total_price: '15.80',
+      item_count: 2,
+    });
+
+    await import('../../../static/js/pages/foodtruckDetail.js');
+
+    await waitFor(() => expect(document.querySelector('.cart-quantity-step[data-delta="1"]')).not.toBeNull());
+    fireEvent.click(document.querySelector('.cart-quantity-step[data-delta="1"]'));
+
+    await waitFor(() => expect(mocked.updateCartItemQuantity).toHaveBeenCalledWith('item:10:', 2));
   });
 });

@@ -102,6 +102,9 @@ function renderOrderLine(item) {
 
 function renderOrderCard(order, labels) {
     const urgent = isUrgentPickup(order.pickup_time);
+    const paymentMethodMarkup = order.payment_method_label
+        ? `<span class="badge ${order.payment_method === 'on_site' ? 'text-bg-secondary' : 'text-bg-info'} mt-1">${escapeHtml(order.payment_method_label)}</span>`
+        : '';
     const itemsMarkup = (order.items || []).map((item) => renderOrderLine(item)).join('');
     const actionsMarkup = getStatusActions(order.status, labels)
         .map((action) => `
@@ -121,6 +124,7 @@ function renderOrderCard(order, labels) {
                     <div>
                         <div class="fw-semibold">${labels.orderLabel} #${order.id}</div>
                         <div class="small text-muted">${formatPickupTime(order.pickup_time)}</div>
+                        ${paymentMethodMarkup}
                     </div>
                     <div class="text-end">
                         <div class="fw-semibold">€${order.total_price}</div>
@@ -136,6 +140,9 @@ function renderOrderCard(order, labels) {
 
 async function fetchOrders(state) {
     const url = new URL(state.dashboardUrl, window.location.origin);
+    if (state.foodtruckSlug) {
+        url.searchParams.set('foodtruck_slug', state.foodtruckSlug);
+    }
     if (state.statusFilter.value) {
         url.searchParams.set('status', state.statusFilter.value);
     }
@@ -244,6 +251,7 @@ function buildState(root) {
         root,
         dashboardUrl: root.dataset.dashboardUrl,
         statusUrlTemplate: root.dataset.statusUrlTemplate,
+        foodtruckSlug: root.dataset.foodtruckSlug || '',
         statusFilter: document.getElementById('dashboard-status-filter'),
         refreshButton: document.getElementById('dashboard-refresh-button'),
         feedback: document.getElementById('dashboard-feedback'),

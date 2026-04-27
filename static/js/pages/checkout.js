@@ -4,6 +4,7 @@ import { interpolate } from '../i18n.js';
 export function createCheckoutHandler({
     slotSelector,
     checkoutButton,
+    payOnSiteButton,
     checkoutHelp,
     refreshCart,
     setCheckoutState,
@@ -18,9 +19,11 @@ export function createCheckoutHandler({
         finalizingMessage: 'Finalisation de votre commande...',
         orderSubmittedMessage: 'Commande envoyée (#{orderId}).',
         redirectingToPaymentMessage: 'Commande envoyée. Redirection vers le paiement...',
+        payOnSiteSubmittedMessage: 'Commande envoyée. Paiement au foodtruck lors du retrait.',
         cartContinueMessage: 'Ajoutez des articles à votre panier pour continuer.',
         checkoutErrorMessage: 'Impossible de finaliser la commande.',
         checkoutLabel: checkoutButton?.textContent?.trim() || 'Valider',
+        payOnSiteLabel: payOnSiteButton?.textContent?.trim() || 'Payer au foodtruck',
         ...translations,
     };
 
@@ -31,7 +34,7 @@ export function createCheckoutHandler({
         return `/payments/checkout/${orderId}/`;
     };
 
-    return async function handleCheckout() {
+    return async function handleCheckout(paymentMethod = 'online', triggerButton = checkoutButton) {
         if (!checkoutButton) {
             return;
         }
@@ -50,8 +53,13 @@ export function createCheckoutHandler({
             return;
         }
 
-        checkoutButton.disabled = true;
-        checkoutButton.textContent = labels.processingLabel;
+        const buttons = [checkoutButton, payOnSiteButton].filter(Boolean);
+        buttons.forEach((button) => {
+            button.disabled = true;
+        });
+        if (triggerButton) {
+            triggerButton.textContent = labels.processingLabel;
+        }
         if (checkoutHelp) {
             checkoutHelp.classList.remove('text-danger');
             checkoutHelp.classList.remove('text-success');
@@ -59,15 +67,24 @@ export function createCheckoutHandler({
             checkoutHelp.textContent = labels.finalizingMessage;
         }
 
+        let completedOnSiteCheckout = false;
+
         try {
-            const { order_id } = await checkoutCart();
+            const { order_id } = await checkoutCart(null, paymentMethod);
             await setPickupSlot(order_id, slotId);
             await submitOrder(order_id);
 
             if (checkoutHelp) {
                 checkoutHelp.classList.remove('text-danger');
                 checkoutHelp.classList.add('text-success');
-                checkoutHelp.textContent = labels.redirectingToPaymentMessage;
+                checkoutHelp.textContent = paymentMethod === 'on_site'
+                    ? labels.payOnSiteSubmittedMessage
+                    : labels.redirectingToPaymentMessage;
+            }
+            if (paymentMethod === 'on_site') {
+                await refreshCart();
+                completedOnSiteCheckout = true;
+                return;
             }
             window.location.assign(buildPaymentCheckoutUrl(order_id));
         } catch (error) {
@@ -77,8 +94,14 @@ export function createCheckoutHandler({
                 checkoutHelp.textContent = error.message || labels.checkoutErrorMessage;
             }
         } finally {
-            checkoutButton.disabled = false;
-            checkoutButton.textContent = labels.checkoutLabel;
+            if (!completedOnSiteCheckout) {
+                checkoutButton.disabled = false;
+                checkoutButton.textContent = labels.checkoutLabel;
+                if (payOnSiteButton) {
+                    payOnSiteButton.disabled = false;
+                    payOnSiteButton.textContent = labels.payOnSiteLabel;
+                }
+            }
         }
     };
 }

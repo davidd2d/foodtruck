@@ -106,7 +106,7 @@
         {% if categories %}
             <div class="category-nav foodtruck-category-rail w-100 d-flex justify-content-start align-items-center flex-nowrap px-2 mt-1">
                 {% for category in categories %}
-                          <a href="{% if current_namespace == 'menu' or current_namespace == 'ai_menu' %}{% url 'menu:catalog' slug=foodtruck.slug %}#category-{{ category.id }}{% else %}#category-{{ category.id }}{% endif %}"
+                          <a href="{% if current_namespace == 'menu' or current_namespace == 'ai_menu' or current_namespace == 'foodtrucks' %}#category-{{ category.id }}{% else %}{% url 'menu:catalog' slug=foodtruck.slug %}#category-{{ category.id }}{% endif %}"
                               class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-foodtruck-anchor"
                        style="background-color: {{ foodtruck.get_secondary_color }}; color: #000;">
                         {{ category.name }}

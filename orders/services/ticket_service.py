@@ -52,8 +52,8 @@ class TicketService:
     @staticmethod
     def _build_payload(order):
         items_payload = []
-        for line in order.items.select_related('item', 'combo').order_by('id'):
-            items_payload.append({
+        for line in order.items.select_related('item', 'combo').prefetch_related('selected_options__option').order_by('id'):
+            entry = {
                 'product_name': line.product_name,
                 'line_type': line.line_type,
                 'quantity': line.quantity,
@@ -61,7 +61,10 @@ class TicketService:
                 'tax_rate': str(line.tax_rate),
                 'tax_amount': str(line.tax_amount),
                 'total_price': str(line.total_price),
-            })
+            }
+            if line.combo_id and line.options:
+                entry['combo_components'] = line.options
+            items_payload.append(entry)
 
         return {
             'order_id': order.pk,

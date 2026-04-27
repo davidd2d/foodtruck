@@ -234,6 +234,28 @@ class OrderAPITests(APITestCase):
         self.assertEqual(order.status, 'pending')
         self.assertEqual(response.data['status'], 'order submitted')
 
+    def test_cart_update_changes_quantity(self):
+        add_response = self.client.post(
+            reverse('cart-add'),
+            {
+                'foodtruck_slug': self.foodtruck.slug,
+                'item_id': self.item.id,
+                'quantity': 1,
+            },
+            format='json'
+        )
+        line_key = add_response.data['items'][0]['line_key']
+
+        response = self.client.post(
+            reverse('cart-update'),
+            {'line_key': line_key, 'quantity': 4},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['items'][0]['quantity'], 4)
+        self.assertEqual(response.data['item_count'], 4)
+
     def test_set_slot_endpoint_rejects_full_slot(self):
         slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)
         first = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=slot)
@@ -272,6 +294,27 @@ class OrderAPITests(APITestCase):
         self.assertEqual(response.data['status'], 'order created')
         self.assertTrue(response.data['order_id'])
         self.assertTrue(Order.objects.filter(id=response.data['order_id'], user=self.user).exists())
+
+    def test_cart_checkout_accepts_on_site_payment_method(self):
+        self.client.post(
+            reverse('cart-add'),
+            {
+                'foodtruck_slug': self.foodtruck.slug,
+                'item_id': self.item.id,
+                'quantity': 1,
+            },
+            format='json'
+        )
+
+        response = self.client.post(
+            reverse('cart-checkout'),
+            {'pickup_slot': self.pickup_slot.id, 'payment_method': 'on_site'},
+            format='json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        order = Order.objects.get(id=response.data['order_id'])
+        self.assertEqual(order.payment_method, 'on_site')
 
     def test_cart_add_combo_and_checkout(self):
         add_response = self.client.post(

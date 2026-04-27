@@ -19,6 +19,7 @@ from .serializers import (
     CartSerializer,
     AddCartItemSerializer,
     RemoveCartItemSerializer,
+    UpdateCartItemSerializer,
     CartCheckoutSerializer,
     PickupSlotSerializer,
     PickupSlotManageSerializer,
@@ -52,7 +53,11 @@ class OwnerFoodTruckMixin:
     """Resolve the active food truck owned by the authenticated user."""
 
     def get_owner_foodtruck(self, request):
-        foodtruck = FoodTruck.objects.filter(owner=request.user, is_active=True).first()
+        slug = request.query_params.get('foodtruck_slug') or request.data.get('foodtruck_slug')
+        queryset = FoodTruck.objects.filter(owner=request.user, is_active=True)
+        if slug:
+            queryset = queryset.filter(slug=slug)
+        foodtruck = queryset.first()
         if not foodtruck:
             raise DRFValidationError({'foodtruck': 'No active food truck found for this user.'})
         return foodtruck
@@ -206,6 +211,26 @@ class CartRemoveView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CartUpdateView(APIView):
+    """Update the quantity for one session cart line."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = UpdateCartItemSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                cart_service = CartService(request.session)
+                cart_service.update_item_quantity(
+                    serializer.validated_data['line_key'],
+                    serializer.validated_data['quantity'],
+                )
+                cart = cart_service.get_cart()
+                return Response(cart, status=status.HTTP_200_OK)
+            except ValidationError as ex:
+                return Response({'error': str(ex)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class CartCheckoutView(APIView):
     """Create an order from the current session cart."""
     permission_classes = [IsAuthenticated]
@@ -217,6 +242,7 @@ class CartCheckoutView(APIView):
                 order = OrderService.create_order_from_cart(
                     user=request.user,
                     pickup_slot_id=serializer.validated_data.get('pickup_slot'),
+                    payment_method=serializer.validated_data.get('payment_method', Order.PaymentMethod.ONLINE),
                     session=request.session,
                 )
                 return Response({'status': 'order created', 'order_id': order.id}, status=status.HTTP_201_CREATED)

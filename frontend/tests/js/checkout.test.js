@@ -24,6 +24,8 @@ describe('createCheckoutHandler', () => {
     const { createCheckoutHandler } = await import('../../../static/js/pages/checkout.js');
     const checkoutButton = document.createElement('button');
     checkoutButton.textContent = 'Checkout';
+    const payOnSiteButton = document.createElement('button');
+    payOnSiteButton.textContent = 'Pay at truck';
     const checkoutHelp = document.createElement('div');
     const slotSelector = {
       getSelectedSlotId: () => '42',
@@ -45,6 +47,7 @@ describe('createCheckoutHandler', () => {
       const handler = createCheckoutHandler({
         slotSelector,
         checkoutButton,
+        payOnSiteButton,
         checkoutHelp,
         refreshCart: vi.fn(),
         setCheckoutState,
@@ -58,6 +61,7 @@ describe('createCheckoutHandler', () => {
       await handler();
 
       expect(mocked.checkoutCart).toHaveBeenCalledTimes(1);
+      expect(mocked.checkoutCart).toHaveBeenCalledWith(null, 'online');
       expect(mocked.setPickupSlot).toHaveBeenCalledWith(123, '42');
       expect(mocked.submitOrder).toHaveBeenCalledWith(123);
       expect(assignSpy).toHaveBeenCalledWith('/payments/checkout/123/');
@@ -69,5 +73,44 @@ describe('createCheckoutHandler', () => {
         value: originalLocation,
       });
     }
+  });
+
+  it('soumet une commande avec paiement au foodtruck sans redirection', async () => {
+    const { createCheckoutHandler } = await import('../../../static/js/pages/checkout.js');
+    const checkoutButton = document.createElement('button');
+    checkoutButton.textContent = 'Checkout';
+    const payOnSiteButton = document.createElement('button');
+    payOnSiteButton.textContent = 'Pay at truck';
+    const checkoutHelp = document.createElement('div');
+    const slotSelector = {
+      getSelectedSlotId: () => '42',
+    };
+    const refreshCart = vi.fn().mockResolvedValue(undefined);
+
+    mocked.checkoutCart.mockResolvedValue({ order_id: 321 });
+    mocked.setPickupSlot.mockResolvedValue({ status: 'ok' });
+    mocked.submitOrder.mockResolvedValue({ status: 'ok' });
+
+    const handler = createCheckoutHandler({
+      slotSelector,
+      checkoutButton,
+      payOnSiteButton,
+      checkoutHelp,
+      refreshCart,
+      setCheckoutState: vi.fn(),
+      userAuthenticated: true,
+      paymentCheckoutUrlTemplate: '/payments/checkout/0/',
+      translations: {
+        payOnSiteSubmittedMessage: 'Order submitted. Pay at the food truck on pickup.',
+      },
+    });
+
+    await handler('on_site', payOnSiteButton);
+
+    expect(mocked.checkoutCart).toHaveBeenCalledWith(null, 'on_site');
+    expect(mocked.setPickupSlot).toHaveBeenCalledWith(321, '42');
+    expect(mocked.submitOrder).toHaveBeenCalledWith(321);
+    expect(refreshCart).toHaveBeenCalledTimes(1);
+    expect(checkoutHelp.textContent).toContain('Pay at the food truck on pickup');
   });
 });

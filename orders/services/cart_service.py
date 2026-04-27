@@ -222,3 +222,15 @@ class CartService:
         if not self.cart['items']:
             self.cart['foodtruck_slug'] = None
         self._save()
+
+    def update_item_quantity(self, line_key, quantity):
+        if quantity <= 0:
+            raise ValidationError('Quantity must be greater than zero.')
+
+        existing_item = next((item for item in self.cart.get('items', []) if item['line_key'] == line_key), None)
+        if existing_item is None:
+            raise ValidationError('Cart item not found.')
+
+        existing_item['quantity'] = quantity
+        existing_item['total_price'] = str(Decimal(existing_item['unit_price']) * quantity)
+        self._save()

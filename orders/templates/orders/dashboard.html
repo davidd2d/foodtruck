@@ -17,6 +17,7 @@
      id="order-dashboard"
      data-dashboard-url="{% url 'orders:dashboard-api' %}"
      data-status-url-template="{% url 'orders:dashboard-status-api' order_id=0 %}"
+    data-foodtruck-slug="{{ foodtruck.slug }}"
      data-empty-message="{% trans 'No orders for this section.' %}"
      data-loading-message="{% trans 'Refreshing orders...' %}"
      data-error-message="{% trans 'Unable to load orders right now.' %}"

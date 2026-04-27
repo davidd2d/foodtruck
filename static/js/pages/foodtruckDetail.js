@@ -1,5 +1,5 @@
 import { fetchFoodtruckMenu } from '../api/menu.js';
-import { fetchCart, addCartItem, removeCartItem } from '../api/cart.js';
+import { fetchCart, addCartItem, removeCartItem, updateCartItemQuantity } from '../api/cart.js';
 import { fetchPickupSlots } from '../api/slots.js';
 import { renderCategory } from '../components/menuItem.js';
 import { renderCart } from '../components/cart.js';
@@ -23,6 +23,7 @@ const cartEmpty = orderingEnabled ? document.getElementById('cart-empty') : null
 const cartLoading = orderingEnabled ? document.getElementById('cart-loading') : null;
 const navCartCount = orderingEnabled ? document.getElementById('nav-cart-count') : null;
 const checkoutButton = orderingEnabled ? document.getElementById('checkout-button') : null;
+const payOnSiteButton = orderingEnabled ? document.getElementById('checkout-on-site-button') : null;
 const checkoutHelp = orderingEnabled ? document.getElementById('checkout-help') : null;
 const pickupSlotSelect = orderingEnabled ? document.getElementById('pickup-slot-select') : null;
 const pickupSlotHelp = orderingEnabled ? document.getElementById('pickup-slot-help') : null;
@@ -79,6 +80,8 @@ const translations = getDatasetTranslations(pageContainer, {
     optionLabelPrefix: 'Option',
     noExtrasSelected: 'No extras selected',
     quantityShortLabel: 'Qty',
+    decreaseQuantityLabel: 'Decrease quantity',
+    increaseQuantityLabel: 'Increase quantity',
     eachLabel: 'each',
     removeLabel: 'Remove',
     cartEmptyMessage: 'Your cart is empty.',
@@ -112,6 +115,9 @@ const translations = getDatasetTranslations(pageContainer, {
     selectAtLeastOptionsMessage: 'Please choose at least {count} option(s) for {group}.',
     selectAtMostOptionsMessage: 'You can select up to {count} option(s) for {group}.',
     redirectingToPaymentMessage: 'Order submitted. Redirecting to payment...',
+    payOnlineLabel: 'Pay online',
+    payOnSiteLabel: 'Pay at the food truck',
+    payOnSiteSubmittedMessage: 'Order submitted. Pay at the food truck on pickup.',
 });
 const loginUrl = pageContainer?.dataset.loginUrl || '';
 const registerUrl = pageContainer?.dataset.registerUrl || '';
@@ -262,6 +268,8 @@ function updateCartUI(cart) {
         optionLabelPrefix: translations.optionLabelPrefix,
         noExtrasSelected: translations.noExtrasSelected,
         quantityLabel: translations.quantityShortLabel,
+        decreaseQuantityLabel: translations.decreaseQuantityLabel,
+        increaseQuantityLabel: translations.increaseQuantityLabel,
         eachLabel: translations.eachLabel,
         removeLabel: translations.removeLabel,
         cartEmptyMessage: translations.cartEmptyMessage,
@@ -469,7 +477,7 @@ function buildComboComponentMarkup(comboItem) {
     const selectorMarkup = requiresChoice ? `
         <select class="form-select combo-component-item-select" data-combo-item-id="${comboItem.id}">
             <option value="">${interpolate(translations.selectItemForComponentMessage, { component: comboItem.display_name })}</option>
-            ${candidates.map((item) => `<option value="${item.id}" ${Number(selectedItemId) === Number(item.id) ? 'selected' : ''}>${item.name} - €${parseFloat(item.display_price ?? item.base_price).toFixed(2)}</option>`).join('')}
+            ${candidates.map((item) => `<option value="${item.id}" ${Number(selectedItemId) === Number(item.id) ? 'selected' : ''}>${item.name}</option>`).join('')}
         </select>
     ` : allowsMultipleFixed ? `
         ${candidates.map((item) => `
@@ -545,12 +553,12 @@ function updateComboOrderPricePreview(combo) {
         return;
     }
 
-    if (combo.display_price !== null && combo.display_price !== undefined && combo.display_price !== '') {
-        comboOrderPrice.textContent = `€${parseFloat(combo.display_price).toFixed(2)}`;
-        return;
-    }
+    const basePrice = parseFloat(combo.display_price || 0);
+    let optionsExtra = 0;
 
-    let subtotal = 0;
+    const taxRate = parseFloat(combo.tax_rate || 0);
+    const taxMultiplier = combo.prices_include_tax ? (1 + taxRate) : 1;
+
     combo.combo_items.forEach((comboItem) => {
         const section = comboOrderComponents?.querySelector(`[data-combo-item-id="${comboItem.id}"]`);
         const itemSelectElements = Array.from(section?.querySelectorAll('.combo-component-item-select') || []);
@@ -564,22 +572,20 @@ function updateComboOrderPricePreview(combo) {
                 return;
             }
 
-            subtotal += parseFloat(selectedItem.base_price || 0) * Number(comboItem.quantity || 1);
             const scopedOptionsContainer = section.querySelector(`[data-item-id="${selectedItemId}"]`) || section.querySelector('.combo-component-options');
             const selectedOptions = getSelectedOptionIds(scopedOptionsContainer);
             selectedOptions.forEach((optionId) => {
                 const option = (selectedItem.option_groups || []).flatMap((group) => group.options || []).find((entry) => Number(entry.id) === Number(optionId));
                 if (option) {
-                    subtotal += parseFloat(option.price_modifier || 0) * Number(comboItem.quantity || 1);
+                    optionsExtra += parseFloat(option.price_modifier || 0) * taxMultiplier * Number(comboItem.quantity || 1);
                 }
             });
         });
     });
 
-    const discount = parseFloat(combo.discount_amount || 0);
-    const taxRate = parseFloat(combo.tax_rate || 0);
-    const displayedTotal = combo.prices_include_tax ? Math.max(0, subtotal - discount) * (1 + taxRate) : Math.max(0, subtotal - discount);
-    comboOrderPrice.textContent = `€${displayedTotal.toFixed(2)}`;
+    const quantity = parseInt(comboOrderQuantity?.value || '1', 10);
+    const total = (basePrice + optionsExtra) * Math.max(1, quantity);
+    comboOrderPrice.textContent = `€${total.toFixed(2)}`;
 }
 
 function showComboOrderModal(combo) {
@@ -756,7 +762,7 @@ async function submitComboOrder(event) {
 }
 
 function handleComboOrderChange(event) {
-    const section = event.target.closest('[data-combo-item-id]');
+    const section = event.target.closest('section[data-combo-item-id]');
     if (!section || !activeComboId) {
         return;
     }
@@ -770,11 +776,13 @@ function handleComboOrderChange(event) {
 }
 
 function setCheckoutState(enabled, message = null) {
-    if (!checkoutButton) {
+    if (!checkoutButton && !payOnSiteButton) {
         return;
     }
 
-    checkoutButton.disabled = !enabled || !userAuthenticated;
+    [checkoutButton, payOnSiteButton].filter(Boolean).forEach((button) => {
+        button.disabled = !enabled || !userAuthenticated;
+    });
 
     if (!userAuthenticated) {
         checkoutHelp.classList.remove('d-none');
@@ -867,16 +875,20 @@ function initializeCheckoutFlow() {
         setCheckoutState,
         userAuthenticated,
         paymentCheckoutUrlTemplate,
+        payOnSiteButton,
         translations: {
             loginRequiredMessage: translations.loginCheckoutMessage,
             selectSlotMessage: translations.selectSlotMessage,
             cartContinueMessage: translations.cartContinueMessage,
             checkoutLabel: checkoutButton.textContent.trim(),
+            payOnSiteLabel: payOnSiteButton?.textContent?.trim() || translations.payOnSiteLabel,
             redirectingToPaymentMessage: translations.redirectingToPaymentMessage,
+            payOnSiteSubmittedMessage: translations.payOnSiteSubmittedMessage,
         },
     });
 
-    checkoutButton.addEventListener('click', handler);
+    checkoutButton.addEventListener('click', () => handler('online', checkoutButton));
+    payOnSiteButton?.addEventListener('click', () => handler('on_site', payOnSiteButton));
 }
 
 async function refreshCart() {
@@ -958,27 +970,69 @@ async function handleAddToCart(event) {
     }
 }
 
-async function handleRemoveFromCart(event) {
-    const button = event.target.closest('.cart-remove');
-    if (!button) {
-        return;
-    }
-
-    const lineKey = button.dataset.lineKey;
+async function updateCartLineQuantity(lineKey, quantity, input = null) {
     if (!lineKey) {
         return;
     }
 
-    button.disabled = true;
+    const normalizedQuantity = Math.max(1, Number(quantity || 1));
+    if (input) {
+        input.value = String(normalizedQuantity);
+        input.disabled = true;
+    }
 
     try {
-        const cart = await removeCartItem(lineKey);
+        const cart = await updateCartItemQuantity(lineKey, normalizedQuantity);
         await handleCartUpdate(cart);
     } catch (error) {
         console.error(error);
     } finally {
-        button.disabled = false;
+        if (input) {
+            input.disabled = false;
+        }
     }
+}
+
+async function handleCartClick(event) {
+    const removeButton = event.target.closest('.cart-remove');
+    if (removeButton) {
+        const lineKey = removeButton.dataset.lineKey;
+        if (!lineKey) {
+            return;
+        }
+
+        removeButton.disabled = true;
+
+        try {
+            const cart = await removeCartItem(lineKey);
+            await handleCartUpdate(cart);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            removeButton.disabled = false;
+        }
+        return;
+    }
+
+    const quantityStepButton = event.target.closest('.cart-quantity-step');
+    if (!quantityStepButton) {
+        return;
+    }
+
+    const lineKey = quantityStepButton.dataset.lineKey;
+    const delta = Number(quantityStepButton.dataset.delta || 0);
+    const quantityInput = cartItemsContainer?.querySelector(`.cart-quantity-input[data-line-key="${lineKey}"]`);
+    const nextQuantity = Math.max(1, Number(quantityInput?.value || 1) + delta);
+    await updateCartLineQuantity(lineKey, nextQuantity, quantityInput);
+}
+
+async function handleCartQuantityChange(event) {
+    const input = event.target.closest('.cart-quantity-input');
+    if (!input) {
+        return;
+    }
+
+    await updateCartLineQuantity(input.dataset.lineKey, input.value, input);
 }
 
 function wireEvents() {
@@ -987,10 +1041,15 @@ function wireEvents() {
     }
 
     menuContainer?.addEventListener('click', handleAddToCart);
-    cartItemsContainer?.addEventListener('click', handleRemoveFromCart);
+    cartItemsContainer?.addEventListener('click', handleCartClick);
+    cartItemsContainer?.addEventListener('change', handleCartQuantityChange);
     itemOrderForm?.addEventListener('submit', submitItemOrder);
     comboOrderForm?.addEventListener('submit', submitComboOrder);
     comboOrderComponents?.addEventListener('change', handleComboOrderChange);
+    comboOrderQuantity?.addEventListener('input', () => {
+        const combo = menuCombosById.get(activeComboId);
+        updateComboOrderPricePreview(combo);
+    });
 }
 
 function initializeModals() {

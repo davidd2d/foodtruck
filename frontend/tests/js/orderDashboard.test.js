@@ -72,6 +72,8 @@ describe('order dashboard module', () => {
         status: 'pending',
         pickup_time: '2026-04-11T10:00:00.000Z',
         total_price: '25.00',
+        payment_method: 'on_site',
+        payment_method_label: 'Pay at the food truck',
         items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }, { name: 'Pickles' }] }],
       },
     ]));
@@ -85,6 +87,7 @@ describe('order dashboard module', () => {
     expect(document.body.textContent).toContain('x2');
     expect(document.body.textContent).toContain('Cheddar');
     expect(document.body.textContent).toContain('Pickles');
+    expect(document.body.textContent).toContain('Pay at the food truck');
   });
 
   it('envoie la transition de statut puis rafraîchit le dashboard', async () => {
@@ -95,6 +98,8 @@ describe('order dashboard module', () => {
           status: 'pending',
           pickup_time: '2026-04-11T10:00:00.000Z',
           total_price: '25.00',
+          payment_method: 'online',
+          payment_method_label: 'Online payment',
           items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }] }],
         },
       ]))
@@ -103,6 +108,8 @@ describe('order dashboard module', () => {
         status: 'confirmed',
         pickup_time: '2026-04-11T10:00:00.000Z',
         total_price: '25.00',
+        payment_method: 'online',
+        payment_method_label: 'Online payment',
         items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }] }],
       }))
       .mockImplementationOnce(() => createResponse([
@@ -111,6 +118,8 @@ describe('order dashboard module', () => {
           status: 'confirmed',
           pickup_time: '2026-04-11T10:00:00.000Z',
           total_price: '25.00',
+          payment_method: 'online',
+          payment_method_label: 'Online payment',
           items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }] }],
         },
       ]));

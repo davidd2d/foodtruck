@@ -18,6 +18,18 @@
                         <td class="px-4 py-3">
                             <div class="fw-semibold">{{ item.product_name }}</div>
                             <div class="small text-muted">{{ item.line_type|title }}</div>
+                            {% if item.combo_components %}
+                                <ul class="small text-muted ps-3 mb-0 mt-1">
+                                    {% for component in item.combo_components %}
+                                        <li>
+                                            {% if component.quantity > 1 %}{{ component.quantity }}x {% endif %}{{ component.item_name }}
+                                            {% for option in component.selected_options %}
+                                                <div class="ps-2 text-muted">+ {{ option.name }}{% with option_display_price=option.display_price_modifier|default:option.price_modifier %}{% if option_display_price != '0.00' and option_display_price != '0' %} (+{{ option_display_price }} {{ ticket.payload.currency }}){% endif %}{% endwith %}</div>
+                                            {% endfor %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
                         </td>
                         <td class="px-4 py-3 text-end">{{ item.quantity }}</td>
                         <td class="px-4 py-3 text-end">{{ item.unit_price }} {{ ticket.payload.currency }}</td>

@@ -313,6 +313,8 @@ class Combo(models.Model):
             is_available=True,
         )
         option_map = {option.id: option for option in option_objects}
+        foodtruck = getattr(getattr(getattr(chosen_item, 'category', None), 'menu', None), 'food_truck', None)
+        item_tax_rate = chosen_item.get_tax_rate()
 
         components.append({
             'combo_item_id': combo_item.id,
@@ -327,6 +329,9 @@ class Combo(models.Model):
                     'option_id': option_id,
                     'name': option_map[option_id].name,
                     'price_modifier': str(option_map[option_id].price_modifier),
+                    'display_price_modifier': str(
+                        foodtruck.get_display_price(option_map[option_id].price_modifier, item_tax_rate)
+                    ) if foodtruck is not None else str(option_map[option_id].price_modifier),
                 }
                 for option_id in selected_options
                 if option_id in option_map
@@ -394,10 +399,23 @@ class Combo(models.Model):
             subtotal - (self.discount_amount or Decimal('0.00')),
         )
 
-        component_summary = ', '.join(
-            f"{component['quantity']}x {component['item_name']}" if component['quantity'] > 1 else component['item_name']
+        def _format_component(component):
+            base = f"{component['quantity']}x {component['item_name']}" if component['quantity'] > 1 else component['item_name']
+            options = component.get('selected_options', [])
+            if options:
+                option_names = ', '.join(opt['name'] for opt in options)
+                return f"{base} ({option_names})"
+            return base
+
+        component_summary = ', '.join(_format_component(c) for c in components)
+
+        options_extra = sum(
+            Decimal(opt['price_modifier']) * component['quantity']
             for component in components
+            for opt in component.get('selected_options', [])
         )
+        if self.combo_price is not None:
+            unit_price = self.combo_price + options_extra
 
         return {
             'unit_price': unit_price,

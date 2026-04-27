@@ -15,6 +15,9 @@ class PaymentService:
     def create_payment(order: Order) -> Payment:
         """Create a pending payment for a submitted order."""
 
+        if order.payment_method != Order.PaymentMethod.ONLINE:
+            raise ValidationError('Only online-payment orders can create a payment session.')
+
         if order.status != Order.Status.PENDING:
             raise ValidationError('Only pending orders can be paid.')
 

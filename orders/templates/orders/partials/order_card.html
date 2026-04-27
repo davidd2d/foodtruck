@@ -8,6 +8,9 @@
             <div>
                 <div class="fw-semibold">{% trans "Order" %} #{{ order.id }}</div>
                 <div class="small text-muted">{{ order.pickup_slot.start_time|date:"d/m/Y H:i" }}</div>
+                <div class="mt-1">
+                    <span class="badge {% if order.payment_method == 'on_site' %}text-bg-secondary{% else %}text-bg-info{% endif %}">{{ order.get_payment_method_display }}</span>
+                </div>
             </div>
             <div class="text-end">
                 <div class="fw-semibold">€{{ order.total_price }}</div>

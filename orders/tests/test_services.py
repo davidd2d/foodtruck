@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
+from orders.models import Order
 from orders.services.cart_service import CartService
 from orders.services.order_service import OrderService
 from orders.tests.factories import (
@@ -102,6 +103,21 @@ class CartServiceTests(TestCase):
         self.assertEqual(cart['item_count'], 0)
         self.assertEqual(cart['total_price'], '0.00')
 
+    def test_update_item_quantity_updates_total(self):
+        self.cart_service.add_item(
+            foodtruck_slug=self.foodtruck.slug,
+            item_id=self.item.id,
+            quantity=1,
+        )
+
+        line_key = self.cart_service.get_cart()['items'][0]['line_key']
+        self.cart_service.update_item_quantity(line_key, 3)
+
+        cart = self.cart_service.get_cart()
+        self.assertEqual(cart['item_count'], 3)
+        self.assertEqual(cart['items'][0]['quantity'], 3)
+        self.assertEqual(cart['total_price'], '30.00')
+
     def test_add_combo_adds_to_session_cart(self):
         self.cart_service.add_combo(
             foodtruck_slug=self.foodtruck.slug,
@@ -181,6 +197,24 @@ class OrderServiceTests(TestCase):
         order.refresh_from_db()
         self.assertEqual(order.status, 'pending')
         self.assertIsNotNone(order.submitted_at)
+
+    def test_create_order_from_cart_persists_payment_method(self):
+        session = self.client.session
+        session.save()
+        cart_service = CartService(session)
+        cart_service.add_item(
+            foodtruck_slug=self.foodtruck.slug,
+            item_id=self.item.id,
+            quantity=1,
+        )
+
+        order = OrderService.create_order_from_cart(
+            user=self.user,
+            session=session,
+            payment_method=Order.PaymentMethod.ON_SITE,
+        )
+
+        self.assertEqual(order.payment_method, Order.PaymentMethod.ON_SITE)
 
     def test_submit_order_rolls_back_when_slot_full(self):
         slot = PickupSlotFactory(food_truck=self.foodtruck, capacity=1)

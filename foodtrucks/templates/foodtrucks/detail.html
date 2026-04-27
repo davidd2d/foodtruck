@@ -39,6 +39,8 @@
     data-option-label-prefix="{% trans 'Option' %}"
     data-no-extras-selected="{% trans 'No extras selected' %}"
     data-quantity-short-label="{% trans 'Qty' %}"
+    data-decrease-quantity-label="{% trans 'Decrease quantity' %}"
+    data-increase-quantity-label="{% trans 'Increase quantity' %}"
     data-each-label="{% trans 'each' %}"
     data-remove-label="{% trans 'Remove' %}"
     data-cart-empty-message="{% if foodtruck.can_accept_orders %}{% trans 'Your cart is empty.' %}{% endif %}"
@@ -71,7 +73,10 @@
     data-customer-chooses-from-label="{% trans 'Customer chooses from {category}' %}"
     data-select-at-least-options-message="{% trans 'Please choose at least {count} option(s) for {group}.' %}"
     data-select-at-most-options-message="{% trans 'You can select up to {count} option(s) for {group}.' %}"
-    data-redirecting-to-payment-message="{% trans 'Order submitted. Redirecting to payment...' %}">
+    data-redirecting-to-payment-message="{% trans 'Order submitted. Redirecting to payment...' %}"
+    data-pay-online-label="{% trans 'Pay online' %}"
+    data-pay-on-site-label="{% trans 'Pay at the food truck' %}"
+    data-pay-on-site-submitted-message="{% trans 'Order submitted. Pay at the food truck on pickup.' %}">
     <div class="row gy-4">
         <div class="col-lg-8">
             {% include 'foodtrucks/components/menu_panel.html' %}

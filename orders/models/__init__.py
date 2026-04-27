@@ -359,6 +359,10 @@ class Order(models.Model):
         COMPLETED = 'completed', _('Completed')
         CANCELLED = 'cancelled', _('Cancelled')
 
+    class PaymentMethod(models.TextChoices):
+        ONLINE = 'online', _('Online payment')
+        ON_SITE = 'on_site', _('Pay at the food truck')
+
     STATUS_TRANSITIONS = {
         Status.PENDING: {Status.CONFIRMED, Status.CANCELLED},
         Status.CONFIRMED: {Status.PREPARING, Status.CANCELLED},
@@ -455,6 +459,12 @@ class Order(models.Model):
     customer_name = models.CharField(max_length=255, blank=True, default='')
     customer_email = models.EmailField(null=True, blank=True)
     customer_phone = models.CharField(max_length=32, null=True, blank=True)
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.ONLINE,
+        help_text=_("How the customer intends to pay for the order")
+    )
     is_anonymized = models.BooleanField(default=False)
     total_price = models.DecimalField(
         max_digits=10,
@@ -932,6 +942,7 @@ class Order(models.Model):
             'customer_name',
             'customer_email',
             'customer_phone',
+            'payment_method',
             'is_anonymized',
             'total_price',
             'total_amount',
@@ -951,6 +962,7 @@ class Order(models.Model):
             original['customer_name'] != self.customer_name,
             original['customer_email'] != self.customer_email,
             original['customer_phone'] != self.customer_phone,
+            original['payment_method'] != self.payment_method,
             original['is_anonymized'] != self.is_anonymized,
             original['total_price'] != self.total_price,
             original['total_amount'] != self.total_amount,

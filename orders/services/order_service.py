@@ -18,7 +18,7 @@ class OrderService:
     """Service layer responsible for orchestrating order workflows."""
 
     @staticmethod
-    def create_order_from_cart(user, session, pickup_slot_id=None):
+    def create_order_from_cart(user, session, pickup_slot_id=None, payment_method=Order.PaymentMethod.ONLINE):
         """
         Construct an order from the session-backed cart and optionally assign a slot.
         """
@@ -61,6 +61,7 @@ class OrderService:
                 user=user,
                 food_truck=food_truck,
                 status=Order.Status.DRAFT,
+                payment_method=payment_method,
                 total_price=Decimal('0.00'),
             )
 

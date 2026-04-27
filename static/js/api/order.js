@@ -4,11 +4,12 @@ import apiClient from './client.js';
  * Create an order from the current session cart.
  * The optional pickupSlotId can be provided for backwards compatibility.
  */
-export async function checkoutCart(pickupSlotId = null) {
+export async function checkoutCart(pickupSlotId = null, paymentMethod = 'online') {
     const payload = {};
     if (pickupSlotId) {
         payload.pickup_slot = pickupSlotId;
     }
+    payload.payment_method = paymentMethod;
     return apiClient.post('/cart/checkout/', payload);
 }
 
