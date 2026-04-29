@@ -251,6 +251,53 @@ class OrderServiceTests(TestCase):
         self.assertNotIn(draft_order, orders)
         self.assertIn(pending_order, orders)
 
+    def test_get_dashboard_orders_auto_transitions_confirmed_to_preparing_when_pickup_near(self):
+        near_slot_start = timezone.now() + timedelta(minutes=10)
+        near_slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=near_slot_start,
+            end_time=near_slot_start + timedelta(minutes=30),
+        )
+        order = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=near_slot, status='draft')
+        order.add_item(self.item, quantity=1)
+        order.submit()
+        order.transition_to('confirmed')
+        order.save(update_fields=['status'])
+
+        orders = list(OrderService.get_dashboard_orders(self.foodtruck, {}))
+
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'preparing')
+        self.assertIn(order, orders)
+
+    def test_get_dashboard_orders_keeps_only_todays_completed_orders(self):
+        now = timezone.now()
+
+        today_slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=now + timedelta(hours=1),
+            end_time=now + timedelta(hours=2),
+        )
+        today_completed = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=today_slot, status='draft')
+        today_completed.add_item(self.item, quantity=1)
+        today_completed.status = 'completed'
+        today_completed.save(update_fields=['status'])
+
+        yesterday_slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=now - timedelta(days=1, hours=1),
+            end_time=now - timedelta(days=1),
+        )
+        old_completed = OrderFactory(user=self.user, food_truck=self.foodtruck, pickup_slot=yesterday_slot, status='draft')
+        old_completed.add_item(self.item, quantity=1)
+        old_completed.status = 'completed'
+        old_completed.save(update_fields=['status'])
+
+        orders = list(OrderService.get_dashboard_orders(self.foodtruck, {}))
+
+        self.assertIn(today_completed, orders)
+        self.assertNotIn(old_completed, orders)
+
     def test_create_order_rejects_foodtruck_without_pro_subscription(self):
         free_truck = FoodTruckFactory(owner=self.user, name='Free Truck')
         free_truck.subscription.status = 'inactive'

@@ -106,6 +106,13 @@
 
         {% if categories %}
             <div class="category-nav foodtruck-category-rail w-100 d-flex justify-content-start align-items-center flex-nowrap px-2 mt-1">
+                {% if current_namespace == 'orders' and current_url == 'dashboard' %}
+                    <button type="button"
+                            class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip btn-outline-danger d-none"
+                            id="dashboard-clear-category-filter">
+                        {% trans "Clear category filter" %}
+                    </button>
+                {% endif %}
                 {% for category in categories %}
                           <a href="{% if current_namespace == 'ai_menu' or current_namespace == 'foodtrucks' %}#category-{{ category.id }}{% else %}{% url 'menu:catalog' slug=foodtruck.slug %}#category-{{ category.id }}{% endif %}"
                               class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-foodtruck-anchor"
@@ -113,6 +120,41 @@
                         {{ category.name }}
                     </a>
                 {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if current_namespace == 'orders' and current_url == 'dashboard' %}
+            <div class="category-nav foodtruck-category-rail w-100 d-flex justify-content-start align-items-center flex-nowrap px-2 mt-1">
+                <a href="#dashboard-group-pending"
+                   class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-dashboard-group-anchor"
+                   style="background-color: #f8d7da; color: #842029;">
+                    {% trans "Pending" %}
+                    <span class="badge rounded-pill text-bg-light ms-1" data-dashboard-group-count="pending">0</span>
+                </a>
+                <a href="#dashboard-group-confirmed"
+                   class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-dashboard-group-anchor"
+                   style="background-color: #cff4fc; color: #055160;">
+                    {% trans "Confirmed" %}
+                    <span class="badge rounded-pill text-bg-light ms-1" data-dashboard-group-count="confirmed">0</span>
+                </a>
+                <a href="#dashboard-group-preparing"
+                   class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-dashboard-group-anchor"
+                   style="background-color: #d1ecf1; color: #0c5460;">
+                    {% trans "Preparing" %}
+                    <span class="badge rounded-pill text-bg-light ms-1" data-dashboard-group-count="preparing">0</span>
+                </a>
+                <a href="#dashboard-group-ready"
+                   class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-dashboard-group-anchor"
+                   style="background-color: #d1e7dd; color: #0f5132;">
+                    {% trans "Ready" %}
+                    <span class="badge rounded-pill text-bg-light ms-1" data-dashboard-group-count="ready">0</span>
+                </a>
+                <a href="#dashboard-group-completed"
+                   class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip js-dashboard-group-anchor"
+                   style="background-color: #e2e3e5; color: #41464b;">
+                    {% trans "Completed" %}
+                    <span class="badge rounded-pill text-bg-light ms-1" data-dashboard-group-count="completed">0</span>
+                </a>
             </div>
         {% endif %}
 

@@ -118,6 +118,7 @@ function renderOrderCard(order, labels) {
         <article class="card border mb-3 dashboard-order-card ${urgent ? 'border-danger-subtle dashboard-order-card-urgent' : ''}"
                  data-order-id="${order.id}"
                  data-order-status="${order.status}"
+                 data-order-category-ids="${(order.category_ids || []).join(',')}"
                  data-pickup-time="${order.pickup_time}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
@@ -161,6 +162,28 @@ async function fetchOrders(state) {
     return response.json();
 }
 
+function applyCategoryChipActiveState(state) {
+    state.categoryChips.forEach((chip) => {
+        const chipCategoryId = chip.dataset.categoryId || '';
+        const isActive = state.activeCategoryId && chipCategoryId === state.activeCategoryId;
+        chip.classList.toggle('active', Boolean(isActive));
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+
+    if (state.clearCategoryFilterButton) {
+        state.clearCategoryFilterButton.classList.toggle('d-none', !state.activeCategoryId);
+    }
+}
+
+function orderMatchesCategory(order, activeCategoryId) {
+    if (!activeCategoryId) {
+        return true;
+    }
+
+    const categoryIds = (order.category_ids || []).map((categoryId) => String(categoryId));
+    return categoryIds.includes(String(activeCategoryId));
+}
+
 function renderOrders(state, orders) {
     const grouped = {
         pending: [],
@@ -170,7 +193,9 @@ function renderOrders(state, orders) {
         completed: [],
     };
 
-    orders.forEach((order) => {
+    orders
+        .filter((order) => orderMatchesCategory(order, state.activeCategoryId))
+        .forEach((order) => {
         if (grouped[order.status]) {
             grouped[order.status].push(order);
         }
@@ -186,6 +211,11 @@ function renderOrders(state, orders) {
         body.innerHTML = sectionOrders.length
             ? sectionOrders.map((order) => renderOrderCard(order, state.labels)).join('')
             : `<p class="text-muted small mb-0" data-section-empty>${state.labels.emptyMessage}</p>`;
+    });
+
+    state.dashboardGroupCounts.forEach((counter) => {
+        const status = counter.dataset.dashboardGroupCount;
+        counter.textContent = String((grouped[status] || []).length);
     });
 }
 
@@ -225,12 +255,20 @@ async function refreshOrders(state) {
     setFeedback(state);
     try {
         const data = await fetchOrders(state);
-        renderOrders(state, data);
+        state.orders = data;
+        renderOrders(state, state.orders);
     } catch (error) {
         setFeedback(state, error.message || state.labels.errorMessage);
     } finally {
         setLoading(state, false);
     }
+}
+
+function extractCategoryIdFromChip(chip) {
+    const href = chip.getAttribute('href') || '';
+    const anchorPart = href.includes('#') ? href.split('#')[1] : '';
+    const match = anchorPart.match(/^category-(\d+)$/);
+    return match ? match[1] : null;
 }
 
 function startPolling(state) {
@@ -247,6 +285,14 @@ function stopPolling(state) {
 }
 
 function buildState(root) {
+    const categoryChips = Array.from(document.querySelectorAll('.foodtruck-category-chip'));
+    categoryChips.forEach((chip) => {
+        const categoryId = extractCategoryIdFromChip(chip);
+        if (categoryId) {
+            chip.dataset.categoryId = categoryId;
+        }
+    });
+
     return {
         root,
         dashboardUrl: root.dataset.dashboardUrl,
@@ -254,9 +300,14 @@ function buildState(root) {
         foodtruckSlug: root.dataset.foodtruckSlug || '',
         statusFilter: document.getElementById('dashboard-status-filter'),
         refreshButton: document.getElementById('dashboard-refresh-button'),
+        clearCategoryFilterButton: document.getElementById('dashboard-clear-category-filter'),
         feedback: document.getElementById('dashboard-feedback'),
         loading: document.getElementById('dashboard-loading'),
         sections: Array.from(document.querySelectorAll('[data-dashboard-section]')),
+        dashboardGroupCounts: Array.from(document.querySelectorAll('[data-dashboard-group-count]')),
+        categoryChips,
+        activeCategoryId: null,
+        orders: [],
         pollHandle: null,
         labels: {
             emptyMessage: root.dataset.emptyMessage,
@@ -277,6 +328,26 @@ function buildState(root) {
 function attachEvents(state) {
     state.refreshButton.addEventListener('click', () => refreshOrders(state));
     state.statusFilter.addEventListener('change', () => refreshOrders(state));
+    state.clearCategoryFilterButton?.addEventListener('click', () => {
+        state.activeCategoryId = null;
+        applyCategoryChipActiveState(state);
+        renderOrders(state, state.orders);
+    });
+
+    state.categoryChips.forEach((chip) => {
+        chip.addEventListener('click', (event) => {
+            const categoryId = chip.dataset.categoryId;
+            if (!categoryId) {
+                return;
+            }
+
+            event.preventDefault();
+            state.activeCategoryId = state.activeCategoryId === categoryId ? null : categoryId;
+            applyCategoryChipActiveState(state);
+            renderOrders(state, state.orders);
+        });
+    });
+
     state.root.addEventListener('click', async (event) => {
         const button = event.target.closest('.js-order-status');
         if (!button) {
@@ -320,6 +391,7 @@ function initDashboard() {
         return;
     }
     const state = buildState(dashboardElement);
+    applyCategoryChipActiveState(state);
     attachEvents(state);
     refreshOrders(state);
     startPolling(state);

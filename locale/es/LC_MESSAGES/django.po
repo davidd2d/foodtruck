@@ -2575,6 +2575,10 @@ msgstr "{count} pedidos / {minutes} min"
 msgid "Unable to load schedules."
 msgstr "No se pudieron cargar los horarios."
 
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:114
+msgid "Clear category filter"
+msgstr "Quitar filtro de categoría"
+
 #: templates/orders/working_hours/index.html:27
 #: templates/schedules/index.html:23
 msgid "Delete this time window?"

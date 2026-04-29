@@ -1,6 +1,8 @@
 from decimal import Decimal
+from datetime import timedelta
 
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -87,6 +89,55 @@ class OrderDashboardAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual([entry['id'] for entry in response.data], [confirmed.id])
+
+    def test_dashboard_api_auto_transitions_confirmed_to_preparing_when_pickup_near(self):
+        near_start = timezone.now() + timedelta(minutes=10)
+        near_slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=near_start,
+            end_time=near_start + timedelta(minutes=30),
+        )
+
+        order = OrderFactory(user=self.owner, food_truck=self.foodtruck, pickup_slot=near_slot, status=Order.Status.DRAFT)
+        order.add_item(self.item, quantity=1)
+        order.submit()
+        order.transition_to(Order.Status.CONFIRMED)
+        order.save(update_fields=['status'])
+
+        response = self.client.get(reverse('orders:dashboard-api'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PREPARING)
+        self.assertEqual(response.data[0]['status'], Order.Status.PREPARING)
+
+    def test_dashboard_api_completed_status_returns_only_todays_completed_orders(self):
+        now = timezone.now()
+
+        today_slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=now + timedelta(hours=1),
+            end_time=now + timedelta(hours=2),
+        )
+        today_order = OrderFactory(user=self.owner, food_truck=self.foodtruck, pickup_slot=today_slot, status=Order.Status.DRAFT)
+        today_order.add_item(self.item, quantity=1)
+        today_order.status = Order.Status.COMPLETED
+        today_order.save(update_fields=['status'])
+
+        old_slot = PickupSlotFactory(
+            food_truck=self.foodtruck,
+            start_time=now - timedelta(days=1, hours=1),
+            end_time=now - timedelta(days=1),
+        )
+        old_order = OrderFactory(user=self.owner, food_truck=self.foodtruck, pickup_slot=old_slot, status=Order.Status.DRAFT)
+        old_order.add_item(self.item, quantity=1)
+        old_order.status = Order.Status.COMPLETED
+        old_order.save(update_fields=['status'])
+
+        response = self.client.get(reverse('orders:dashboard-api'), {'status': Order.Status.COMPLETED})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual([entry['id'] for entry in response.data], [today_order.id])
 
     def test_dashboard_api_excludes_other_owner_orders(self):
         foreign_slot = PickupSlotFactory(food_truck=self.other_foodtruck)

@@ -1,8 +1,11 @@
 from decimal import Decimal
+from datetime import timedelta
 import logging
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 
 from foodtrucks.models import FoodTruck
 from menu.models import Combo, Item
@@ -16,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 class OrderService:
     """Service layer responsible for orchestrating order workflows."""
+
+    AUTO_PREPARING_THRESHOLD_MINUTES = 15
 
     @staticmethod
     def create_order_from_cart(user, session, pickup_slot_id=None, payment_method=Order.PaymentMethod.ONLINE):
@@ -148,11 +153,45 @@ class OrderService:
             raise
 
     @staticmethod
+    def _auto_transition_confirmed_to_preparing(foodtruck):
+        """Move confirmed orders to preparing when pickup time is near."""
+        now = timezone.localtime(timezone.now())
+        threshold = now + timedelta(minutes=OrderService.AUTO_PREPARING_THRESHOLD_MINUTES)
+
+        with transaction.atomic():
+            candidates = list(
+                Order.objects.select_for_update()
+                .filter(
+                    food_truck=foodtruck,
+                    status=Order.Status.CONFIRMED,
+                    pickup_slot__start_time__lte=threshold,
+                )
+                .select_related('pickup_slot')
+            )
+
+            updated = 0
+            for order in candidates:
+                try:
+                    order.transition_to(Order.Status.PREPARING)
+                    order.save(update_fields=['status'])
+                    updated += 1
+                except OrderTransitionError:
+                    continue
+
+        if updated:
+            logger.info(
+                'Auto-transitioned confirmed orders to preparing',
+                extra={'foodtruck_id': foodtruck.id, 'updated_count': updated},
+            )
+
+    @staticmethod
     def get_dashboard_orders(foodtruck, filters: dict):
         """Return optimized orders for the owner dashboard with optional filters."""
         filters = filters or {}
         requested_status = filters.get('status')
         requested_slot = filters.get('slot')
+
+        OrderService._auto_transition_confirmed_to_preparing(foodtruck)
 
         queryset = Order.objects.for_dashboard(
             foodtruck,
@@ -164,5 +203,11 @@ class OrderService:
 
         if requested_slot:
             queryset = queryset.filter(pickup_slot_id=requested_slot)
+
+        today = timezone.localdate()
+        queryset = queryset.filter(
+            Q(status=Order.Status.COMPLETED, pickup_slot__start_time__date=today)
+            | ~Q(status=Order.Status.COMPLETED)
+        )
 
         return queryset

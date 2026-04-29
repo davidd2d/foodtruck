@@ -2392,8 +2392,6 @@ msgstr "Retrait urgent"
 #: orders/templates/orders/dashboard.html:40
 msgid "Track active orders and move them through preparation to pickup."
 msgstr "Suivez les commandes en cours et gérez leur progression jusqu'au retrait."
-"Suivez les commandes en cours et faites-les avancer de la préparation "
-"jusqu'au retrait."
 
 #: orders/templates/orders/dashboard.html:43
 msgid "Filter by status"
@@ -2875,7 +2873,11 @@ msgstr "Merci pour votre commande. Nous vous informerons quand elle sera prête 
 #, fuzzy
 #| msgid "View my foodtrucks"
 msgid "View my ticket"
-msgstr "Voir mes foodtrucks"
+msgstr "Voir mon ticket"
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:114
+msgid "Clear category filter"
+msgstr "Effacer le filtre de catégorie"
 
 #: payments/templates/payments/success.html:21
 #, fuzzy

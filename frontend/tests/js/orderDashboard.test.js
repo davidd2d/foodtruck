@@ -3,6 +3,14 @@ import { vi } from 'vitest';
 
 function buildDashboardHtml() {
   return `
+    <button id="dashboard-clear-category-filter" type="button" class="d-none">Clear category filter</button>
+    <a class="foodtruck-category-chip js-dashboard-group-anchor" href="#dashboard-group-pending">Pending <span data-dashboard-group-count="pending">0</span></a>
+    <a class="foodtruck-category-chip js-dashboard-group-anchor" href="#dashboard-group-confirmed">Confirmed <span data-dashboard-group-count="confirmed">0</span></a>
+    <a class="foodtruck-category-chip js-dashboard-group-anchor" href="#dashboard-group-preparing">Preparing <span data-dashboard-group-count="preparing">0</span></a>
+    <a class="foodtruck-category-chip js-dashboard-group-anchor" href="#dashboard-group-ready">Ready <span data-dashboard-group-count="ready">0</span></a>
+    <a class="foodtruck-category-chip js-dashboard-group-anchor" href="#dashboard-group-completed">Completed <span data-dashboard-group-count="completed">0</span></a>
+    <a class="foodtruck-category-chip" href="/dashboard/foodtruck/cucina-di-pastaz/menu/catalog/#category-1">Pasta Box</a>
+    <a class="foodtruck-category-chip" href="/dashboard/foodtruck/cucina-di-pastaz/menu/catalog/#category-2">Desserts</a>
     <div
       id="order-dashboard"
       data-dashboard-url="/orders/api/dashboard/"
@@ -74,6 +82,7 @@ describe('order dashboard module', () => {
         total_price: '25.00',
         payment_method: 'on_site',
         payment_method_label: 'Pay at the food truck',
+        category_ids: [1],
         items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }, { name: 'Pickles' }] }],
       },
     ]));
@@ -83,6 +92,7 @@ describe('order dashboard module', () => {
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(document.querySelector('[data-order-id="12"]')).not.toBeNull());
     expect(document.querySelector('[data-dashboard-section="pending"] [data-section-count]').textContent).toBe('1');
+    expect(document.querySelector('[data-dashboard-group-count="pending"]').textContent).toBe('1');
     expect(document.body.textContent).toContain('Burger');
     expect(document.body.textContent).toContain('x2');
     expect(document.body.textContent).toContain('Cheddar');
@@ -100,6 +110,7 @@ describe('order dashboard module', () => {
           total_price: '25.00',
           payment_method: 'online',
           payment_method_label: 'Online payment',
+          category_ids: [1],
           items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }] }],
         },
       ]))
@@ -110,6 +121,7 @@ describe('order dashboard module', () => {
         total_price: '25.00',
         payment_method: 'online',
         payment_method_label: 'Online payment',
+        category_ids: [1],
         items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }] }],
       }))
       .mockImplementationOnce(() => createResponse([
@@ -120,6 +132,7 @@ describe('order dashboard module', () => {
           total_price: '25.00',
           payment_method: 'online',
           payment_method_label: 'Online payment',
+          category_ids: [1],
           items: [{ item_name: 'Burger', quantity: 2, total_price: '25.00', selected_options: [{ name: 'Cheddar' }] }],
         },
       ]));
@@ -149,5 +162,47 @@ describe('order dashboard module', () => {
 
     await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(2));
     expect(globalThis.fetch.mock.calls[1][0]).toContain('status=confirmed');
+  });
+
+  it('filtre les commandes quand on clique sur un bouton categorie de la navbar', async () => {
+    globalThis.fetch.mockImplementation(() => createResponse([
+      {
+        id: 12,
+        status: 'pending',
+        pickup_time: '2026-04-11T10:00:00.000Z',
+        total_price: '25.00',
+        payment_method: 'online',
+        payment_method_label: 'Online payment',
+        category_ids: [1],
+        items: [{ item_name: 'Pasta Box', quantity: 1, total_price: '25.00', selected_options: [] }],
+      },
+      {
+        id: 13,
+        status: 'pending',
+        pickup_time: '2026-04-11T10:00:00.000Z',
+        total_price: '8.00',
+        payment_method: 'on_site',
+        payment_method_label: 'Pay at the food truck',
+        category_ids: [2],
+        items: [{ item_name: 'Dessert Box', quantity: 1, total_price: '8.00', selected_options: [] }],
+      },
+    ]));
+
+    await import('../../../static/orders/js/dashboard.js');
+
+    await waitFor(() => expect(document.querySelectorAll('[data-order-id]').length).toBe(2));
+
+    fireEvent.click(document.querySelector('.foodtruck-category-chip[href*="#category-1"]'));
+
+    await waitFor(() => expect(document.querySelector('[data-order-id="12"]')).not.toBeNull());
+    expect(document.querySelector('[data-order-id="13"]')).toBeNull();
+    expect(document.querySelector('[data-dashboard-section="pending"] [data-section-count]').textContent).toBe('1');
+    expect(document.querySelector('.foodtruck-category-chip[href*="#category-1"]').classList.contains('active')).toBe(true);
+    expect(document.getElementById('dashboard-clear-category-filter').classList.contains('d-none')).toBe(false);
+
+    fireEvent.click(document.getElementById('dashboard-clear-category-filter'));
+
+    await waitFor(() => expect(document.querySelector('[data-order-id="13"]')).not.toBeNull());
+    expect(document.getElementById('dashboard-clear-category-filter').classList.contains('d-none')).toBe(true);
   });
 });

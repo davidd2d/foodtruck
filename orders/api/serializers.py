@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 import pytz
+from menu.models import Item
 
 from ..models import Order, OrderItem, OrderItemOption, PickupSlot, ServiceSchedule, Ticket
 
@@ -256,10 +257,45 @@ class OrderDashboardSerializer(serializers.ModelSerializer):
     items = OrderDashboardItemSerializer(many=True, read_only=True)
     payment_method = serializers.CharField(read_only=True)
     payment_method_label = serializers.CharField(source='get_payment_method_display', read_only=True)
+    category_ids = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ['id', 'status', 'pickup_time', 'total_price', 'payment_method', 'payment_method_label', 'items']
+        fields = ['id', 'status', 'pickup_time', 'total_price', 'payment_method', 'payment_method_label', 'category_ids', 'items']
+
+    def get_category_ids(self, obj):
+        category_ids = set()
+        unresolved_component_item_ids = set()
+
+        for order_item in obj.items.all():
+            if order_item.item_id and order_item.item:
+                category_ids.add(int(order_item.item.category_id))
+
+            if order_item.combo_id and order_item.combo:
+                category_ids.add(int(order_item.combo.category_id))
+
+            for component in order_item.options or []:
+                source_category_id = component.get('source_category_id')
+                if source_category_id:
+                    category_ids.add(int(source_category_id))
+                    continue
+
+                item_category_id = component.get('item_category_id')
+                if item_category_id:
+                    category_ids.add(int(item_category_id))
+                    continue
+
+                component_item_id = component.get('item_id')
+                if component_item_id:
+                    unresolved_component_item_ids.add(int(component_item_id))
+
+        if unresolved_component_item_ids:
+            resolved_category_ids = Item.objects.filter(
+                id__in=unresolved_component_item_ids
+            ).values_list('category_id', flat=True)
+            category_ids.update(int(category_id) for category_id in resolved_category_ids if category_id)
+
+        return sorted(category_ids)
 
 
 class OrderStatusUpdateSerializer(serializers.Serializer):
