@@ -13,3 +13,13 @@ class FoodTruckURLTests(SimpleTestCase):
         url = reverse('foodtrucks:foodtruck-detail', kwargs={'slug': 'barnburger'})
         self.assertEqual(url, '/foodtrucks/barnburger/')
         self.assertEqual(resolve(url).func, views.foodtruck_detail)
+
+    def test_foodtruck_dashboard_url_resolves(self):
+        url = reverse('foodtrucks:foodtruck-dashboard', kwargs={'slug': 'barnburger'})
+        self.assertEqual(url, '/foodtrucks/barnburger/dashboard/')
+        self.assertEqual(resolve(url).func.view_class, views.FoodTruckDashboardView)
+
+    def test_foodtruck_dashboard_kpis_url_resolves(self):
+        url = reverse('foodtrucks:foodtruck-dashboard-kpis', kwargs={'slug': 'barnburger'})
+        self.assertEqual(url, '/foodtrucks/barnburger/dashboard/kpis/')
+        self.assertEqual(resolve(url).func.view_class, views.DashboardKpiAPIView)

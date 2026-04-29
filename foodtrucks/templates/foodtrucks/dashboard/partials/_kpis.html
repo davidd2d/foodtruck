@@ -1,0 +1,47 @@
+{% load i18n %}
+<div class="row g-3" id="dashboard-kpis">
+    <div class="col-12 col-md-6 col-xl-3">
+        <article class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1 d-flex align-items-center gap-1">
+                    <span>{% trans "Total orders" %}</span>
+                    <button type="button" class="indicator-help-trigger" data-indicator-key="total_orders" data-indicator-title="{% trans 'Total orders' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+                </p>
+                <h2 class="h4 mb-0" id="kpi-total-orders">{{ initial_kpis.total_orders }}</h2>
+            </div>
+        </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <article class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1 d-flex align-items-center gap-1">
+                    <span>{% trans "Total revenue" %}</span>
+                    <button type="button" class="indicator-help-trigger" data-indicator-key="total_revenue" data-indicator-title="{% trans 'Total revenue' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+                </p>
+                <h2 class="h4 mb-0" id="kpi-total-revenue">€{{ initial_kpis.total_revenue }}</h2>
+            </div>
+        </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <article class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1 d-flex align-items-center gap-1">
+                    <span>{% trans "Average order value" %}</span>
+                    <button type="button" class="indicator-help-trigger" data-indicator-key="average_order_value" data-indicator-title="{% trans 'Average order value' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+                </p>
+                <h2 class="h4 mb-0" id="kpi-average-order-value">€{{ initial_kpis.average_order_value }}</h2>
+            </div>
+        </article>
+    </div>
+    <div class="col-12 col-md-6 col-xl-3">
+        <article class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <p class="text-muted small mb-1 d-flex align-items-center gap-1">
+                    <span>{% trans "Completion rate" %}</span>
+                    <button type="button" class="indicator-help-trigger" data-indicator-key="completion_rate" data-indicator-title="{% trans 'Completion rate' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+                </p>
+                <h2 class="h4 mb-0" id="kpi-completion-rate">{{ initial_kpis.completion_rate }}%</h2>
+            </div>
+        </article>
+    </div>
+</div>

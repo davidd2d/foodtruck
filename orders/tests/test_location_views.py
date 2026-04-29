@@ -129,4 +129,4 @@ class LocationViewsTests(TestCase):
         self.client_login(self.owner)
         url = reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug})
         response = self.client.get(url)
-        self.assertContains(response, 'Lieux de vente')
+        self.assertContains(response, 'Sales locations')

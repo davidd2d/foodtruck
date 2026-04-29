@@ -1,0 +1,17 @@
+{% load i18n %}
+<section class="card border-0 shadow-sm h-100">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0 d-flex align-items-center gap-1">
+            <span>{% trans "Revenue trend" %}</span>
+            <button type="button" class="indicator-help-trigger" data-indicator-key="revenue_trend" data-indicator-title="{% trans 'Revenue trend' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+        </h2>
+        <select id="dashboard-interval-select" class="form-select form-select-sm dashboard-inline-select" aria-label="{% trans 'Revenue interval' %}">
+            <option value="day">{% trans "Daily" %}</option>
+            <option value="week">{% trans "Weekly" %}</option>
+            <option value="month">{% trans "Monthly" %}</option>
+        </select>
+    </div>
+    <div class="card-body">
+        <canvas id="dashboard-revenue-chart" height="280"></canvas>
+    </div>
+</section>

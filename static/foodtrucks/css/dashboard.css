@@ -1,0 +1,150 @@
+#foodtruck-dashboard .card {
+    border-radius: 0.85rem;
+}
+
+#foodtruck-dashboard .card-header {
+    border-radius: 0.85rem 0.85rem 0 0;
+}
+
+#foodtruck-dashboard .dashboard-inline-select {
+    width: auto;
+    min-width: 120px;
+}
+
+#dashboard-revenue-chart {
+    min-height: 280px;
+}
+
+#dashboard-options-chart {
+    height: 180px !important;
+    max-height: 180px;
+}
+
+.dashboard-options-chart-wrap {
+    min-height: 180px;
+    max-height: 180px;
+}
+
+.indicator-help-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid rgba(108, 117, 125, 0.5);
+    border-radius: 999px;
+    background: transparent;
+    color: #6c757d;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0;
+}
+
+.indicator-help-trigger:hover {
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.slot-heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(25, minmax(28px, 1fr));
+    gap: 4px;
+    min-width: 920px;
+}
+
+.slot-heatmap-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+}
+
+.slot-heatmap-scroll::-webkit-scrollbar {
+    height: 8px;
+}
+
+.slot-heatmap-scroll::-webkit-scrollbar-thumb {
+    background: rgba(108, 117, 125, 0.45);
+    border-radius: 999px;
+}
+
+.heatmap-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.heatmap-legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.heatmap-cell {
+    min-height: 24px;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.heatmap-head {
+    background: #f8f9fa;
+    color: #6c757d;
+    font-weight: 600;
+    border: none;
+}
+
+.heatmap-intensity-0 {
+    background: #f8f9fa;
+    color: #adb5bd;
+}
+
+.heatmap-intensity-1 {
+    background: #dbeafe;
+    color: #0b3d91;
+}
+
+.heatmap-intensity-2 {
+    background: #93c5fd;
+    color: #0b3d91;
+}
+
+.heatmap-intensity-3 {
+    background: #60a5fa;
+    color: #fff;
+}
+
+.heatmap-intensity-4 {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+.slot-summary-card {
+    background: #f8f9fa;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 0.6rem;
+    padding: 0.55rem 0.65rem;
+}
+
+.slot-summary-label {
+    font-size: 0.72rem;
+    color: #6c757d;
+}
+
+.slot-summary-value {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+@media (max-width: 1199.98px) {
+    .slot-heatmap-grid {
+        min-width: 860px;
+    }
+}

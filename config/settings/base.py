@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'preferences.apps.PreferencesConfig',
     'onboarding.apps.OnboardingConfig',
     'ai_menu.apps.AiMenuConfig',
+    'analytics.apps.AnalyticsConfig',
 ]
 
 MIDDLEWARE = [

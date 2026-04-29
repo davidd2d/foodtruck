@@ -1,3 +1,5 @@
+import { applyCategoryChipActiveState, collectCategoryChips } from '../../js/shared/categoryFilter.js';
+
 const dashboardElement = document.getElementById('order-dashboard');
 
 const POLL_INTERVAL_MS = 10000;
@@ -162,19 +164,6 @@ async function fetchOrders(state) {
     return response.json();
 }
 
-function applyCategoryChipActiveState(state) {
-    state.categoryChips.forEach((chip) => {
-        const chipCategoryId = chip.dataset.categoryId || '';
-        const isActive = state.activeCategoryId && chipCategoryId === state.activeCategoryId;
-        chip.classList.toggle('active', Boolean(isActive));
-        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-
-    if (state.clearCategoryFilterButton) {
-        state.clearCategoryFilterButton.classList.toggle('d-none', !state.activeCategoryId);
-    }
-}
-
 function orderMatchesCategory(order, activeCategoryId) {
     if (!activeCategoryId) {
         return true;
@@ -264,13 +253,6 @@ async function refreshOrders(state) {
     }
 }
 
-function extractCategoryIdFromChip(chip) {
-    const href = chip.getAttribute('href') || '';
-    const anchorPart = href.includes('#') ? href.split('#')[1] : '';
-    const match = anchorPart.match(/^category-(\d+)$/);
-    return match ? match[1] : null;
-}
-
 function startPolling(state) {
     state.pollHandle = window.setInterval(() => {
         refreshOrders(state);
@@ -285,13 +267,7 @@ function stopPolling(state) {
 }
 
 function buildState(root) {
-    const categoryChips = Array.from(document.querySelectorAll('.foodtruck-category-chip'));
-    categoryChips.forEach((chip) => {
-        const categoryId = extractCategoryIdFromChip(chip);
-        if (categoryId) {
-            chip.dataset.categoryId = categoryId;
-        }
-    });
+    const categoryChips = collectCategoryChips();
 
     return {
         root,
@@ -330,7 +306,7 @@ function attachEvents(state) {
     state.statusFilter.addEventListener('change', () => refreshOrders(state));
     state.clearCategoryFilterButton?.addEventListener('click', () => {
         state.activeCategoryId = null;
-        applyCategoryChipActiveState(state);
+        applyCategoryChipActiveState(state.categoryChips, state.activeCategoryId, state.clearCategoryFilterButton);
         renderOrders(state, state.orders);
     });
 
@@ -343,7 +319,7 @@ function attachEvents(state) {
 
             event.preventDefault();
             state.activeCategoryId = state.activeCategoryId === categoryId ? null : categoryId;
-            applyCategoryChipActiveState(state);
+            applyCategoryChipActiveState(state.categoryChips, state.activeCategoryId, state.clearCategoryFilterButton);
             renderOrders(state, state.orders);
         });
     });
@@ -391,7 +367,7 @@ function initDashboard() {
         return;
     }
     const state = buildState(dashboardElement);
-    applyCategoryChipActiveState(state);
+    applyCategoryChipActiveState(state.categoryChips, state.activeCategoryId, state.clearCategoryFilterButton);
     attachEvents(state);
     refreshOrders(state);
     startPolling(state);

@@ -1,0 +1,16 @@
+{% load i18n %}
+<section class="card border-0 shadow-sm h-100">
+    <div class="card-header bg-white border-0">
+        <h2 class="h5 mb-0 d-flex align-items-center gap-1">
+            <span>{% trans "Slot utilization & revenue" %}</span>
+            <button type="button" class="indicator-help-trigger" data-indicator-key="slot_utilization_revenue" data-indicator-title="{% trans 'Slot utilization & revenue' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+        </h2>
+    </div>
+    <div class="card-body">
+        <div id="dashboard-slot-utilization-summary" class="row g-2 mb-3"></div>
+
+        <div id="dashboard-slot-utilization-segments" class="d-flex flex-column gap-2 mb-3"></div>
+
+        <div class="small text-muted" id="dashboard-slot-utilization-top"></div>
+    </div>
+</section>

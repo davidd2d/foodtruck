@@ -38,16 +38,16 @@ class FoodTruckBrandingTemplateTests(TestCase):
         self.assertContains(response, 'OPS')
         self.assertContains(response, 'MEN')
         self.assertContains(response, 'EUR')
-        self.assertContains(response, 'Espace proprietaire')
-        self.assertContains(response, 'Pilotage')
-        self.assertContains(response, 'Facturation')
+        self.assertContains(response, 'Owner space')
+        self.assertContains(response, 'Operations')
+        self.assertContains(response, 'Billing')
         self.assertContains(response, reverse('accounts:profile', kwargs={'slug': self.foodtruck.slug}))
-        self.assertContains(response, reverse('orders:history'))
         self.assertContains(response, reverse(
             'orders:ticket-list-page',
             kwargs={'slug': self.foodtruck.slug, 'user_id': self.foodtruck.owner.id},
         ))
         self.assertContains(response, reverse('orders:owner-ticket-list', kwargs={'slug': self.foodtruck.slug}))
+        self.assertContains(response, reverse('foodtrucks:foodtruck-dashboard', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(
             response,
             f"{reverse('payment-accounting-export')}?start_date=",
@@ -61,11 +61,11 @@ class FoodTruckBrandingTemplateTests(TestCase):
         response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug}))
 
         self.assertContains(response, 'foodtruck-account-submenu')
-        self.assertContains(response, 'Espace client')
+        self.assertContains(response, 'Customer space')
         self.assertNotContains(response, 'foodtruck-orders-submenu')
         self.assertNotContains(response, 'foodtruck-menu-submenu')
         self.assertNotContains(response, 'foodtruck-billing-submenu')
-        self.assertNotContains(response, 'Pilotage')
+        self.assertNotContains(response, 'Operations')
 
     def test_user_menu_shows_login_when_anonymous(self):
         response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug}))

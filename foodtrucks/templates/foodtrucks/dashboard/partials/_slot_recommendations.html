@@ -1,0 +1,19 @@
+{% load i18n %}
+<section class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h2 class="h5 mb-0 d-flex align-items-center gap-1">
+            <span>{% trans "Slot recommendations" %}</span>
+            <button type="button" class="indicator-help-trigger" data-indicator-key="slot_recommendations" data-indicator-title="{% trans 'Slot recommendations' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+        </h2>
+    </div>
+    <div class="card-body">
+        <h3 class="h6">{% trans "Increase capacity" %}</h3>
+        <div id="dashboard-reco-increase" class="small mb-3"></div>
+
+        <h3 class="h6">{% trans "Reduce or remove" %}</h3>
+        <div id="dashboard-reco-reduce" class="small mb-3"></div>
+
+        <h3 class="h6">{% trans "Suggested new slots" %}</h3>
+        <div id="dashboard-reco-new" class="small mb-0"></div>
+    </div>
+</section>

@@ -1,0 +1,28 @@
+{% load i18n %}
+<section class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0 d-flex align-items-center gap-1">
+            <span>{% trans "Options performance" %}</span>
+            <button type="button" class="indicator-help-trigger" data-indicator-key="options_performance" data-indicator-title="{% trans 'Options performance' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+        </h2>
+        <span class="badge text-bg-success-subtle text-success fw-normal small ms-2" id="dashboard-options-orders-pct-badge"></span>
+    </div>
+    <div class="card-body pb-0">
+        <div class="row g-2 mb-3" id="dashboard-options-kpis"></div>
+        <div class="dashboard-options-chart-wrap">
+            <canvas id="dashboard-options-chart" height="160"></canvas>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>{% trans "Option" %}</th>
+                    <th class="text-end">{% trans "Selections" %}</th>
+                    <th class="text-end">{% trans "Revenue from option" %}</th>
+                </tr>
+            </thead>
+            <tbody id="dashboard-options-body"></tbody>
+        </table>
+    </div>
+</section>

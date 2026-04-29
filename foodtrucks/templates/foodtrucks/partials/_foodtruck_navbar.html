@@ -28,21 +28,20 @@
                             <li class="dropdown-header">
                                 <div class="small text-muted">{{ user.email }}</div>
                                 {% if user.is_superuser or foodtruck.owner_id == user.id %}
-                                    <div class="fw-semibold">{% trans "Espace proprietaire" %}</div>
+                                    <div class="fw-semibold">{% trans "Owner space" %}</div>
                                 {% else %}
-                                    <div class="fw-semibold">{% trans "Espace client" %}</div>
+                                    <div class="fw-semibold">{% trans "Customer space" %}</div>
                                 {% endif %}
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <button class="dropdown-item d-flex align-items-center justify-content-between foodtruck-submenu-toggle {% if not current_url == 'profile' and not current_url == 'history' and not current_url == 'ticket-list-page' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#foodtruck-account-submenu" aria-expanded="{% if current_url == 'profile' or current_url == 'history' or current_url == 'ticket-list-page' %}true{% else %}false{% endif %}" aria-controls="foodtruck-account-submenu">
-                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">ACC</span><span>{% trans "Mon compte" %}</span></span>
+                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">ACC</span><span>{% trans "My account" %}</span></span>
                                     <span class="foodtruck-submenu-chevron">›</span>
                                 </button>
                                 <div class="collapse {% if current_url == 'profile' or current_url == 'history' or current_url == 'ticket-list-page' %}show {% endif %}foodtruck-submenu" id="foodtruck-account-submenu">
                                     <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'profile' %}active{% endif %}" href="{% url 'accounts:profile' slug=foodtruck.slug %}">{% trans "Profile" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'history' %}active{% endif %}" href="{% url 'orders:history' %}">{% trans "Historique" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'ticket-list-page' %}active{% endif %}" href="{% url 'orders:ticket-list-page' slug=foodtruck.slug user_id=user.id %}">{% trans "Mes tickets" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'ticket-list-page' %}active{% endif %}" href="{% url 'orders:ticket-list-page' slug=foodtruck.slug user_id=user.id %}">{% trans "My tickets" %}</a>
                                     {% if user.is_staff %}
                                         <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'admin' %}active{% endif %}" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
                                     {% endif %}
@@ -50,39 +49,40 @@
                             </li>
                             {% if user.is_superuser or foodtruck.owner_id == user.id %}
                             <li><hr class="dropdown-divider"></li>
-                            <li class="dropdown-header text-uppercase small text-muted">{% trans "Pilotage" %}</li>
+                            <li class="dropdown-header text-uppercase small text-muted">{% trans "Operations" %}</li>
                             <li>
-                                <button class="dropdown-item d-flex align-items-center justify-content-between foodtruck-submenu-toggle {% if not current_url == 'dashboard' and not current_url == 'working-hours' and not current_url == 'location-list' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#foodtruck-orders-submenu" aria-expanded="{% if current_url == 'dashboard' or current_url == 'working-hours' or current_url == 'location-list' %}true{% else %}false{% endif %}" aria-controls="foodtruck-orders-submenu">
-                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">OPS</span><span>{% trans "Exploitation" %}</span></span>
+                                <button class="dropdown-item d-flex align-items-center justify-content-between foodtruck-submenu-toggle {% if not current_url == 'dashboard' and not current_url == 'working-hours' and not current_url == 'location-list' and not current_url == 'foodtruck-dashboard' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#foodtruck-orders-submenu" aria-expanded="{% if current_url == 'dashboard' or current_url == 'working-hours' or current_url == 'location-list' or current_url == 'foodtruck-dashboard' %}true{% else %}false{% endif %}" aria-controls="foodtruck-orders-submenu">
+                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">OPS</span><span>{% trans "Operations" %}</span></span>
                                     <span class="foodtruck-submenu-chevron">›</span>
                                 </button>
-                                <div class="collapse {% if current_url == 'dashboard' or current_url == 'working-hours' or current_url == 'location-list' %}show {% endif %}foodtruck-submenu" id="foodtruck-orders-submenu">
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'dashboard' %}active{% endif %}" href="{% url 'orders:dashboard' slug=foodtruck.slug %}">{% trans "Commandes en cours" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'working-hours' %}active{% endif %}" href="{% url 'orders:working-hours' slug=foodtruck.slug %}">{% trans "Horaires de service" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'location-list' %}active{% endif %}" href="{% url 'orders:location-list' slug=foodtruck.slug %}">{% trans "Lieux de vente" %}</a>
+                                <div class="collapse {% if current_url == 'dashboard' or current_url == 'working-hours' or current_url == 'location-list' or current_url == 'foodtruck-dashboard' %}show {% endif %}foodtruck-submenu" id="foodtruck-orders-submenu">
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'foodtruck-dashboard' %}active{% endif %}" href="{% url 'foodtrucks:foodtruck-dashboard' slug=foodtruck.slug %}">{% trans "Dashboard" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'dashboard' %}active{% endif %}" href="{% url 'orders:dashboard' slug=foodtruck.slug %}">{% trans "Active orders" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'working-hours' %}active{% endif %}" href="{% url 'orders:working-hours' slug=foodtruck.slug %}">{% trans "Service hours" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'location-list' %}active{% endif %}" href="{% url 'orders:location-list' slug=foodtruck.slug %}">{% trans "Sales locations" %}</a>
                                 </div>
                             </li>
                             <li>
                                 <button class="dropdown-item d-flex align-items-center justify-content-between foodtruck-submenu-toggle {% if current_namespace != 'ai_menu' and current_namespace != 'menu' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#foodtruck-menu-submenu" aria-expanded="{% if current_namespace == 'ai_menu' or current_namespace == 'menu' %}true{% else %}false{% endif %}" aria-controls="foodtruck-menu-submenu">
-                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">MEN</span><span>{% trans "Carte" %}</span></span>
+                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">MEN</span><span>{% trans "Menu" %}</span></span>
                                     <span class="foodtruck-submenu-chevron">›</span>
                                 </button>
                                 <div class="collapse {% if current_namespace == 'ai_menu' or current_namespace == 'menu' %}show {% endif %}foodtruck-submenu" id="foodtruck-menu-submenu">
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'menu' and current_url == 'dashboard' %}active{% endif %}" href="{% url 'menu:dashboard' slug=foodtruck.slug %}">{% trans "Gestion de carte" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'menu' and current_url == 'import' %}active{% endif %}" href="{% url 'menu:import' slug=foodtruck.slug %}">{% trans "Importer une carte" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'menu' and current_url == 'catalog' %}active{% endif %}" href="{% url 'menu:catalog' slug=foodtruck.slug %}">{% trans "Catalogue et prix" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'ai_menu' and current_url == 'dashboard' %}active{% endif %}" href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}">{% trans "Suggestions IA" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'menu' and current_url == 'dashboard' %}active{% endif %}" href="{% url 'menu:dashboard' slug=foodtruck.slug %}">{% trans "Menu management" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'menu' and current_url == 'import' %}active{% endif %}" href="{% url 'menu:import' slug=foodtruck.slug %}">{% trans "Import a menu" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'menu' and current_url == 'catalog' %}active{% endif %}" href="{% url 'menu:catalog' slug=foodtruck.slug %}">{% trans "Catalog and pricing" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_namespace == 'ai_menu' and current_url == 'dashboard' %}active{% endif %}" href="{% url 'ai_menu:dashboard' slug=foodtruck.slug %}">{% trans "AI suggestions" %}</a>
                                     <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'combo-list' %}active{% endif %}" href="{% url 'ai_menu:combo-list' slug=foodtruck.slug %}">{% trans "Combos" %}</a>
                                 </div>
                             </li>
                             <li>
                                 <button class="dropdown-item d-flex align-items-center justify-content-between foodtruck-submenu-toggle {% if not current_url == 'owner-ticket-list' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#foodtruck-billing-submenu" aria-expanded="{% if current_url == 'owner-ticket-list' %}true{% else %}false{% endif %}" aria-controls="foodtruck-billing-submenu">
-                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">EUR</span><span>{% trans "Facturation" %}</span></span>
+                                    <span class="d-flex align-items-center gap-2"><span class="foodtruck-menu-badge">EUR</span><span>{% trans "Billing" %}</span></span>
                                     <span class="foodtruck-submenu-chevron">›</span>
                                 </button>
                                 <div class="collapse {% if current_url == 'owner-ticket-list' %}show {% endif %}foodtruck-submenu" id="foodtruck-billing-submenu">
-                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'owner-ticket-list' %}active{% endif %}" href="{% url 'orders:owner-ticket-list' slug=foodtruck.slug %}">{% trans "Tickets emis" %}</a>
-                                    <a class="dropdown-item foodtruck-submenu-item" href="{% url 'payment-accounting-export' %}?start_date={{ accounting_export_start }}&end_date={{ accounting_export_end }}&foodtruck={{ foodtruck.slug }}">{% trans "Export comptable du mois" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item {% if current_url == 'owner-ticket-list' %}active{% endif %}" href="{% url 'orders:owner-ticket-list' slug=foodtruck.slug %}">{% trans "Issued tickets" %}</a>
+                                    <a class="dropdown-item foodtruck-submenu-item" href="{% url 'payment-accounting-export' %}?start_date={{ accounting_export_start }}&end_date={{ accounting_export_end }}&foodtruck={{ foodtruck.slug }}">{% trans "Monthly accounting export" %}</a>
                                 </div>
                             </li>
                             {% endif %}
@@ -106,7 +106,7 @@
 
         {% if categories %}
             <div class="category-nav foodtruck-category-rail w-100 d-flex justify-content-start align-items-center flex-nowrap px-2 mt-1">
-                {% if current_namespace == 'orders' and current_url == 'dashboard' %}
+                {% if current_namespace == 'orders' and current_url == 'dashboard' or current_namespace == 'foodtrucks' and current_url == 'foodtruck-dashboard' %}
                     <button type="button"
                             class="btn btn-sm me-2 text-uppercase fw-semibold foodtruck-category-chip btn-outline-danger d-none"
                             id="dashboard-clear-category-filter">

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ foodtruck.name }} - {% trans "Dashboard" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+<link rel="stylesheet" href="{% static 'foodtrucks/css/dashboard.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" id="foodtruck-dashboard"
+     data-kpis-url="{% url 'foodtrucks:foodtruck-dashboard-kpis' slug=foodtruck.slug %}"
+     data-revenue-url="{% url 'foodtrucks:foodtruck-dashboard-revenue' slug=foodtruck.slug %}"
+     data-orders-url="{% url 'foodtrucks:foodtruck-dashboard-orders' slug=foodtruck.slug %}"
+     data-menu-performance-url="{% url 'foodtrucks:foodtruck-dashboard-menu-performance' slug=foodtruck.slug %}"
+    data-menu-categories-url="{% url 'foodtrucks:foodtruck-dashboard-menu-categories' slug=foodtruck.slug %}"
+     data-slots-url="{% url 'foodtrucks:foodtruck-dashboard-slots' slug=foodtruck.slug %}"
+    data-slots-utilization-url="{% url 'foodtrucks:foodtruck-dashboard-slots-utilization' slug=foodtruck.slug %}"
+    data-slots-revenue-url="{% url 'foodtrucks:foodtruck-dashboard-slots-revenue' slug=foodtruck.slug %}"
+    data-slots-hourly-url="{% url 'foodtrucks:foodtruck-dashboard-slots-hourly' slug=foodtruck.slug %}"
+    data-slots-heatmap-url="{% url 'foodtrucks:foodtruck-dashboard-slots-heatmap' slug=foodtruck.slug %}"
+    data-slots-insights-url="{% url 'foodtrucks:foodtruck-dashboard-slots-insights' slug=foodtruck.slug %}"
+    data-slots-recommendations-url="{% url 'foodtrucks:foodtruck-dashboard-slots-recommendations' slug=foodtruck.slug %}"
+    data-options-url="{% url 'foodtrucks:foodtruck-dashboard-options' slug=foodtruck.slug %}"
+     data-active-range="{{ active_range }}"
+     data-start-date="{{ start_date }}"
+    data-end-date="{{ end_date }}"
+    data-currency="EUR"
+    data-chart-revenue-label="{% trans 'Revenue' %}"
+    data-chart-menu-category-label="{% trans 'Revenue by category' %}"
+    data-empty-orders-label="{% trans 'No paid orders in this range.' %}"
+    data-empty-menu-label="{% trans 'No menu performance data.' %}"
+    data-empty-menu-categories-label="{% trans 'No category performance data.' %}"
+    data-empty-slots-label="{% trans 'No slot data.' %}"
+    data-empty-insights-label="{% trans 'No slot insights available.' %}"
+    data-empty-recommendations-label="{% trans 'No slot recommendations available.' %}"
+    data-empty-hourly-label="{% trans 'No hourly performance data.' %}"
+    data-insights-more-label="{% trans 'more slots' %}"
+    data-recommendations-more-label="{% trans 'more recommendations' %}"
+    data-demand-label="{% trans 'demand' %}"
+    data-orders-label="{% trans 'orders' %}"
+    data-slot-active-label="{% trans 'Active slots' %}"
+    data-slot-average-utilization-label="{% trans 'Avg utilization' %}"
+    data-slot-revenue-label="{% trans 'Slot revenue' %}"
+    data-slot-underperforming-label="{% trans 'Underperforming' %}"
+    data-slot-optimal-label="{% trans 'Optimal' %}"
+    data-slot-saturated-label="{% trans 'Saturated' %}"
+    data-slot-top-slot-label="{% trans 'Best slot' %}"
+    data-options-orders-pct-label="{% trans 'orders include options' %}"
+    data-options-total-revenue-label="{% trans 'Options revenue' %}"
+    data-options-avg-revenue-label="{% trans 'Avg. option uplift / order' %}"
+    data-empty-options-label="{% trans 'No option data.' %}"
+    data-weekday-short-labels="{% trans 'Mon,Tue,Wed,Thu,Fri,Sat,Sun' %}"
+    data-date-placeholder-label="{% trans 'N/A' %}"
+    data-display-mode="{{ price_display_mode }}"
+    data-indicator-definition-title="{% trans 'Indicator definition' %}"
+    data-indicator-definition-fallback="{% trans 'Definition is not available yet.' %}"
+    data-indicator-def-total-orders="{% trans 'Number of paid orders in the selected date range.' %}"
+    data-indicator-def-total-revenue="{% trans 'Total paid revenue for the selected date range and category filter.' %}"
+    data-indicator-def-average-order-value="{% trans 'Average paid order amount: total revenue divided by total paid orders.' %}"
+    data-indicator-def-completion-rate="{% trans 'Share of paid orders that reached completed status.' %}"
+    data-indicator-def-revenue-trend="{% trans 'Revenue evolution across the selected interval (daily, weekly, monthly).' %}"
+    data-indicator-def-top-menu-performance="{% trans 'Top selling items by quantity and generated revenue.' %}"
+    data-indicator-def-recent-paid-orders="{% trans 'Most recent paid orders with payment time and pickup slot.' %}"
+    data-indicator-def-slot-utilization-revenue="{% trans 'How each pickup slot is used compared to its capacity and revenue.' %}"
+    data-indicator-def-options-performance="{% trans 'Option selection behavior and additional revenue generated by options.' %}"
+    data-indicator-def-slot-heatmap="{% trans 'Order density by weekday and hour to identify demand peaks.' %}"
+    data-indicator-def-slot-insights="{% trans 'Classification of slots by utilization: underperforming, optimal, saturated.' %}"
+    data-indicator-def-slot-recommendations="{% trans 'Suggested operational actions on slots: increase, reduce, or add capacity.' %}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{% trans "Food Truck Dashboard" %}</h1>
+            <p class="text-muted mb-0">{{ foodtruck.name }}</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label class="visually-hidden" for="dashboard-range-select">{% trans "Date range" %}</label>
+            <select id="dashboard-range-select" class="form-select form-select-sm">
+                <option value="today" {% if active_range == 'today' %}selected{% endif %}>{% trans "Today" %}</option>
+                <option value="7d" {% if active_range == '7d' %}selected{% endif %}>{% trans "Last 7 days" %}</option>
+                <option value="30d" {% if active_range == '30d' %}selected{% endif %}>{% trans "Last 30 days" %}</option>
+            </select>
+            <label class="visually-hidden" for="dashboard-display-mode-select">{% trans "Price display" %}</label>
+            <select id="dashboard-display-mode-select" class="form-select form-select-sm">
+                <option value="tax_included" {% if price_display_mode == 'tax_included' %}selected{% endif %}>TTC</option>
+                <option value="tax_excluded" {% if price_display_mode == 'tax_excluded' %}selected{% endif %}>HT</option>
+            </select>
+        </div>
+    </div>
+
+    {% include 'foodtrucks/dashboard/partials/_kpis.html' %}
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-xl-8">
+            {% include 'foodtrucks/dashboard/partials/_chart.html' %}
+        </div>
+        <div class="col-12 col-xl-4">
+            {% include 'foodtrucks/dashboard/partials/_menu_performance.html' %}
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-xl-7">
+            {% include 'foodtrucks/dashboard/partials/_orders_table.html' %}
+        </div>
+        <div class="col-12 col-xl-5">
+            {% include 'foodtrucks/dashboard/partials/_slot_utilization.html' %}
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12">
+            {% include 'foodtrucks/dashboard/partials/_option_performance.html' %}
+        </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+        <div class="col-12 col-xl-8">
+            {% include 'foodtrucks/dashboard/partials/_slot_heatmap.html' %}
+        </div>
+        <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+            {% include 'foodtrucks/dashboard/partials/_slot_insights.html' %}
+            {% include 'foodtrucks/dashboard/partials/_slot_recommendations.html' %}
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dashboard-indicator-help-modal" tabindex="-1" aria-labelledby="dashboard-indicator-help-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title h5 mb-0" id="dashboard-indicator-help-title">{% trans "Indicator definition" %}</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body" id="dashboard-indicator-help-body"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script type="module" src="{% static 'js/dashboard/dashboard.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% load i18n %}
+<section class="card border-0 shadow-sm h-100">
+    <div class="card-header bg-white border-0">
+        <h2 class="h5 mb-0">{% trans "Slot performance" %}</h2>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>{% trans "Slot" %}</th>
+                    <th class="text-end">{% trans "Orders" %}</th>
+                    <th class="text-end">{% trans "Usage" %}</th>
+                </tr>
+            </thead>
+            <tbody id="dashboard-slots-body"></tbody>
+        </table>
+    </div>
+</section>
