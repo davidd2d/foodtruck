@@ -20,7 +20,8 @@ class MenuService:
         menu = (
             Menu.objects.filter(food_truck=foodtruck, is_active=True)
             .prefetch_related(
-                'categories__items__option_groups__options',
+                'categories__option_groups__options__items',
+                'categories__items__available_options__group',
                 'categories__items__compatible_preferences',
                 'categories__combos__combo_items__item',
                 'categories__combos__combo_items__fixed_items',

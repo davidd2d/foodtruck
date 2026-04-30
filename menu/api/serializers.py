@@ -20,7 +20,7 @@ class OptionGroupSerializer(serializers.ModelSerializer):
 
 class ItemSerializer(serializers.ModelSerializer):
     """Serializer for Item model."""
-    option_groups = OptionGroupSerializer(many=True, read_only=True)
+    option_groups = serializers.SerializerMethodField()
     compatible_preferences = serializers.StringRelatedField(many=True, read_only=True)
     display_price = serializers.SerializerMethodField()
     tax_rate = serializers.SerializerMethodField()
@@ -42,6 +42,26 @@ class ItemSerializer(serializers.ModelSerializer):
 
     def get_prices_include_tax(self, obj):
         return obj.category.menu.food_truck.prices_include_tax()
+
+    def get_option_groups(self, obj):
+        options = obj.available_options.select_related('group').filter(
+            group__category=obj.category,
+        ).order_by('group__name', 'name')
+
+        grouped = {}
+        for option in options:
+            group = option.group
+            payload = grouped.setdefault(group.id, {
+                'id': group.id,
+                'name': group.name,
+                'required': group.required,
+                'min_choices': group.min_choices,
+                'max_choices': group.max_choices,
+                'options': [],
+            })
+            payload['options'].append(OptionSerializer(option, context=self.context).data)
+
+        return list(grouped.values())
 
 
 class ComboItemSerializer(serializers.ModelSerializer):

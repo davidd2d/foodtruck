@@ -647,14 +647,15 @@ class AIOnboardingService:
                         # Create options if any
                         for option_data in item_data.get('options', []):
                             option_group, _ = OptionGroup.objects.get_or_create(
-                                item=item,
+                                category=category,
                                 name=option_data.get('group', 'Options')
                             )
-                            Option.objects.create(
-                                option_group=option_group,
+                            option = Option.objects.create(
+                                group=option_group,
                                 name=option_data.get('name', ''),
-                                price=option_data.get('price')
+                                price_modifier=option_data.get('price') or 0,
                             )
+                            option.items.add(item)
 
                 # Apply branding
                 branding = data.get('branding', {})

@@ -630,7 +630,8 @@ class Order(models.Model):
         if selected_options:
             option_qs = Option.objects.filter(
                 id__in=selected_options,
-                group__item=item,
+                items=item,
+                group__category=item.category,
                 is_available=True
             )
             option_map = {option.id: option for option in option_qs}

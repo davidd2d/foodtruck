@@ -104,6 +104,13 @@ class Item(models.Model):
     def __str__(self):
         return self.name
 
+    def get_option_groups_queryset(self):
+        """Return option groups available to this item in its category."""
+        return OptionGroup.objects.filter(
+            category=self.category,
+            options__items=self,
+        ).distinct()
+
     def get_tax_rate(self):
         if self.tax_id and self.tax.is_active:
             return self.tax.rate
@@ -178,14 +185,18 @@ class Item(models.Model):
         if not selected_options:
             selected_options = []
 
-        # Get all option groups for this item
-        groups = self.option_groups.all()
+        # Get all option groups available for this item (direct + shared)
+        groups = self.get_option_groups_queryset()
 
         # Group selected options by their groups
         selected_by_group = {}
         for option_id in selected_options:
             try:
-                option = Option.objects.get(id=option_id, group__item=self)
+                option = Option.objects.get(
+                    id=option_id,
+                    items=self,
+                    group__category=self.category,
+                )
                 group_id = option.group_id
                 if group_id not in selected_by_group:
                     selected_by_group[group_id] = []
@@ -309,7 +320,8 @@ class Combo(models.Model):
     def _append_component_snapshot(self, components, combo_item, chosen_item, selected_options):
         option_objects = Option.objects.filter(
             id__in=selected_options,
-            group__item=chosen_item,
+            items=chosen_item,
+            group__category=chosen_item.category,
             is_available=True,
         )
         option_map = {option.id: option for option in option_objects}
@@ -349,7 +361,10 @@ class Combo(models.Model):
 
         combo_items = list(
             self.combo_items.select_related('item__category', 'source_category')
-            .prefetch_related('fixed_items', 'fixed_items__option_groups__options')
+            .prefetch_related(
+                'fixed_items',
+                'fixed_items__available_options__group',
+            )
             .order_by('display_order', 'id')
         )
         if not combo_items:
@@ -531,7 +546,9 @@ class ComboItem(models.Model):
             raise ValidationError(f"Choose an item for '{self.display_name}'.")
 
         try:
-            selected_item = Item.objects.prefetch_related('option_groups__options').get(pk=selected_item_id)
+            selected_item = Item.objects.prefetch_related(
+                'available_options__group',
+            ).get(pk=selected_item_id)
         except Item.DoesNotExist as exc:
             raise ValidationError(f"Selected item for '{self.display_name}' does not exist.") from exc
 
@@ -549,13 +566,13 @@ class ComboItem(models.Model):
 
 class OptionGroup(models.Model):
     """
-    Represents a group of options for item customization (e.g., Size, Extras).
+    Represents a category-level group of options (e.g., Free pizza options).
     """
-    item = models.ForeignKey(
-        Item,
+    category = models.ForeignKey(
+        Category,
         on_delete=models.CASCADE,
         related_name='option_groups',
-        help_text=_("The item this option group belongs to")
+        help_text=_("The category this option group belongs to")
     )
     name = models.CharField(max_length=200, help_text=_("Name of the option group"))
     required = models.BooleanField(default=False, help_text=_("Whether this group is required"))
@@ -572,7 +589,7 @@ class OptionGroup(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.item.name} - {self.name}"
+        return f"{self.category.name} - {self.name}"
 
     def clean(self):
         if self.max_choices is not None and self.min_choices > self.max_choices:
@@ -588,6 +605,12 @@ class Option(models.Model):
         on_delete=models.CASCADE,
         related_name='options',
         help_text=_("The option group this option belongs to")
+    )
+    items = models.ManyToManyField(
+        Item,
+        related_name='available_options',
+        blank=True,
+        help_text=_("Items that can use this option")
     )
     name = models.CharField(max_length=200, help_text=_("Name of the option"))
     price_modifier = models.DecimalField(
@@ -607,4 +630,16 @@ class Option(models.Model):
         return self.name
 
     def get_tax_rate(self):
-        return self.group.item.get_tax_rate()
+        assigned_item = self.items.select_related('tax', 'category__menu__food_truck').first()
+        if assigned_item is not None:
+            return assigned_item.get_tax_rate()
+
+        country = None
+        if self.group and self.group.category and self.group.category.menu and self.group.category.menu.food_truck:
+            foodtruck = self.group.category.menu.food_truck
+            country = getattr(foodtruck, 'country', None) or getattr(foodtruck, 'billing_country', None)
+
+        default_tax = Tax.objects.default(country=country)
+        if default_tax is None:
+            raise ValidationError('No default tax configured.')
+        return default_tax.rate

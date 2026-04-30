@@ -111,20 +111,25 @@ class MenuImportService:
     def _create_options(self, item, raw_options):
         normalized_groups = self._normalize_option_groups(raw_options)
         for group_index, option_group_data in enumerate(normalized_groups):
-            option_group = OptionGroup.objects.create(
-                item=item,
+            option_group, _ = OptionGroup.objects.get_or_create(
+                category=item.category,
                 name=option_group_data['group'],
-                required=False,
-                min_choices=0,
-                max_choices=None,
+                defaults={
+                    'required': False,
+                    'min_choices': 0,
+                    'max_choices': None,
+                },
             )
             for option_index, option_data in enumerate(option_group_data['options']):
-                Option.objects.create(
+                option, _ = Option.objects.get_or_create(
                     group=option_group,
                     name=option_data['name'],
-                    price_modifier=self._parse_price(option_data.get('price')),
-                    is_available=True,
+                    defaults={
+                        'price_modifier': self._parse_price(option_data.get('price')),
+                        'is_available': True,
+                    },
                 )
+                option.items.add(item)
 
     def _normalize_option_groups(self, raw_options):
         if not raw_options:

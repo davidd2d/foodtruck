@@ -133,7 +133,9 @@ class CartService:
         if quantity <= 0:
             raise ValidationError('Quantity must be greater than zero.')
 
-        item = Item.objects.select_related('category__menu__food_truck').prefetch_related('option_groups__options').get(id=item_id)
+        item = Item.objects.select_related('category__menu__food_truck').prefetch_related(
+            'available_options__group',
+        ).get(id=item_id)
 
         if not item.is_available_now():
             raise ValidationError(f"Item '{item.name}' is not available.")

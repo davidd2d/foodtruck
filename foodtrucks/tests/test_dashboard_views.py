@@ -142,7 +142,7 @@ class FoodTruckDashboardViewTests(TestCase):
 
         order_item = OrderItem.objects.filter(order__food_truck=self.foodtruck).first()
         option_group = OptionGroup.objects.create(
-            item=self.item_a,
+            category=self.category_a,
             name='Extras',
             required=False,
         )
@@ -151,6 +151,7 @@ class FoodTruckDashboardViewTests(TestCase):
             name='Extra sauce',
             price_modifier=Decimal('2.00'),
         )
+        option.items.add(self.item_a)
         OrderItemOption.objects.create(
             order_item=order_item,
             option=option,

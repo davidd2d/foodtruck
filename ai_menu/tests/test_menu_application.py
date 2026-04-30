@@ -27,9 +27,10 @@ class AIRecommendationMenuApplicationServiceTests(TestCase):
 
         result = self.service.apply_recommendation(recommendation)
 
-        group = OptionGroup.objects.get(item=self.item, name='AI Free Customizations')
+        group = OptionGroup.objects.get(category=self.item.category, name='AI Free Customizations')
         option = Option.objects.get(group=group, name='Extra pickles')
         self.assertEqual(option.price_modifier, Decimal('0.00'))
+        self.assertTrue(option.items.filter(id=self.item.id).exists())
         self.assertEqual(result['application_status'], 'applied')
 
     def test_apply_paid_option_creates_add_on(self):
@@ -42,11 +43,79 @@ class AIRecommendationMenuApplicationServiceTests(TestCase):
 
         result = self.service.apply_recommendation(recommendation)
 
-        group = OptionGroup.objects.get(item=self.item, name='AI Paid Add-ons')
+        group = OptionGroup.objects.get(category=self.item.category, name='AI Paid Add-ons')
         option = Option.objects.get(group=group, name='Extra cheddar')
         self.assertEqual(option.price_modifier, Decimal('1.5'))
+        self.assertTrue(option.items.filter(id=self.item.id).exists())
         self.assertEqual(result['application']['group_id'], group.id)
         self.assertEqual(result['application']['option_id'], option.id)
+
+    def test_apply_existing_option_enable_links_item(self):
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Existing Paid Options',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Extra truffle sauce',
+            price_modifier=Decimal('1.50'),
+            is_available=True,
+        )
+
+        recommendation = AIRecommendation.objects.create(
+            item=self.item,
+            recommendation_type='paid_option',
+            payload={
+                'name': option.name,
+                'reason': 'High affinity for this burger',
+                'existing_option_id': option.id,
+                'suggested_action': 'enable',
+                'current_status': 'disabled',
+            },
+            status='pending',
+        )
+
+        result = self.service.apply_recommendation(recommendation)
+
+        self.assertEqual(result['application_status'], 'applied')
+        self.assertTrue(option.items.filter(id=self.item.id).exists())
+        self.assertEqual(result['application']['action'], 'link_existing_option')
+
+    def test_apply_existing_option_disable_unlinks_item(self):
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Existing Free Options',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Extra pickles',
+            price_modifier=Decimal('0.00'),
+            is_available=True,
+        )
+        option.items.add(self.item)
+
+        recommendation = AIRecommendation.objects.create(
+            item=self.item,
+            recommendation_type='free_option',
+            payload={
+                'name': option.name,
+                'reason': 'Low demand for this dish',
+                'existing_option_id': option.id,
+                'suggested_action': 'disable',
+                'current_status': 'enabled',
+            },
+            status='pending',
+        )
+
+        result = self.service.apply_recommendation(recommendation)
+
+        self.assertEqual(result['application_status'], 'applied')
+        self.assertFalse(option.items.filter(id=self.item.id).exists())
+        self.assertEqual(result['application']['action'], 'unlink_existing_option')
 
     def test_apply_bundle_requires_manual_review(self):
         recommendation = AIRecommendation.objects.create(

@@ -17,6 +17,7 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 
 from menu.tests.factories import ItemFactory, CategoryFactory, FoodTruckFactory, MenuFactory
+from menu.models import Option, OptionGroup
 from ai_menu.models import AIRecommendation
 from ai_menu.services.recommendation_generator import AIRecommendationGeneratorService
 
@@ -165,6 +166,151 @@ class AIRecommendationGeneratorServiceTests(TestCase):
 
         self.assertIn('French', prompt)
         self.assertIn('must be written in French', prompt)
+
+    def test_prepare_item_context_includes_category_options(self):
+        """Context should expose existing category options and assignment state."""
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Sauces',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Sauce maison',
+            price_modifier=Decimal('0.00'),
+            is_available=True,
+        )
+        option.items.add(self.item)
+
+        context = self.service._prepare_item_context(self.item)
+
+        self.assertIn('category_options', context)
+        self.assertTrue(any(row['id'] == option.id for row in context['category_options']))
+
+    @patch('ai_menu.services.recommendation_generator.OpenAIService')
+    def test_generate_persists_existing_option_reviews(self, mock_openai_class):
+        """OpenAI option review payload should be persisted as actionable recommendations."""
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Add-ons',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Truffle mayo',
+            price_modifier=Decimal('1.50'),
+            is_available=True,
+        )
+
+        openai_response = json.dumps({
+            "detected_category": "burger",
+            "free_options": [],
+            "paid_options": [],
+            "bundles": [],
+            "option_reviews": [
+                {
+                    "existing_option_id": option.id,
+                    "name": option.name,
+                    "suggested_action": "enable",
+                    "reason": "Fits the premium profile",
+                    "current_status": "disabled",
+                    "option_type": "paid_option"
+                }
+            ]
+        })
+
+        mock_openai = MagicMock()
+        mock_openai.generate.return_value = openai_response
+        mock_openai_class.return_value = mock_openai
+
+        service = AIRecommendationGeneratorService()
+        service.openai_service = mock_openai
+
+        result = service.generate_and_store_for_item(self.item)
+
+        self.assertEqual(result['status'], 'success')
+        rec = AIRecommendation.objects.for_item(self.item).get(recommendation_type='paid_option')
+        self.assertEqual(rec.payload.get('existing_option_id'), option.id)
+        self.assertEqual(rec.payload.get('suggested_action'), 'enable')
+
+    @patch('ai_menu.services.recommendation_generator.OpenAIService')
+    def test_generate_converts_duplicate_suggestion_to_existing_option_review(self, mock_openai_class):
+        """AI new-option suggestions matching existing category options must not create duplicate candidates."""
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Sauces',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Sauce maison',
+            price_modifier=Decimal('0.00'),
+            is_available=True,
+        )
+
+        openai_response = json.dumps({
+            "detected_category": "burger",
+            "free_options": [
+                {"name": "Sauce maison", "reason": "Popular pairing"}
+            ],
+            "paid_options": [],
+            "bundles": [],
+            "option_reviews": []
+        })
+
+        mock_openai = MagicMock()
+        mock_openai.generate.return_value = openai_response
+        mock_openai_class.return_value = mock_openai
+
+        service = AIRecommendationGeneratorService()
+        service.openai_service = mock_openai
+
+        result = service.generate_and_store_for_item(self.item)
+
+        self.assertEqual(result['status'], 'success')
+        rec = AIRecommendation.objects.for_item(self.item).get(recommendation_type='free_option')
+        self.assertEqual(rec.payload.get('existing_option_id'), option.id)
+        self.assertEqual(rec.payload.get('suggested_action'), 'enable')
+
+    @patch('ai_menu.services.recommendation_generator.OpenAIService')
+    def test_generate_ensures_review_for_all_enabled_item_options(self, mock_openai_class):
+        """Enabled item options must receive an opinion even when option_reviews is missing."""
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Supplements',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Sauce maison',
+            price_modifier=Decimal('0.00'),
+            is_available=True,
+        )
+        option.items.add(self.item)
+
+        openai_response = json.dumps({
+            "detected_category": "burger",
+            "free_options": [],
+            "paid_options": [],
+            "bundles": []
+        })
+
+        mock_openai = MagicMock()
+        mock_openai.generate.return_value = openai_response
+        mock_openai_class.return_value = mock_openai
+
+        service = AIRecommendationGeneratorService()
+        service.openai_service = mock_openai
+
+        service.generate_and_store_for_item(self.item)
+
+        review = AIRecommendation.objects.for_item(self.item).get(payload__existing_option_id=option.id)
+        self.assertEqual(review.payload.get('suggested_action'), 'keep')
+        self.assertEqual(review.payload.get('current_status'), 'enabled')
 
     @patch('ai_menu.services.recommendation_generator.OpenAIService')
     def test_generate_with_fallback_api_error(self, mock_openai_class):

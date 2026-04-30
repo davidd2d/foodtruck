@@ -1,6 +1,53 @@
 {% load i18n %}
 {% with free_count=recommendations.free_options|length paid_count=recommendations.paid_options|length bundle_count=recommendations.bundles|length accepted_count=recommendations.history.accepted|length rejected_count=recommendations.history.rejected|length %}
 <div class="border rounded bg-light-subtle p-3">
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <h4 class="h6 mb-3">{% trans "Current options on this item" %}</h4>
+            {% if item.ai_current_options %}
+                <ul class="list-group list-group-flush">
+                    {% for option in item.ai_current_options %}
+                        <li class="list-group-item px-0 bg-transparent">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                <span class="fw-semibold">{{ option.name }}</span>
+                                <span class="badge text-bg-light">{{ option.group_name }}</span>
+                                {% if option.price_modifier > 0 %}
+                                    <span class="badge text-bg-success">+€{{ option.price_modifier|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">{% trans "Free" %}</span>
+                                {% endif %}
+                                {% if option.is_available %}
+                                    <span class="badge text-bg-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </div>
+                            {% if option.ai_suggested_action %}
+                                <div class="small">
+                                    <span class="text-muted">{% trans "AI opinion" %}:</span>
+                                    {% if option.ai_suggested_action == 'enable' %}
+                                        <span class="text-success">{% trans "Enable for this item" %}</span>
+                                    {% elif option.ai_suggested_action == 'disable' %}
+                                        <span class="text-danger">{% trans "Disable for this item" %}</span>
+                                    {% else %}
+                                        <span class="text-muted">{% trans "Keep as is" %}</span>
+                                    {% endif %}
+                                    {% if option.ai_reason %}
+                                        <span class="text-muted">- {{ option.ai_reason }}</span>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="small text-muted">{% trans "Run an AI analysis to get an option-by-option opinion." %}</div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="small text-muted mb-0">{% trans "No options are currently assigned to this item." %}</p>
+            {% endif %}
+        </div>
+    </div>
+
     {% if message %}
         <div class="small text-muted mb-3">{{ message }}</div>
     {% endif %}
@@ -21,7 +68,29 @@
                             <ul class="list-group list-group-flush">
                                 {% for recommendation in recommendations.free_options %}
                                     <li class="list-group-item px-0 bg-transparent">
-                                        <div class="fw-semibold">{{ recommendation.name }}</div>
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                            <div class="fw-semibold">{{ recommendation.name }}</div>
+                                            {% if recommendation.existing_option_id %}
+                                                <span class="badge text-bg-info">{% trans "Existing option" %}</span>
+                                            {% endif %}
+                                            {% if recommendation.current_status == 'enabled' %}
+                                                <span class="badge text-bg-success">{% trans "Currently enabled" %}</span>
+                                            {% elif recommendation.current_status == 'disabled' %}
+                                                <span class="badge text-bg-secondary">{% trans "Currently disabled" %}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if recommendation.suggested_action %}
+                                            <div class="small mb-1">
+                                                <span class="text-muted">{% trans "AI action" %}:</span>
+                                                {% if recommendation.suggested_action == 'enable' %}
+                                                    <span class="text-success">{% trans "Enable for this item" %}</span>
+                                                {% elif recommendation.suggested_action == 'disable' %}
+                                                    <span class="text-danger">{% trans "Disable for this item" %}</span>
+                                                {% else %}
+                                                    <span class="text-muted">{% trans "Keep as is" %}</span>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
                                         <div class="small text-muted">{{ recommendation.reason }}</div>
                                         <div class="d-flex gap-2 mt-2">
                                             <button type="button" class="btn btn-sm btn-outline-success js-ai-recommendation-action" data-action-url="{{ recommendation.decision_url }}" data-decision="accept">
@@ -51,8 +120,32 @@
                                     <li class="list-group-item px-0 bg-transparent">
                                         <div class="d-flex justify-content-between gap-2">
                                             <span class="fw-semibold">{{ recommendation.name }}</span>
-                                            <span class="badge text-bg-success">+€{{ recommendation.suggested_price|floatformat:2 }}</span>
+                                            {% if recommendation.suggested_price is not None %}
+                                                <span class="badge text-bg-success">+€{{ recommendation.suggested_price|floatformat:2 }}</span>
+                                            {% endif %}
                                         </div>
+                                        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                                            {% if recommendation.existing_option_id %}
+                                                <span class="badge text-bg-info">{% trans "Existing option" %}</span>
+                                            {% endif %}
+                                            {% if recommendation.current_status == 'enabled' %}
+                                                <span class="badge text-bg-success">{% trans "Currently enabled" %}</span>
+                                            {% elif recommendation.current_status == 'disabled' %}
+                                                <span class="badge text-bg-secondary">{% trans "Currently disabled" %}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if recommendation.suggested_action %}
+                                            <div class="small mt-1">
+                                                <span class="text-muted">{% trans "AI action" %}:</span>
+                                                {% if recommendation.suggested_action == 'enable' %}
+                                                    <span class="text-success">{% trans "Enable for this item" %}</span>
+                                                {% elif recommendation.suggested_action == 'disable' %}
+                                                    <span class="text-danger">{% trans "Disable for this item" %}</span>
+                                                {% else %}
+                                                    <span class="text-muted">{% trans "Keep as is" %}</span>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
                                         <div class="small text-muted">{{ recommendation.reason }}</div>
                                         <div class="d-flex gap-2 mt-2">
                                             <button type="button" class="btn btn-sm btn-outline-success js-ai-recommendation-action" data-action-url="{{ recommendation.decision_url }}" data-decision="accept">

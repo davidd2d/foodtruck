@@ -52,15 +52,15 @@ def _build_catalog_sections(menu):
 	if foodtruck is not None:
 		country = getattr(foodtruck, 'country', None) or getattr(foodtruck, 'billing_country', None)
 
-	categories = menu.categories.prefetch_related('items__option_groups__options', 'combos').order_by('display_order', 'name')
+	categories = menu.categories.prefetch_related('items', 'combos').order_by('display_order', 'name')
 	for category in categories:
 		item_entries = []
 		for item in category.items.all().order_by('display_order', 'name'):
 			item_tax_label = _get_tax_display(item.tax, country=country)
 			option_groups = []
-			for option_group in item.option_groups.all():
+			for option_group in item.get_option_groups_queryset().prefetch_related('options').order_by('name'):
 				option_entries = []
-				for option in option_group.options.all().order_by('name'):
+				for option in option_group.options.filter(items=item).order_by('name'):
 					option_entries.append({
 						'option': option,
 						'form': OptionCatalogForm(instance=option, prefix=f'option-{option.id}', foodtruck=foodtruck),
@@ -260,9 +260,9 @@ def owner_combo_update(request, slug, combo_id):
 def owner_option_update(request, slug, option_id):
 	foodtruck = _get_owner_foodtruck(request.user, slug)
 	option = get_object_or_404(
-		Option.objects.select_related('group__item__category__menu__food_truck'),
+		Option.objects.select_related('group__category__menu__food_truck'),
 		pk=option_id,
-		group__item__category__menu__food_truck=foodtruck,
+		group__category__menu__food_truck=foodtruck,
 	)
 	form = OptionCatalogForm(request.POST, instance=option, prefix=f'option-{option.id}', foodtruck=foodtruck)
 	if form.is_valid():

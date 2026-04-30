@@ -38,7 +38,8 @@ class MenuViewSet(viewsets.ReadOnlyModelViewSet):
             'food_truck'
         ).prefetch_related(
             'categories__items__compatible_preferences',
-            'categories__items__option_groups__options',
+            'categories__items__available_options__group',
+            'categories__option_groups__options__items',
             'categories__combos__combo_items__item',
             'categories__combos__combo_items__fixed_items',
         ).filter(is_active=True)

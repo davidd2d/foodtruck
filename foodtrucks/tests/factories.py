@@ -115,25 +115,34 @@ def ItemFactory(category=None, name='Margherita', description='Classic pizza', b
     return item
 
 
-def OptionGroupFactory(item=None, name='Size', required=False, min_choices=0, max_choices=None):
-    item = item or ItemFactory()
-    return OptionGroup.objects.create(
-        item=item,
+def OptionGroupFactory(item=None, category=None, name='Size', required=False, min_choices=0, max_choices=None):
+    if category is None:
+        item = item or ItemFactory()
+        category = item.category
+
+    group = OptionGroup.objects.create(
+        category=category,
         name=name,
         required=required,
         min_choices=min_choices,
         max_choices=max_choices
     )
+    group._default_items = [item] if item is not None else []
+    return group
 
 
-def OptionFactory(group=None, name='Large', price_modifier=Decimal('2.00'), is_available=True):
+def OptionFactory(group=None, name='Large', price_modifier=Decimal('2.00'), is_available=True, items=None):
     group = group or OptionGroupFactory()
-    return Option.objects.create(
+    option = Option.objects.create(
         group=group,
         name=name,
         price_modifier=price_modifier,
         is_available=is_available
     )
+    assigned_items = items if items is not None else getattr(group, '_default_items', [])
+    if assigned_items:
+        option.items.add(*assigned_items)
+    return option
 
 
 def PickupSlotFactory(food_truck=None, capacity=5, start_time=None, end_time=None):

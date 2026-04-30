@@ -31,6 +31,8 @@ class ItemModelTests(TestCase):
 
     def test_invalid_option_selection_raises_validation_error(self):
         option_group = OptionGroupFactory(item=self.item, min_choices=1, max_choices=1)
+        OptionFactory(group=option_group, price_modifier=Decimal('0.00'), items=[self.item])
+
         with self.assertRaises(ValidationError):
             self.item.get_price_with_options([])
 
@@ -50,3 +52,19 @@ class ItemModelTests(TestCase):
         option = OptionFactory(group=option_group, price_modifier=Decimal('2.75'))
 
         self.assertEqual(option.get_tax_rate(), tax.rate)
+
+    def test_category_option_group_can_be_used_by_multiple_items(self):
+        other_item = ItemFactory(category=self.category, base_price=Decimal('11.00'))
+        option_group = OptionGroupFactory(category=self.category, min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, price_modifier=Decimal('1.50'), items=[self.item, other_item])
+
+        other_item.validate_options([option.id])
+        self.assertEqual(other_item.get_price_with_options([option.id]), Decimal('12.50'))
+
+    def test_category_option_rejects_item_from_other_category(self):
+        other_item = ItemFactory(base_price=Decimal('11.00'))
+        option_group = OptionGroupFactory(category=self.category, min_choices=0, max_choices=2)
+        option = OptionFactory(group=option_group, price_modifier=Decimal('1.50'), items=[self.item])
+
+        with self.assertRaises(ValidationError):
+            other_item.validate_options([option.id])

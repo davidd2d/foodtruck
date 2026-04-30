@@ -1,6 +1,7 @@
 from django.contrib import admin
+
 from common.admin import OwnerRestrictedAdminMixin
-from .models import Menu, Category, Item, Combo, ComboItem, OptionGroup, Option
+from .models import Category, Combo, ComboItem, Item, Menu, Option, OptionGroup
 
 
 class OptionInline(admin.TabularInline):
@@ -9,18 +10,17 @@ class OptionInline(admin.TabularInline):
     fields = ('name', 'price_modifier', 'is_available')
 
 
-class OptionGroupInline(admin.TabularInline):
-    model = OptionGroup
-    extra = 0
-    fields = ('name', 'required', 'min_choices', 'max_choices')
-    inlines = [OptionInline]
-
-
 class ItemInline(admin.TabularInline):
     model = Item
     extra = 0
     fields = ('name', 'tax', 'base_price', 'is_available', 'display_order')
     autocomplete_fields = ('compatible_preferences',)
+
+
+class OptionGroupInline(admin.TabularInline):
+    model = OptionGroup
+    extra = 0
+    fields = ('name', 'required', 'min_choices', 'max_choices')
 
 
 class ComboItemInline(admin.TabularInline):
@@ -68,7 +68,6 @@ class CategoryInline(admin.TabularInline):
     model = Category
     extra = 0
     fields = ('name', 'display_order')
-    inlines = [ItemInline]
 
 
 @admin.register(Menu)
@@ -83,11 +82,9 @@ class MenuAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
         return qs.select_related('food_truck')
 
     def _filter_by_food_trucks(self, qs, truck_ids):
-        """Filter menus by food truck ownership."""
         return qs.filter(food_truck_id__in=truck_ids)
 
     def _object_belongs_to_trucks(self, obj, truck_ids):
-        """Check if menu's food truck belongs to user."""
         return obj.food_truck_id in truck_ids
 
 
@@ -96,18 +93,16 @@ class CategoryAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
     list_display = ('name', 'menu', 'display_order')
     search_fields = ('name', 'menu__name', 'menu__food_truck__name')
     list_filter = ('menu',)
-    inlines = [ItemInline]
+    inlines = [ItemInline, OptionGroupInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related('menu__food_truck')
 
     def _filter_by_food_trucks(self, qs, truck_ids):
-        """Filter categories by food truck ownership."""
         return qs.filter(menu__food_truck_id__in=truck_ids)
 
     def _object_belongs_to_trucks(self, obj, truck_ids):
-        """Check if category's menu's food truck belongs to user."""
         return obj.menu.food_truck_id in truck_ids
 
 
@@ -117,55 +112,61 @@ class ItemAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
     search_fields = ('name', 'category__name', 'category__menu__name', 'category__menu__food_truck__name')
     list_filter = ('is_available', 'tax', 'category__menu')
     autocomplete_fields = ('compatible_preferences',)
-    inlines = [OptionGroupInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related('category__menu__food_truck').prefetch_related('compatible_preferences')
 
     def _filter_by_food_trucks(self, qs, truck_ids):
-        """Filter items by food truck ownership."""
         return qs.filter(category__menu__food_truck_id__in=truck_ids)
 
     def _object_belongs_to_trucks(self, obj, truck_ids):
-        """Check if item's category's menu's food truck belongs to user."""
         return obj.category.menu.food_truck_id in truck_ids
 
 
 @admin.register(OptionGroup)
 class OptionGroupAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
-    list_display = ('name', 'item', 'required', 'min_choices', 'max_choices')
-    search_fields = ('name', 'item__name', 'item__category__name', 'item__category__menu__food_truck__name')
-    list_filter = ('required', 'item__category__menu')
+    list_display = ('name', 'category', 'required', 'min_choices', 'max_choices')
+    search_fields = ('name', 'category__name', 'category__menu__food_truck__name')
+    list_filter = ('required', 'category__menu')
     inlines = [OptionInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.select_related('item__category__menu__food_truck')
+        return qs.select_related('category__menu__food_truck')
 
     def _filter_by_food_trucks(self, qs, truck_ids):
-        """Filter option groups by food truck ownership."""
-        return qs.filter(item__category__menu__food_truck_id__in=truck_ids)
+        return qs.filter(category__menu__food_truck_id__in=truck_ids)
 
     def _object_belongs_to_trucks(self, obj, truck_ids):
-        """Check if option group's item's category's menu's food truck belongs to user."""
-        return obj.item.category.menu.food_truck_id in truck_ids
+        return obj.category.menu.food_truck_id in truck_ids
 
 
 @admin.register(Option)
 class OptionAdmin(OwnerRestrictedAdminMixin, admin.ModelAdmin):
     list_display = ('name', 'group', 'price_modifier', 'is_available')
-    search_fields = ('name', 'group__name', 'group__item__name', 'group__item__category__menu__food_truck__name')
-    list_filter = ('is_available', 'group__item__category__menu')
+    search_fields = ('name', 'group__name', 'group__category__name', 'group__category__menu__food_truck__name')
+    list_filter = ('is_available', 'group__category__menu')
+    filter_horizontal = ('items',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.select_related('group__item__category__menu__food_truck')
+        return qs.select_related('group__category__menu__food_truck')
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'items':
+            # En mode édition, filtrer les items par catégorie
+            obj_id = request.resolver_match.kwargs.get('object_id')
+            if obj_id:
+                try:
+                    option = Option.objects.get(pk=obj_id)
+                    kwargs['queryset'] = Item.objects.filter(category=option.group.category)
+                except Option.DoesNotExist:
+                    pass
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def _filter_by_food_trucks(self, qs, truck_ids):
-        """Filter options by food truck ownership."""
-        return qs.filter(group__item__category__menu__food_truck_id__in=truck_ids)
+        return qs.filter(group__category__menu__food_truck_id__in=truck_ids)
 
     def _object_belongs_to_trucks(self, obj, truck_ids):
-        """Check if option's group's item's category's menu's food truck belongs to user."""
-        return obj.group.item.category.menu.food_truck_id in truck_ids
+        return obj.group.category.menu.food_truck_id in truck_ids

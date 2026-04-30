@@ -160,7 +160,7 @@ def analyze_item(request, item_id):
         }, status=401)
 
     item = get_object_or_404(
-        Item.objects.select_related('category__menu__food_truck'),
+        Item.objects.select_related('category__menu__food_truck').prefetch_related('available_options__group'),
         pk=item_id,
         category__menu__food_truck__owner=request.user,
         category__menu__food_truck__is_active=True,
@@ -174,6 +174,9 @@ def analyze_item(request, item_id):
             'success': False,
             'message': str(exc),
         }, status=429)
+
+    item = Item.objects.select_related('category__menu__food_truck').prefetch_related('available_options__group').get(pk=item_id)
+    service.decorate_item_dashboard_state(item, payload.get('recommendations'))
 
     html = render_to_string('ai_menu/partials/recommendations_panel.html', {
         'item': item,
@@ -204,7 +207,7 @@ def recommendation_decision(request, recommendation_id):
         }, status=401)
 
     recommendation = get_object_or_404(
-        AIRecommendation.objects.select_related('item__category__menu__food_truck'),
+        AIRecommendation.objects.select_related('item__category__menu__food_truck').prefetch_related('item__available_options__group'),
         pk=recommendation_id,
         item__category__menu__food_truck__owner=request.user,
         item__category__menu__food_truck__is_active=True,
@@ -220,8 +223,11 @@ def recommendation_decision(request, recommendation_id):
             'message': str(exc),
         }, status=400)
 
+    item = Item.objects.select_related('category__menu__food_truck').prefetch_related('available_options__group').get(pk=recommendation.item_id)
+    service.decorate_item_dashboard_state(item, payload.get('recommendations'))
+
     html = render_to_string('ai_menu/partials/recommendations_panel.html', {
-        'item': recommendation.item,
+        'item': item,
         'recommendations': payload['recommendations'],
         'message': payload.get('message', ''),
         'generation_status': payload.get('generation_status', 'success'),

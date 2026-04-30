@@ -54,6 +54,7 @@ class AIRecommendationDashboardService:
                 grouped = grouped_map.get(item.id, self.empty_dashboard_recommendations())
                 item.ai_recommendations_grouped = grouped
                 item.ai_has_recommendations = self.has_recommendations(grouped)
+                item.ai_current_options = self.get_item_current_options(item, grouped)
 
         return categories
 
@@ -129,6 +130,14 @@ class AIRecommendationDashboardService:
         )
         return self.serialize_recommendations(recommendations)
 
+    def decorate_item_dashboard_state(self, item, grouped=None):
+        """Attach dashboard-friendly recommendation and option data on one item."""
+        grouped = grouped or self.get_grouped_recommendations_for_item(item)
+        item.ai_recommendations_grouped = grouped
+        item.ai_has_recommendations = self.has_recommendations(grouped)
+        item.ai_current_options = self.get_item_current_options(item, grouped)
+        return item
+
     def get_grouped_recommendations_map(self, item_ids):
         """Return grouped pending recommendations indexed by item id."""
         if not item_ids:
@@ -201,6 +210,46 @@ class AIRecommendationDashboardService:
         history = grouped.get('history', {})
         return bool(history.get('accepted') or history.get('rejected'))
 
+    def get_item_current_options(self, item, grouped=None):
+        """Return currently assigned options for one item enriched with AI opinion metadata."""
+        grouped = grouped or self.empty_dashboard_recommendations()
+        opinion_map = self._build_existing_option_opinion_map(grouped)
+        options = item.available_options.filter(group__category=item.category).select_related('group').order_by('group__name', 'name')
+
+        rows = []
+        for option in options:
+            opinion = opinion_map.get(option.id)
+            rows.append({
+                'id': option.id,
+                'name': option.name,
+                'group_name': option.group.name,
+                'price_modifier': option.price_modifier,
+                'is_available': option.is_available,
+                'ai_suggested_action': opinion.get('suggested_action', '') if opinion else '',
+                'ai_reason': opinion.get('reason', '') if opinion else '',
+                'ai_recommendation_status': opinion.get('status', '') if opinion else '',
+            })
+        return rows
+
+    def _build_existing_option_opinion_map(self, grouped):
+        """Index existing-option recommendations by option id with pending priority."""
+        opinion_map = {}
+        ordered_groups = [
+            grouped.get('free_options', []),
+            grouped.get('paid_options', []),
+            grouped.get('history', {}).get('accepted', []),
+            grouped.get('history', {}).get('rejected', []),
+        ]
+        for recommendations in ordered_groups:
+            for recommendation in recommendations:
+                option_id = recommendation.get('existing_option_id')
+                if not option_id:
+                    continue
+                if option_id in opinion_map:
+                    continue
+                opinion_map[option_id] = recommendation
+        return opinion_map
+
     def _build_status_message(self, generation_status):
         """Return a UI-friendly status message."""
         if generation_status == 'fallback':
@@ -232,6 +281,9 @@ class AIRecommendationDashboardService:
             'name': payload.get('name', ''),
             'reason': payload.get('reason', ''),
             'suggested_price': payload.get('suggested_price'),
+            'existing_option_id': payload.get('existing_option_id'),
+            'suggested_action': payload.get('suggested_action', ''),
+            'current_status': payload.get('current_status', ''),
             'items': payload.get('items', []),
             'status': recommendation.status,
             'type': recommendation.recommendation_type,

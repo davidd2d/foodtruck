@@ -117,24 +117,41 @@ def ComboItemFactory(combo=None, item=None, source_category=None, display_name='
     return combo_item
 
 
-def OptionGroupFactory(item=None, name='Extras', min_choices=0, max_choices=None):
-    item = item or ItemFactory()
-    return OptionGroup.objects.create(
-        item=item,
+def OptionGroupFactory(item=None, category=None, name='Extras', min_choices=0, max_choices=None, shared_items=None):
+    if category is None:
+        item = item or ItemFactory()
+        category = item.category
+
+    group = OptionGroup.objects.create(
+        category=category,
         name=name,
         min_choices=min_choices,
         max_choices=max_choices
     )
 
+    default_items = []
+    if item is not None:
+        default_items.append(item)
+    if shared_items:
+        default_items.extend(shared_items)
+    group._default_items = default_items
+    return group
 
-def OptionFactory(group=None, name='Large', price_modifier=Decimal('2.00'), is_available=True):
+
+def OptionFactory(group=None, name='Large', price_modifier=Decimal('2.00'), is_available=True, items=None):
     group = group or OptionGroupFactory()
-    return Option.objects.create(
+    option = Option.objects.create(
         group=group,
         name=name,
         price_modifier=price_modifier,
         is_available=is_available
     )
+    assigned_items = items
+    if assigned_items is None:
+        assigned_items = getattr(group, '_default_items', [])
+    if assigned_items:
+        option.items.add(*assigned_items)
+    return option
 
 
 def PickupSlotFactory(food_truck=None, capacity=5, start_time=None, end_time=None, service_schedule=None):

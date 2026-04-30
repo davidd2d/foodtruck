@@ -34,6 +34,20 @@ class AIMenuDashboardViewsTests(TestCase):
     def test_owner_can_view_ai_menu_dashboard(self):
         self.client.force_login(self.owner)
 
+        group = OptionGroup.objects.create(
+            category=self.category,
+            name='Sauces',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=group,
+            name='Sauce maison',
+            price_modifier=0,
+            is_available=True,
+        )
+        option.items.add(self.item)
+
         AIRecommendation.objects.create(
             item=self.item,
             recommendation_type='free_option',
@@ -55,6 +69,8 @@ class AIMenuDashboardViewsTests(TestCase):
         self.assertContains(response, 'Analyze this dish')
         self.assertContains(response, 'Accepted History')
         self.assertContains(response, 'Rejected History')
+        self.assertContains(response, 'Current options on this item')
+        self.assertContains(response, 'Sauce maison')
 
     def test_non_owner_cannot_view_ai_menu_dashboard(self):
         self.client.force_login(self.other_user)
@@ -155,9 +171,10 @@ class AIMenuDashboardViewsTests(TestCase):
         self.assertEqual(recommendation.status, 'accepted')
         self.assertTrue(response.json()['success'])
         self.assertIn('Recommendation accepted', response.json()['message'])
-        option_group = OptionGroup.objects.get(item=self.item, name='AI Free Customizations')
+        option_group = OptionGroup.objects.get(category=self.item.category, name='AI Free Customizations')
         option = Option.objects.get(group=option_group, name='Extra pickles')
         self.assertEqual(str(option.price_modifier), '0.00')
+        self.assertTrue(option.items.filter(id=self.item.id).exists())
 
     def test_owner_can_reject_recommendation(self):
         self.client.force_login(self.owner)
@@ -190,9 +207,81 @@ class AIMenuDashboardViewsTests(TestCase):
         response = self.client.post(url, data={'decision': 'accept'})
 
         self.assertEqual(response.status_code, 200)
-        option_group = OptionGroup.objects.get(item=self.item, name='AI Paid Add-ons')
+        option_group = OptionGroup.objects.get(category=self.item.category, name='AI Paid Add-ons')
         option = Option.objects.get(group=option_group, name='Extra cheddar')
         self.assertEqual(str(option.price_modifier), '1.50')
+        self.assertTrue(option.items.filter(id=self.item.id).exists())
+
+    def test_accept_existing_option_review_links_option_to_item(self):
+        self.client.force_login(self.owner)
+        option_group = OptionGroup.objects.create(
+            category=self.category,
+            name='Existing Paid Options',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=option_group,
+            name='Truffle mayo',
+            price_modifier=1.5,
+            is_available=True,
+        )
+        recommendation = AIRecommendation.objects.create(
+            item=self.item,
+            recommendation_type='paid_option',
+            payload={
+                'name': option.name,
+                'reason': 'Good premium fit',
+                'existing_option_id': option.id,
+                'suggested_action': 'enable',
+                'current_status': 'disabled',
+            },
+            status='pending',
+        )
+        url = reverse('ai_menu:recommendation-decision', kwargs={'recommendation_id': recommendation.id})
+
+        response = self.client.post(url, data={'decision': 'accept'})
+
+        self.assertEqual(response.status_code, 200)
+        recommendation.refresh_from_db()
+        self.assertEqual(recommendation.status, 'accepted')
+        self.assertTrue(option.items.filter(id=self.item.id).exists())
+
+    def test_accept_existing_option_review_unlinks_option_from_item(self):
+        self.client.force_login(self.owner)
+        option_group = OptionGroup.objects.create(
+            category=self.category,
+            name='Existing Free Options',
+            required=False,
+            min_choices=0,
+        )
+        option = Option.objects.create(
+            group=option_group,
+            name='Extra onions',
+            price_modifier=0,
+            is_available=True,
+        )
+        option.items.add(self.item)
+        recommendation = AIRecommendation.objects.create(
+            item=self.item,
+            recommendation_type='free_option',
+            payload={
+                'name': option.name,
+                'reason': 'Not suitable for this recipe',
+                'existing_option_id': option.id,
+                'suggested_action': 'disable',
+                'current_status': 'enabled',
+            },
+            status='pending',
+        )
+        url = reverse('ai_menu:recommendation-decision', kwargs={'recommendation_id': recommendation.id})
+
+        response = self.client.post(url, data={'decision': 'accept'})
+
+        self.assertEqual(response.status_code, 200)
+        recommendation.refresh_from_db()
+        self.assertEqual(recommendation.status, 'accepted')
+        self.assertFalse(option.items.filter(id=self.item.id).exists())
 
     def test_accept_bundle_recommendation_creates_combo(self):
         self.client.force_login(self.owner)
@@ -232,7 +321,7 @@ class AIMenuDashboardViewsTests(TestCase):
         accept_url = reverse('ai_menu:recommendation-decision', kwargs={'recommendation_id': recommendation.id})
         self.client.post(accept_url, data={'decision': 'accept'})
         recommendation.refresh_from_db()
-        option_group = OptionGroup.objects.get(item=self.item, name='AI Free Customizations')
+        option_group = OptionGroup.objects.get(category=self.item.category, name='AI Free Customizations')
         option = Option.objects.get(group=option_group, name='Extra pickles')
         self.assertEqual(recommendation.status, 'accepted')
 

@@ -6,6 +6,7 @@ with fallback to rule-based analysis if API calls fail.
 """
 import json
 import logging
+import re
 from decimal import Decimal
 from typing import Dict, Any, List, Optional
 
@@ -16,6 +17,7 @@ from django.core.exceptions import ValidationError
 from config.services.openai_client import OpenAIService
 from ai_menu.models import AIRecommendation
 from ai_menu.services.menu_analyzer import MenuAnalyzerService
+from menu.models import Option
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +95,8 @@ class AIRecommendationGeneratorService:
                     fallback_used = True
                 else:
                     fallback_used = False
+
+                recommendations_data = self._ensure_option_review_coverage(item, recommendations_data)
 
                 # Store recommendations
                 created_ids = self._persist_recommendations(item, recommendations_data)
@@ -257,6 +261,7 @@ class AIRecommendationGeneratorService:
                 'foodtruck_name': foodtruck.name,
                 'foodtruck_language': self._get_language_code(item),
                 'foodtruck_cuisine': getattr(foodtruck, 'cuisine_type', 'Mixed'),
+                'category_options': self._build_category_options_context(item),
             }
         except Exception as e:
             logger.warning(f"Error preparing context for item {item.id}: {str(e)}")
@@ -266,7 +271,32 @@ class AIRecommendationGeneratorService:
                 'item_base_price': float(item.base_price),
                 'category_name': item.category.name,
                 'foodtruck_language': settings.LANGUAGE_CODE,
+                'category_options': [],
             }
+
+    def _build_category_options_context(self, item) -> List[Dict[str, Any]]:
+        """Return lightweight option metadata for prompt grounding."""
+        options = (
+            Option.objects
+            .filter(group__category=item.category)
+            .select_related('group')
+            .prefetch_related('items')
+            .order_by('group__name', 'name')
+        )
+
+        rows = []
+        for option in options:
+            rows.append({
+                'id': option.id,
+                'name': option.name,
+                'group_name': option.group.name,
+                'price_modifier': float(option.price_modifier),
+                'enabled_for_item': option.items.filter(pk=item.pk).exists(),
+                'is_available': option.is_available,
+            })
+
+        # Keep prompt size bounded for large menus.
+        return rows[:60]
 
     def _build_ai_prompt(self, item, context: Dict[str, Any]) -> str:
         """
@@ -281,6 +311,16 @@ class AIRecommendationGeneratorService:
         """
         language_code = context.get('foodtruck_language', settings.LANGUAGE_CODE)
         language_name = self.LANGUAGE_NAMES.get(language_code, self.LANGUAGE_NAMES['en'])
+        category_options = context.get('category_options', [])
+        if category_options:
+            options_lines = '\n'.join([
+                f"- id={row['id']} | group={row['group_name']} | name={row['name']} | "
+                f"price_modifier={row['price_modifier']:.2f} | enabled_for_item={str(row['enabled_for_item']).lower()} | "
+                f"globally_available={str(row['is_available']).lower()}"
+                for row in category_options
+            ])
+        else:
+            options_lines = '- none'
 
         return f"""
     You are an expert menu consultant helping food truck owners optimize their menus.
@@ -304,6 +344,11 @@ REQUIREMENTS:
 2. Suggest FREE options that enhance value perception (max 3-4)
 3. Suggest PAID upsells that increase revenue (max 3-4, realistic pricing)
 4. Suggest BUNDLES/combos that increase average order value (max 2-3)
+5. Review EXISTING category options and critique whether each one should be enabled or disabled for this specific item
+6. In option_reviews, include all options where enabled_for_item=true (with enable/disable/keep and a reason)
+
+EXISTING CATEGORY OPTIONS:
+{options_lines}
 
 CONSTRAINTS:
 - All suggestions must be realistic for this item type
@@ -311,6 +356,8 @@ CONSTRAINTS:
 - Paid options: reasonable pricing (+€0.50 to +€4.00 typical range)
 - All prices must be reasonable for the food truck industry
 - Be conservative: better to suggest 1 great option than 3 mediocre ones
+- Do not duplicate an existing option name in new suggestions when an existing option can be reused
+- In option_reviews, use existing_option_id values from the provided list
 - Return ONLY valid JSON, no markdown or extra text
 
 Return JSON in EXACTLY this format:
@@ -327,6 +374,10 @@ Return JSON in EXACTLY this format:
   "bundles": [
     {{"name": "Burger + Fries + Drink combo", "items": ["Burger", "Fries", "Drink"], "reason": "Increases average order value by 20-25%"}},
     {{"name": "Burger + Appetizer combo", "items": ["Burger", "Appetizer"], "reason": "Encourages larger purchases"}}
+    ],
+    "option_reviews": [
+        {{"existing_option_id": 101, "name": "Extra pickles", "suggested_action": "enable", "reason": "Good fit for this item", "current_status": "disabled", "option_type": "free_option"}},
+        {{"existing_option_id": 102, "name": "Spicy sauce", "suggested_action": "disable", "reason": "Not aligned with flavor profile", "current_status": "enabled", "option_type": "paid_option"}}
   ]
 }}
 
@@ -428,6 +479,28 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
                 logger.warning("bundles items must have 'name', 'items', 'reason'")
                 return False
 
+        # Validate optional option reviews
+        option_reviews = data.get('option_reviews', [])
+        if option_reviews is None:
+            option_reviews = []
+        if not isinstance(option_reviews, list):
+            logger.warning("option_reviews must be a list")
+            return False
+        for review in option_reviews:
+            if not isinstance(review, dict):
+                logger.warning("option_reviews items must be dicts")
+                return False
+            expected = {'existing_option_id', 'name', 'suggested_action', 'reason', 'current_status', 'option_type'}
+            if not expected.issubset(review.keys()):
+                logger.warning("option_reviews items must include existing_option_id, name, suggested_action, reason, current_status, option_type")
+                return False
+            if review.get('suggested_action') not in {'enable', 'disable', 'keep'}:
+                logger.warning("option_reviews.suggested_action must be enable, disable, or keep")
+                return False
+            if review.get('option_type') not in {'free_option', 'paid_option'}:
+                logger.warning("option_reviews.option_type must be free_option or paid_option")
+                return False
+
         return True
 
     def _persist_recommendations(self, item, recommendations_data: Dict[str, Any]) -> List[int]:
@@ -445,10 +518,26 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
         """
         created_ids = []
         language_code = self._get_language_code(item)
+        existing_options_by_name = self._build_existing_options_index(item)
+        reviewed_option_ids = set()
 
         try:
             # Create free option recommendations
             for free_opt in recommendations_data.get('free_options', []):
+                existing_option = self._find_existing_option_match(existing_options_by_name, free_opt.get('name', ''))
+                if existing_option is not None:
+                    reviewed_option_ids.add(existing_option.id)
+                    rec = AIRecommendation.objects.create(
+                        item=item,
+                        recommendation_type='free_option',
+                        language_code=language_code,
+                        payload=self._build_existing_option_payload(existing_option, item, free_opt.get('reason', '')),
+                        status='pending',
+                    )
+                    created_ids.append(rec.id)
+                    logger.debug(f"Converted duplicate free option into existing review recommendation: {rec.id}")
+                    continue
+
                 rec = AIRecommendation.objects.create(
                     item=item,
                     recommendation_type='free_option',
@@ -464,6 +553,20 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
 
             # Create paid option recommendations
             for paid_opt in recommendations_data.get('paid_options', []):
+                existing_option = self._find_existing_option_match(existing_options_by_name, paid_opt.get('name', ''))
+                if existing_option is not None:
+                    reviewed_option_ids.add(existing_option.id)
+                    rec = AIRecommendation.objects.create(
+                        item=item,
+                        recommendation_type='paid_option',
+                        language_code=language_code,
+                        payload=self._build_existing_option_payload(existing_option, item, paid_opt.get('reason', '')),
+                        status='pending',
+                    )
+                    created_ids.append(rec.id)
+                    logger.debug(f"Converted duplicate paid option into existing review recommendation: {rec.id}")
+                    continue
+
                 rec = AIRecommendation.objects.create(
                     item=item,
                     recommendation_type='paid_option',
@@ -494,11 +597,122 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
                 created_ids.append(rec.id)
                 logger.debug(f"Created bundle recommendation: {rec.id}")
 
+            # Create existing option review recommendations
+            for option_review in recommendations_data.get('option_reviews', []):
+                existing_option_id = option_review.get('existing_option_id')
+                if not existing_option_id:
+                    continue
+
+                existing_option = Option.objects.filter(
+                    id=existing_option_id,
+                    group__category=item.category,
+                ).first()
+                if existing_option is None:
+                    continue
+
+                if existing_option.id in reviewed_option_ids:
+                    continue
+
+                reviewed_option_ids.add(existing_option.id)
+                recommendation_type = option_review.get('option_type', 'free_option')
+                current_status = 'enabled' if (
+                    existing_option.items.filter(pk=item.pk).exists() and existing_option.is_available
+                ) else 'disabled'
+                rec = AIRecommendation.objects.create(
+                    item=item,
+                    recommendation_type=recommendation_type,
+                    language_code=language_code,
+                    payload={
+                        'name': option_review.get('name', existing_option.name),
+                        'reason': option_review.get('reason', ''),
+                        'existing_option_id': existing_option.id,
+                        'suggested_action': option_review.get('suggested_action', 'keep'),
+                        'current_status': current_status,
+                    },
+                    status='pending',
+                )
+                created_ids.append(rec.id)
+                logger.debug(f"Created option review recommendation: {rec.id}")
+
         except Exception as e:
             logger.exception(f"Error persisting recommendations for item {item.id}: {str(e)}")
             raise
 
         return created_ids
+
+    def _build_existing_options_index(self, item):
+        """Index category options by normalized name for duplicate detection."""
+        index = {}
+        options = Option.objects.filter(group__category=item.category).select_related('group')
+        for option in options:
+            key = self._normalize_option_name(option.name)
+            if key and key not in index:
+                index[key] = option
+        return index
+
+    def _find_existing_option_match(self, existing_options_by_name, candidate_name):
+        """Return an existing category option matching a suggested option name."""
+        key = self._normalize_option_name(candidate_name)
+        if not key:
+            return None
+        return existing_options_by_name.get(key)
+
+    def _build_existing_option_payload(self, option, item, ai_reason):
+        """Build standardized payload for recommendations targeting existing options."""
+        is_enabled_for_item = option.items.filter(pk=item.pk).exists()
+        current_status = 'enabled' if (is_enabled_for_item and option.is_available) else 'disabled'
+        suggested_action = 'keep' if current_status == 'enabled' else 'enable'
+        reason = ai_reason or 'This option already exists in the category and can be reused for this item.'
+        option_type = 'paid_option' if option.price_modifier > Decimal('0.00') else 'free_option'
+        return {
+            'name': option.name,
+            'reason': reason,
+            'existing_option_id': option.id,
+            'suggested_action': suggested_action,
+            'current_status': current_status,
+            'option_type': option_type,
+        }
+
+    def _normalize_option_name(self, value):
+        """Normalize option names for deterministic duplicate comparison."""
+        normalized = (value or '').strip().casefold()
+        normalized = re.sub(r'\s+', ' ', normalized)
+        return normalized
+
+    def _ensure_option_review_coverage(self, item, recommendations_data):
+        """Ensure currently enabled item options all receive an AI review entry."""
+        data = dict(recommendations_data or {})
+        option_reviews = list(data.get('option_reviews') or [])
+
+        reviewed_ids = set()
+        for review in option_reviews:
+            if not isinstance(review, dict):
+                continue
+            option_id = review.get('existing_option_id')
+            if option_id:
+                reviewed_ids.add(option_id)
+
+        language_code = self._get_language_code(item)
+        keep_reason = self._get_option_keep_reason(language_code)
+        enabled_options = Option.objects.filter(
+            group__category=item.category,
+            items=item,
+        ).select_related('group').order_by('group__name', 'name')
+
+        for option in enabled_options:
+            if option.id in reviewed_ids:
+                continue
+            option_reviews.append({
+                'existing_option_id': option.id,
+                'name': option.name,
+                'suggested_action': 'keep',
+                'reason': keep_reason,
+                'current_status': 'enabled',
+                'option_type': 'paid_option' if option.price_modifier > Decimal('0.00') else 'free_option',
+            })
+
+        data['option_reviews'] = option_reviews
+        return data
 
     def _get_language_code(self, item) -> str:
         """Return the owning food truck content language or the project default."""
@@ -512,6 +726,15 @@ IMPORTANT: Return ONLY the JSON object, no explanation or markdown code blocks.
             'en': 'Rule-based suggestion',
             'fr': 'Suggestion basee sur des regles',
             'es': 'Sugerencia basada en reglas',
+        }
+        return reasons.get(language_code, reasons['en'])
+
+    def _get_option_keep_reason(self, language_code: str) -> str:
+        """Return a localized neutral AI reason for keeping an active option."""
+        reasons = {
+            'en': 'Current configuration appears relevant for this item.',
+            'fr': 'La configuration actuelle semble pertinente pour cet article.',
+            'es': 'La configuracion actual parece pertinente para este articulo.',
         }
         return reasons.get(language_code, reasons['en'])
 
