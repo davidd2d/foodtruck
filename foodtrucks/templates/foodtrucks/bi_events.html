@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ foodtruck.name }} - {% trans "Events & Location Analysis" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+<link rel="stylesheet" href="{% static 'foodtrucks/css/dashboard.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" id="foodtruck-bi-page"
+     data-bi-url="{% url 'foodtrucks:foodtruck-dashboard-bi' slug=foodtruck.slug %}"
+     data-currency="EUR"
+     data-bi-target-horizon-label="{% trans 'Horizon (days)' %}"
+     data-bi-target-min-attendance-label="{% trans 'Minimum attendance' %}"
+     data-bi-target-min-score-label="{% trans 'Minimum score' %}"
+     data-bi-target-period-label="{% trans 'Time slot' %}"
+     data-bi-target-keywords-label="{% trans 'Keywords' %}"
+     data-bi-target-limit-label="{% trans 'Max opportunities' %}"
+     data-bi-target-radius-label="{% trans 'Radius (km)' %}"
+     data-bi-target-apply-label="{% trans 'Apply targeting' %}"
+     data-bi-targeting-progress-label="{% trans 'Opportunity search in progress...' %}"
+     data-bi-targeting-analyzed-label="{% trans 'events analyzed' %}"
+     data-bi-targeting-retained-label="{% trans 'opportunities retained' %}"
+     data-bi-predicted-revenue-label="{% trans 'Predicted revenue (D+1)' %}"
+     data-bi-confidence-label="{% trans 'Confidence' %}"
+     data-bi-revenue-details-label="{% trans 'How is this estimate calculated?' %}"
+     data-bi-revenue-modal-title="{% trans 'Revenue estimate breakdown' %}"
+     data-bi-revenue-modal-subtitle="{% trans 'This estimate combines recent sales, basket value, pickup activity and event potential.' %}"
+     data-bi-revenue-modal-empty-label="{% trans 'No revenue breakdown is available yet.' %}"
+     data-bi-revenue-method-label="{% trans 'Method' %}"
+     data-bi-revenue-formula-label="{% trans 'Formula' %}"
+     data-bi-revenue-inputs-label="{% trans 'Inputs used' %}"
+     data-bi-revenue-floor-label="{% trans 'Minimum floor' %}"
+     data-bi-suggested-events-label="{% trans 'Suggested event opportunities' %}"
+     data-bi-empty-spots-label="{% trans 'No spot recommendations yet.' %}"
+     data-bi-score-label="{% trans 'Score' %}"
+     data-bi-lat-label="{% trans 'Lat' %}"
+     data-bi-lng-label="{% trans 'Lng' %}"
+     data-bi-empty-pricing-label="{% trans 'No pricing suggestions yet.' %}"
+     data-bi-predicted-label="{% trans 'Estimated revenue' %}"
+     data-bi-event-date-label="{% trans 'Date' %}"
+     data-bi-event-location-label="{% trans 'Event Location' %}"
+     data-bi-event-distance-label="{% trans 'Distance' %}"
+     data-bi-event-attendance-label="{% trans 'Attendance' %}"
+     data-bi-event-info-label="{% trans 'Available info' %}"
+     data-bi-event-unavailable-label="{% trans 'Unavailable' %}"
+     data-bi-event-address-unavailable-label="{% trans 'Address unavailable' %}"
+     data-bi-event-coordinates-label="{% trans 'Coordinates' %}"
+     data-bi-event-source-link-label="{% trans 'View event details' %}"
+     data-bi-empty-events-label="{% trans 'No event opportunities were found for the next 14 days.' %}"
+     data-bi-filter-trace-label="{% trans 'Filter detail' %}"
+     data-bi-filter-col-label="{% trans 'Filter' %}"
+     data-bi-events-remaining-label="{% trans 'Remaining events' %}"
+     data-bi-events-in-db-label="{% trans 'event(s) in database' %}"
+     data-bi-event-modal-calc-subtitle="{% trans 'Calculation detail for this event.' %}"
+     data-bi-event-modal-title-suffix="{% trans 'revenue estimate' %}"
+     data-bi-revenue-factor-historical="{% trans 'Historical daily average' %}"
+     data-bi-revenue-factor-weekday="{% trans 'Weekday factor' %}"
+     data-bi-revenue-factor-slot="{% trans 'Slot factor' %}"
+     data-bi-revenue-factor-event="{% trans 'Event factor' %}"
+     data-bi-revenue-factor-ai="{% trans 'AI adjustment' %}"
+     data-bi-score-factor-distance="{% trans 'Distance score' %}"
+     data-bi-score-factor-attendance="{% trans 'Attendance score' %}"
+     data-bi-score-factor-category="{% trans 'Menu compatibility' %}"
+     data-bi-score-factor-timing="{% trans 'Time slot' %}"
+     data-bi-score-factor-ai="{% trans 'AI adjustment' %}"
+     data-bi-event-score-method-ai="{% trans 'AI' %}"
+     data-bi-event-score-method-base="{% trans 'Base signal' %}"
+     data-bi-event-opportunity-score-label="{% trans 'Opportunity score' %}"
+     data-bi-event-revenue-calc-desc="{% trans 'The estimate combines recent daily revenue (weighted by attractiveness) and the event potential (attendance × basket × conversion rate).' %}"
+     data-bi-score-opportunity-factors-label="{% trans 'Opportunity score factors' %}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{% trans "Events & Location Analysis" %}</h1>
+            <p class="text-muted mb-0">{{ foodtruck.name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{% url 'foodtrucks:foodtruck-bi-pricing' slug=foodtruck.slug %}">{% trans "Price Analysis" %} →</a>
+            <a class="btn btn-outline-secondary" href="{% url 'foodtrucks:foodtruck-dashboard' slug=foodtruck.slug %}">{% trans "Back to dashboard" %}</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form id="dashboard-bi-target-form" class="row g-3">
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="bi-target-horizon">{% trans "Horizon (days)" %}</label>
+                    <input id="bi-target-horizon" name="horizon_days" class="form-control" type="number" min="1" max="90" value="14">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="bi-target-min-attendance">{% trans "Minimum attendance" %}</label>
+                    <input id="bi-target-min-attendance" name="min_attendance" class="form-control" type="number" min="0" step="100" value="0">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="bi-target-min-score">{% trans "Minimum score" %}</label>
+                    <input id="bi-target-min-score" name="min_score" class="form-control" type="number" min="0" max="100" step="1" value="0">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="bi-target-period">{% trans "Time slot" %}</label>
+                    <select id="bi-target-period" name="period" class="form-select">
+                        <option value="full_day">{% trans "Full day" %}</option>
+                        <option value="morning">{% trans "Morning" %}</option>
+                        <option value="noon">{% trans "Noon" %}</option>
+                        <option value="evening">{% trans "Evening" %}</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="bi-target-radius">{% trans "Radius (km)" %}</label>
+                    <input id="bi-target-radius" name="radius_km" class="form-control" type="number" min="0" max="500" value="50" placeholder="{% trans 'All distances' %}">
+                    <div class="form-text">{% trans "0 = no limit" %}</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label" for="bi-target-limit">{% trans "Max opportunities" %}</label>
+                    <input id="bi-target-limit" name="limit" class="form-control" type="number" min="1" max="20" value="5">
+                </div>
+                <div class="col-12">
+                    <label class="form-label d-block mb-2">{% trans "Keywords" %}</label>
+                    <div class="d-flex flex-wrap gap-3 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input bi-keyword-preset" type="checkbox" name="keywords" value="festival" id="bi-keyword-festival" data-label="{% trans 'Festival' %}">
+                            <label class="form-check-label" for="bi-keyword-festival">{% trans "Festival" %}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input bi-keyword-preset" type="checkbox" name="keywords" value="market" id="bi-keyword-market" data-label="{% trans 'Market' %}">
+                            <label class="form-check-label" for="bi-keyword-market">{% trans "Market" %}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input bi-keyword-preset" type="checkbox" name="keywords" value="concert" id="bi-keyword-concert" data-label="{% trans 'Concert' %}">
+                            <label class="form-check-label" for="bi-keyword-concert">{% trans "Concert" %}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input bi-keyword-preset" type="checkbox" name="keywords" value="sports" id="bi-keyword-sports" data-label="{% trans 'Sports' %}">
+                            <label class="form-check-label" for="bi-keyword-sports">{% trans "Sports" %}</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input bi-keyword-preset" type="checkbox" name="keywords" value="family" id="bi-keyword-family" data-label="{% trans 'Family' %}">
+                            <label class="form-check-label" for="bi-keyword-family">{% trans "Family" %}</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="bi-custom-keywords">{% trans "Add custom keywords" %}</label>
+                        <input
+                            id="bi-custom-keywords"
+                            class="form-control form-control-sm"
+                            type="text"
+                            placeholder="{% trans 'Enter keywords separated by commas (e.g., vegan, organic, drinks)' %}"
+                            autocomplete="off">
+                        <div class="form-text">{% trans "Custom keywords will be added to the search" %}</div>
+                    </div>
+                    <div id="bi-custom-keywords-tags" class="mb-2 d-flex flex-wrap gap-2"></div>
+                </div>
+                <div class="col-12 d-grid d-md-flex justify-content-md-end">
+                    <button type="submit" id="bi-target-submit" class="btn btn-primary">{% trans "Apply targeting" %}</button>
+                </div>
+            </form>
+            <div id="bi-target-loading" class="alert alert-info mt-3 mb-0 d-none" role="status">
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                {% trans "Opportunity search in progress..." %}
+            </div>
+            <div id="bi-target-feedback" class="alert alert-secondary mt-3 mb-0 d-none"></div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12">
+            {% include 'foodtrucks/dashboard/partials/_bi_events.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/dashboard/business_intelligence_events.js' %}"></script>
+{% endblock %}

@@ -33,4 +33,5 @@ urlpatterns = [
     ), name='password_reset_complete'),
     path('profile/', profile_redirect, name='profile-redirect'),
     path('foodtruck/<slug:slug>/profile/', profile, name='profile'),
+    path('foodtruck/<slug:slug>/profile/<str:section>/', profile, name='profile-section'),
 ]

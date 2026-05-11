@@ -48,6 +48,7 @@ class DashboardServiceTests(TestCase):
         self.assertEqual(kpis['total_orders'], 2)
         self.assertEqual(kpis['total_revenue'], Decimal('30.00'))
         self.assertEqual(kpis['average_order_value'], Decimal('15.00'))
+        self.assertIn('options_revenue_pct', kpis)
         self.assertEqual(kpis['completion_rate'], Decimal('50.00'))
 
     def test_revenue_timeseries_correct(self):

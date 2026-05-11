@@ -187,6 +187,54 @@ class FoodTruck(models.Model):
         default=PriceDisplayMode.TAX_INCLUDED,
         help_text=_("Whether displayed prices already include taxes or should show taxes separately")
     )
+    legal_business_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text=_("Official business name used on invoices")
+    )
+    billing_siret = models.CharField(
+        max_length=14,
+        blank=True,
+        default='',
+        help_text=_("French SIRET number used for billing")
+    )
+    billing_vat_number = models.CharField(
+        max_length=32,
+        blank=True,
+        default='',
+        help_text=_("VAT number used on invoices when applicable")
+    )
+    billing_address_line_1 = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text=_("Official billing street address")
+    )
+    billing_address_line_2 = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text=_("Official billing address complement")
+    )
+    billing_postal_code = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        help_text=_("Official billing postal code")
+    )
+    billing_city = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text=_("Official billing city")
+    )
+    billing_country = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text=_("Official billing country")
+    )
     is_active = models.BooleanField(default=True, help_text=_("Whether the food truck is active"))
     created_at = models.DateTimeField(auto_now_add=True, help_text=_("When the food truck was created"))
 
@@ -244,6 +292,37 @@ class FoodTruck(models.Model):
         help_text=_("Whether Stripe payouts are enabled")
     )
 
+    service_address_line_1 = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text=_("Base service street address")
+    )
+    service_address_line_2 = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text=_("Base service address complement")
+    )
+    service_postal_code = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        help_text=_("Base service postal code")
+    )
+    service_city = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text=_("Base service city")
+    )
+    service_country = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text=_("Base service country")
+    )
+
     # Location
     latitude = models.DecimalField(
         max_digits=9,
@@ -260,6 +339,44 @@ class FoodTruck(models.Model):
 
     def get_base_coordinates(self):
         return (float(self.latitude), float(self.longitude))
+
+    def get_billing_address(self):
+        parts = [self.billing_address_line_1]
+        if self.billing_address_line_2:
+            parts.append(self.billing_address_line_2)
+        parts.append(f"{self.billing_postal_code} {self.billing_city}".strip())
+        parts.append(self.billing_country)
+        return ', '.join(part for part in parts if part)
+
+    def get_base_service_address(self):
+        parts = [self.service_address_line_1]
+        if self.service_address_line_2:
+            parts.append(self.service_address_line_2)
+        parts.append(f"{self.service_postal_code} {self.service_city}".strip())
+        parts.append(self.service_country)
+        return ', '.join(part for part in parts if part)
+
+    def resolve_base_service_geodata(self, geocoding_service=None):
+        from orders.models import Location
+
+        location = Location(
+            food_truck=self,
+            address_line_1=self.service_address_line_1,
+            address_line_2=self.service_address_line_2,
+            postal_code=self.service_postal_code,
+            city=self.service_city,
+            country=self.service_country,
+        )
+        location.resolve_geodata(geocoding_service=geocoding_service)
+
+        self.service_address_line_1 = location.address_line_1
+        self.service_address_line_2 = location.address_line_2 or ''
+        self.service_postal_code = location.postal_code
+        self.service_city = location.city
+        self.service_country = location.country
+        self.latitude = location.latitude
+        self.longitude = location.longitude
+        return self
 
     def get_current_location_for_schedule(self, schedule):
         return schedule.get_effective_location()
@@ -530,6 +647,48 @@ class FoodTruck(models.Model):
             return self.subscription.plan
         return None
 
+    def contracts_ordering_service(self):
+        subscription = getattr(self, 'subscription', None)
+        if not subscription or not subscription.is_active():
+            return False
+        return bool(subscription.plan and getattr(subscription.plan, 'allows_ordering', False))
+
+    def requires_service_profile(self):
+        return self.contracts_ordering_service()
+
+    def requires_billing_profile(self):
+        return self.contracts_ordering_service() or any(
+            [
+                self.stripe_connect_account_id,
+                self.stripe_onboarding_completed,
+                self.stripe_details_submitted,
+                self.stripe_charges_enabled,
+                self.stripe_payouts_enabled,
+            ]
+        )
+
+    def has_completed_service_profile(self):
+        required_fields = [
+            self.service_address_line_1,
+            self.service_postal_code,
+            self.service_city,
+            self.service_country,
+            self.latitude,
+            self.longitude,
+        ]
+        return all(bool(value) for value in required_fields)
+
+    def has_completed_billing_profile(self):
+        required_fields = [
+            self.legal_business_name,
+            self.billing_siret,
+            self.billing_address_line_1,
+            self.billing_postal_code,
+            self.billing_city,
+            self.billing_country,
+        ]
+        return all(bool(value) for value in required_fields)
+
     def get_primary_color(self):
         """Return a valid primary color for branding fallbacks."""
         return self.primary_color or '#000000'
@@ -591,3 +750,33 @@ class FoodTruck(models.Model):
         required_ids = set(p.id if hasattr(p, 'id') else p for p in preferences)
 
         return required_ids.issubset(supported_ids)
+
+
+class LocationScore(models.Model):
+    """Stores computed location intelligence scores for a food truck."""
+
+    foodtruck = models.ForeignKey(
+        'FoodTruck',
+        on_delete=models.CASCADE,
+        related_name='location_scores',
+        help_text=_('Food truck this location score belongs to'),
+    )
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, db_index=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, db_index=True)
+    score = models.FloatField(help_text=_('Global score from 0 to 100'))
+    demand_score = models.FloatField(help_text=_('Demand sub-score from 0 to 100'))
+    competition_score = models.FloatField(help_text=_('Competition sub-score from 0 to 100'))
+    event_score = models.FloatField(help_text=_('Event sub-score from 0 to 100'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Location Score')
+        verbose_name_plural = _('Location Scores')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['foodtruck', '-created_at']),
+            models.Index(fields=['latitude', 'longitude']),
+        ]
+
+    def __str__(self):
+        return f"{self.foodtruck.name} @ ({self.latitude}, {self.longitude}) -> {self.score:.1f}"

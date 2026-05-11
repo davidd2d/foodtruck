@@ -37,10 +37,14 @@
         <article class="card border-0 shadow-sm h-100">
             <div class="card-body">
                 <p class="text-muted small mb-1 d-flex align-items-center gap-1">
-                    <span>{% trans "Completion rate" %}</span>
-                    <button type="button" class="indicator-help-trigger" data-indicator-key="completion_rate" data-indicator-title="{% trans 'Completion rate' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
+                    <span>{% trans "% options" %}</span>
+                    <button type="button" class="indicator-help-trigger" data-indicator-key="options_revenue_pct" data-indicator-title="{% trans '% options' %}" data-bs-toggle="modal" data-bs-target="#dashboard-indicator-help-modal" aria-label="{% trans 'Indicator definition' %}">i</button>
                 </p>
-                <h2 class="h4 mb-0" id="kpi-completion-rate">{{ initial_kpis.completion_rate }}%</h2>
+                <h2 class="h4 mb-0">
+                    <a class="text-decoration-none" href="{% url 'foodtrucks:foodtruck-options-analysis' slug=foodtruck.slug %}">
+                        <span id="kpi-options-revenue-rate">{{ initial_kpis.options_revenue_pct }}%</span>
+                    </a>
+                </h2>
             </div>
         </article>
     </div>

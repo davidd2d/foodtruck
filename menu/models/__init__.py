@@ -643,3 +643,30 @@ class Option(models.Model):
         if default_tax is None:
             raise ValidationError('No default tax configured.')
         return default_tax.rate
+
+
+class PricingSuggestion(models.Model):
+    """Stores explainable pricing recommendations for menu items."""
+
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.CASCADE,
+        related_name='pricing_suggestions',
+        help_text=_('Item this pricing suggestion targets'),
+    )
+    suggested_price = models.DecimalField(max_digits=8, decimal_places=2)
+    current_price = models.DecimalField(max_digits=8, decimal_places=2)
+    confidence_score = models.FloatField(help_text=_('Confidence score from 0 to 1'))
+    reason = models.TextField(help_text=_('Explainable reasoning for this suggestion'))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('Pricing Suggestion')
+        verbose_name_plural = _('Pricing Suggestions')
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['item', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.item.name}: {self.current_price} -> {self.suggested_price}"

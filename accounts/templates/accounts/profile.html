@@ -73,109 +73,143 @@
 
             <div class="account-section-card mb-4">
                 <div class="account-card-body">
-                    <h2 class="h5 mb-3">{% trans "Food truck details" %}</h2>
-                    <p class="text-muted">{% trans "Update your food truck identity, branding, and primary content language." %}</p>
-                    <form method="post" enctype="multipart/form-data" novalidate class="account-form">
-                        {% csrf_token %}
-                        {% if foodtruck_form.non_field_errors %}
-                            <div class="alert alert-danger">{{ foodtruck_form.non_field_errors }}</div>
-                        {% endif %}
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ foodtruck_form.name.id_for_label }}">{{ foodtruck_form.name.label }}</label>
-                                {{ foodtruck_form.name }}
-                                {% if foodtruck_form.name.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.name.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ foodtruck_form.default_language.id_for_label }}">{{ foodtruck_form.default_language.label }}</label>
-                                {{ foodtruck_form.default_language }}
-                                {% if foodtruck_form.default_language.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.default_language.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="{{ foodtruck_form.price_display_mode.id_for_label }}">{{ foodtruck_form.price_display_mode.label }}</label>
-                                {{ foodtruck_form.price_display_mode }}
-                                {% if foodtruck_form.price_display_mode.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.price_display_mode.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label" for="{{ foodtruck_form.description.id_for_label }}">{{ foodtruck_form.description.label }}</label>
-                                {{ foodtruck_form.description }}
-                                {% if foodtruck_form.description.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.description.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label d-block" for="{{ foodtruck_form.logo.id_for_label }}">{{ foodtruck_form.logo.label }}</label>
-                                {% if foodtruck.get_logo_url %}
-                                    <div class="account-logo-preview mb-2">
-                                        <img src="{{ foodtruck.get_logo_url }}" alt="{{ foodtruck.name }} logo">
-                                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for section in profile_sections %}
+                            {% if section.visible %}
+                            <a href="{{ section.url }}"
+                               class="btn {% if current_profile_section == section.key %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+                                {{ section.title }}
+                                {% if section.complete %}
+                                    <span class="ms-1 badge text-bg-success">{% trans "Complete" %}</span>
+                                {% elif section.required %}
+                                    <span class="ms-1 badge text-bg-warning">{% trans "Required" %}</span>
                                 {% else %}
-                                    <p class="text-muted small mb-2">{% trans "No logo uploaded yet." %}</p>
+                                    <span class="ms-1 badge text-bg-light">{% trans "Optional" %}</span>
                                 {% endif %}
-                                {{ foodtruck_form.logo }}
-                                {% if foodtruck_form.logo.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.logo.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label" for="{{ foodtruck_form.primary_color.id_for_label }}">{{ foodtruck_form.primary_color.label }}</label>
-                                <div class="account-field-inline">
-                                    {{ foodtruck_form.primary_color }}
-                                    <span class="small text-muted">{{ foodtruck.primary_color }}</span>
-                                </div>
-                                {% if foodtruck_form.primary_color.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.primary_color.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label" for="{{ foodtruck_form.secondary_color.id_for_label }}">{{ foodtruck_form.secondary_color.label }}</label>
-                                <div class="account-field-inline">
-                                    {{ foodtruck_form.secondary_color }}
-                                    <span class="small text-muted">{{ foodtruck.secondary_color }}</span>
-                                </div>
-                                {% if foodtruck_form.secondary_color.errors %}
-                                    <div class="text-danger small mt-1">{{ foodtruck_form.secondary_color.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="account-actions">
-                            <button type="submit" name="save-foodtruck" value="1" class="btn btn-primary mt-4">{% trans "Save food truck" %}</button>
-                        </div>
-                    </form>
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 
-            <div class="account-section-card">
+            <div class="account-section-card mb-4">
                 <div class="account-card-body">
-                    <h2 class="h5 mb-3">{% trans "Account details" %}</h2>
-                    <form method="post" novalidate class="account-form">
+                    <h2 class="h5 mb-2">{{ current_profile_section_meta.title }}</h2>
+                    <p class="text-muted mb-3">{{ current_profile_section_meta.description }}</p>
+                    {% for section in profile_sections %}
+                        {% if section.key == current_profile_section and section.required %}
+                            <div class="alert alert-warning py-2">{% trans "This step is required for the services currently contracted by this food truck." %}</div>
+                        {% elif section.key == current_profile_section and not section.required %}
+                            <div class="alert alert-light py-2">{% trans "This step is optional with the current service setup." %}</div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate class="account-form">
                         {% csrf_token %}
-                        {% if account_form.non_field_errors %}
-                            <div class="alert alert-danger">{{ account_form.non_field_errors }}</div>
+                        {% if profile_form.non_field_errors %}
+                            <div class="alert alert-danger">{{ profile_form.non_field_errors }}</div>
                         {% endif %}
 
-                        {% for field in account_form %}
-                            {% if field.name != 'password' %}
-                                <div class="account-field">
-                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                    {{ field }}
-                                    {% if field.errors %}
-                                        <div class="text-danger small mt-1">{{ field.errors }}</div>
-                                    {% endif %}
+                        {% if current_profile_section == 'identity' %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ profile_form.name.id_for_label }}">{{ profile_form.name.label }}</label>
+                                    {{ profile_form.name }}
+                                    {% if profile_form.name.errors %}<div class="text-danger small mt-1">{{ profile_form.name.errors }}</div>{% endif %}
                                 </div>
-                            {% endif %}
-                        {% endfor %}
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ profile_form.default_language.id_for_label }}">{{ profile_form.default_language.label }}</label>
+                                    {{ profile_form.default_language }}
+                                    {% if profile_form.default_language.errors %}<div class="text-danger small mt-1">{{ profile_form.default_language.errors }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="{{ profile_form.price_display_mode.id_for_label }}">{{ profile_form.price_display_mode.label }}</label>
+                                    {{ profile_form.price_display_mode }}
+                                    {% if profile_form.price_display_mode.errors %}<div class="text-danger small mt-1">{{ profile_form.price_display_mode.errors }}</div>{% endif %}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="{{ profile_form.description.id_for_label }}">{{ profile_form.description.label }}</label>
+                                    {{ profile_form.description }}
+                                    {% if profile_form.description.errors %}<div class="text-danger small mt-1">{{ profile_form.description.errors }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label d-block" for="{{ profile_form.logo.id_for_label }}">{{ profile_form.logo.label }}</label>
+                                    {% if foodtruck.get_logo_url %}
+                                        <div class="account-logo-preview mb-2">
+                                            <img src="{{ foodtruck.get_logo_url }}" alt="{{ foodtruck.name }} logo">
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted small mb-2">{% trans "No logo uploaded yet." %}</p>
+                                    {% endif %}
+                                    {{ profile_form.logo }}
+                                    {% if profile_form.logo.errors %}<div class="text-danger small mt-1">{{ profile_form.logo.errors }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="{{ profile_form.primary_color.id_for_label }}">{{ profile_form.primary_color.label }}</label>
+                                    <div class="account-field-inline">
+                                        {{ profile_form.primary_color }}
+                                        <span class="small text-muted">{{ foodtruck.primary_color }}</span>
+                                    </div>
+                                    {% if profile_form.primary_color.errors %}<div class="text-danger small mt-1">{{ profile_form.primary_color.errors }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="{{ profile_form.secondary_color.id_for_label }}">{{ profile_form.secondary_color.label }}</label>
+                                    <div class="account-field-inline">
+                                        {{ profile_form.secondary_color }}
+                                        <span class="small text-muted">{{ foodtruck.secondary_color }}</span>
+                                    </div>
+                                    {% if profile_form.secondary_color.errors %}<div class="text-danger small mt-1">{{ profile_form.secondary_color.errors }}</div>{% endif %}
+                                </div>
+                            </div>
+                        {% elif current_profile_section == 'service' %}
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <p class="text-muted small mb-0">{% trans "GPS coordinates are automatically derived from this address." %}</p>
+                                </div>
+                                {% for field in profile_form %}
+                                    <div class="{% if field.name == 'service_address_line_1' %}col-md-8{% elif field.name == 'service_address_line_2' %}col-md-4{% elif field.name == 'service_postal_code' %}col-md-3{% elif field.name == 'service_city' %}col-md-5{% else %}col-md-4{% endif %}">
+                                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                                    </div>
+                                {% endfor %}
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Derived latitude" %}</label>
+                                    <input type="text" class="form-control" value="{{ foodtruck.latitude|default:'' }}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Derived longitude" %}</label>
+                                    <input type="text" class="form-control" value="{{ foodtruck.longitude|default:'' }}" readonly>
+                                </div>
+                            </div>
+                        {% elif current_profile_section == 'billing' %}
+                            <div class="row g-3">
+                                {% for field in profile_form %}
+                                    <div class="{% if field.name == 'legal_business_name' %}col-md-6{% elif field.name == 'billing_siret' or field.name == 'billing_vat_number' %}col-md-3{% elif field.name == 'billing_address_line_1' %}col-md-8{% elif field.name == 'billing_address_line_2' %}col-md-4{% elif field.name == 'billing_postal_code' %}col-md-3{% elif field.name == 'billing_city' %}col-md-5{% else %}col-md-4{% endif %}">
+                                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {% for field in profile_form %}
+                                {% if field.name != 'password' %}
+                                    <div class="account-field">
+                                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors }}</div>{% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
 
                         <div class="account-actions">
-                            <button type="submit" name="save-account" value="1" class="btn btn-primary">{% trans "Save changes" %}</button>
+                            <button type="submit"
+                                    name="{% if current_profile_section == 'identity' %}save-identity{% elif current_profile_section == 'service' %}save-service-address{% elif current_profile_section == 'billing' %}save-billing{% else %}save-account{% endif %}"
+                                    value="1"
+                                    class="btn btn-primary mt-4">{{ current_profile_section_meta.submit_label }}</button>
                         </div>
                     </form>
                 </div>

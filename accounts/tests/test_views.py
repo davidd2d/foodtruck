@@ -5,7 +5,8 @@ from django.urls import reverse
 from django.core import mail
 from django.contrib.auth import get_user_model
 from unittest.mock import patch
-from foodtrucks.tests.factories import FoodTruckFactory, UserFactory
+from decimal import Decimal
+from foodtrucks.tests.factories import FoodTruckFactory, UserFactory, PlanFactory
 
 User = get_user_model()
 
@@ -108,8 +109,9 @@ def test_owner_profile_updates_account(client):
 
     client.login(email=foodtruck.owner.email, password='password123')
     response = client.post(
-        reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'account'}),
         {
+            'save-account': '1',
             'email': original_email,
             'first_name': 'Owner',
             'last_name': 'Updated',
@@ -136,8 +138,9 @@ def test_owner_profile_email_change_restarts_confirmation(mock_send, client):
 
     client.login(email=foodtruck.owner.email, password='password123')
     response = client.post(
-        reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'account'}),
         {
+            'save-account': '1',
             'email': 'renewed@intermas.com',
             'first_name': 'Owner',
             'last_name': 'Updated',
@@ -165,8 +168,9 @@ def test_owner_profile_name_only_change_does_not_send_confirmation(mock_send, cl
 
     client.login(email=foodtruck.owner.email, password='password123')
     response = client.post(
-        reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'account'}),
         {
+            'save-account': '1',
             'email': original_email,
             'first_name': 'Changed',
             'last_name': 'Owner',
@@ -194,12 +198,13 @@ def test_owner_profile_updates_foodtruck_details(client, settings, tmp_path):
 
     client.login(email=foodtruck.owner.email, password='password123')
     response = client.post(
-        reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'identity'}),
         {
-            'save-foodtruck': '1',
+            'save-identity': '1',
             'name': 'Truck Renamed',
             'description': 'Nouvelle description',
             'default_language': 'fr',
+            'price_display_mode': foodtruck.price_display_mode,
             'primary_color': '#112233',
             'secondary_color': '#445566',
             'logo': logo_file,
@@ -219,17 +224,171 @@ def test_owner_profile_updates_foodtruck_details(client, settings, tmp_path):
 
 
 @pytest.mark.django_db
-def test_owner_profile_renaming_foodtruck_updates_slug_and_redirect(client):
+@patch('accounts.forms.LocationGeocodingService.geocode_address')
+def test_owner_profile_updates_base_location(mock_geocode, client):
+    foodtruck = FoodTruckFactory(latitude=40.7128, longitude=-74.0060)
+    mock_geocode.return_value = (Decimal('45.764043'), Decimal('4.835659'))
+
+    client.login(email=foodtruck.owner.email, password='password123')
+    response = client.post(
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'service'}),
+        {
+            'save-service-address': '1',
+            'service_address_line_1': '5 Place Bellecour',
+            'service_address_line_2': '',
+            'service_postal_code': '69002',
+            'service_city': 'Lyon',
+            'service_country': 'France',
+        },
+        follow=True,
+    )
+
+    foodtruck.refresh_from_db()
+
+    assert response.status_code == 200
+    assert float(foodtruck.latitude) == pytest.approx(45.764043)
+    assert float(foodtruck.longitude) == pytest.approx(4.835659)
+    mock_geocode.assert_called_once_with('5 Place Bellecour, 69002 Lyon, France')
+
+
+@pytest.mark.django_db
+def test_owner_profile_updates_billing_details(client):
+    foodtruck = FoodTruckFactory()
+
+    client.login(email=foodtruck.owner.email, password='password123')
+    response = client.post(
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'billing'}),
+        {
+            'save-billing': '1',
+            'legal_business_name': 'Cucina di Pastaz SAS',
+            'billing_siret': '12345678901234',
+            'billing_vat_number': 'FR12345678901',
+            'billing_address_line_1': '12 Rue du Louvre',
+            'billing_address_line_2': '',
+            'billing_postal_code': '75001',
+            'billing_city': 'Paris',
+            'billing_country': 'France',
+        },
+        follow=True,
+    )
+
+    foodtruck.refresh_from_db()
+
+    assert response.status_code == 200
+    assert foodtruck.legal_business_name == 'Cucina di Pastaz SAS'
+    assert foodtruck.billing_siret == '12345678901234'
+    assert foodtruck.billing_city == 'Paris'
+
+
+@pytest.mark.django_db
+def test_owner_profile_billing_is_optional_without_ordering_service(client):
+    foodtruck = FoodTruckFactory()
+    optional_plan = PlanFactory(code='starter-no-ordering', name='Starter', allows_ordering=False)
+    foodtruck.subscription.plan = optional_plan
+    foodtruck.subscription.save(update_fields=['plan'])
+
+    client.login(email=foodtruck.owner.email, password='password123')
+    response = client.post(
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'billing'}),
+        {
+            'save-billing': '1',
+            'legal_business_name': '',
+            'billing_siret': '',
+            'billing_vat_number': '',
+            'billing_address_line_1': '',
+            'billing_address_line_2': '',
+            'billing_postal_code': '',
+            'billing_city': '',
+            'billing_country': '',
+        },
+        follow=False,
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'billing'})
+
+
+@pytest.mark.django_db
+def test_owner_profile_hides_non_relevant_optional_sections(client):
+    foodtruck = FoodTruckFactory()
+    optional_plan = PlanFactory(code='starter-hidden-sections', name='Starter Hidden', allows_ordering=False)
+    foodtruck.subscription.plan = optional_plan
+    foodtruck.subscription.save(update_fields=['plan'])
+
+    client.login(email=foodtruck.owner.email, password='password123')
+    response = client.get(reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'identity'}))
+
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'identity'}) in html
+    assert reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'account'}) in html
+    assert reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'service'}) not in html
+    assert reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'billing'}) not in html
+
+
+@pytest.mark.django_db
+def test_owner_profile_identity_redirects_to_next_required_step(client):
+    foodtruck = FoodTruckFactory()
+
+    client.login(email=foodtruck.owner.email, password='password123')
+    response = client.post(
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'identity'}),
+        {
+            'save-identity': '1',
+            'name': 'Truck Renamed',
+            'description': 'Nouvelle description',
+            'default_language': 'fr',
+            'price_display_mode': foodtruck.price_display_mode,
+            'primary_color': '#112233',
+            'secondary_color': '#445566',
+        },
+        follow=False,
+    )
+
+    foodtruck.refresh_from_db()
+
+    assert response.status_code == 302
+    assert response.url == reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'service'})
+
+
+@pytest.mark.django_db
+@patch('accounts.forms.LocationGeocodingService.geocode_address')
+def test_owner_profile_service_redirects_to_billing_when_still_required(mock_geocode, client):
+    foodtruck = FoodTruckFactory()
+    mock_geocode.return_value = (Decimal('45.764043'), Decimal('4.835659'))
+
+    client.login(email=foodtruck.owner.email, password='password123')
+    response = client.post(
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'service'}),
+        {
+            'save-service-address': '1',
+            'service_address_line_1': '5 Place Bellecour',
+            'service_address_line_2': '',
+            'service_postal_code': '69002',
+            'service_city': 'Lyon',
+            'service_country': 'France',
+        },
+        follow=False,
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'billing'})
+
+
+@pytest.mark.django_db
+@patch('accounts.forms.LocationGeocodingService.geocode_address')
+def test_owner_profile_renaming_foodtruck_updates_slug_and_redirect(mock_geocode, client):
     foodtruck = FoodTruckFactory(name='Old Truck Name')
 
     client.login(email=foodtruck.owner.email, password='password123')
     response = client.post(
-        reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'identity'}),
         {
-            'save-foodtruck': '1',
+            'save-identity': '1',
             'name': 'New Truck Name',
             'description': foodtruck.description,
             'default_language': foodtruck.default_language,
+            'price_display_mode': foodtruck.price_display_mode,
             'primary_color': foodtruck.primary_color,
             'secondary_color': foodtruck.secondary_color,
         },
@@ -240,22 +399,24 @@ def test_owner_profile_renaming_foodtruck_updates_slug_and_redirect(client):
 
     assert response.status_code == 302
     assert foodtruck.slug == 'new-truck-name'
-    assert response.url == reverse('accounts:profile', kwargs={'slug': foodtruck.slug})
+    assert response.url == reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'service'})
 
 
 @pytest.mark.django_db
-def test_owner_profile_renaming_foodtruck_generates_unique_slug(client):
+@patch('accounts.forms.LocationGeocodingService.geocode_address')
+def test_owner_profile_renaming_foodtruck_generates_unique_slug(mock_geocode, client):
     FoodTruckFactory(name='Existing Truck Name')
     foodtruck = FoodTruckFactory(name='Original Owner Truck')
 
     client.login(email=foodtruck.owner.email, password='password123')
     response = client.post(
-        reverse('accounts:profile', kwargs={'slug': foodtruck.slug}),
+        reverse('accounts:profile-section', kwargs={'slug': foodtruck.slug, 'section': 'identity'}),
         {
-            'save-foodtruck': '1',
+            'save-identity': '1',
             'name': 'Existing Truck Name',
             'description': foodtruck.description,
             'default_language': foodtruck.default_language,
+            'price_display_mode': foodtruck.price_display_mode,
             'primary_color': foodtruck.primary_color,
             'secondary_color': foodtruck.secondary_color,
         },

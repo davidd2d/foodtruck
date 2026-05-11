@@ -1,0 +1,74 @@
+<!--
+Test page pour vérifier la fonctionnalité des mots clés personnalisés
+Ouvrir cette page dans le navigateur et vérifier la console
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test keywords localStorage</title>
+</head>
+<body>
+    <h1>Test mots clés personnalisés</h1>
+    <pre id="output"></pre>
+    
+    <script>
+        const STORAGE = 'bi-targeting-custom-keywords';
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            console.log(msg);
+            output.textContent += msg + '\n';
+        }
+        
+        // Test 1: localStorage vide
+        log('=== TEST 1: État initial ===');
+        let stored = localStorage.getItem(STORAGE);
+        log(`localStorage.getItem('${STORAGE}'):`, stored === null ? 'NULL' : stored);
+        
+        // Test 2: Ajouter un mot clé
+        log('\n=== TEST 2: Ajouter un mot clé ===');
+        let keywords = ['vegan'];
+        localStorage.setItem(STORAGE, JSON.stringify(keywords));
+        stored = localStorage.getItem(STORAGE);
+        log(`Après save ['vegan']:`, stored);
+        
+        // Test 3: Ajouter un autre
+        log('\n=== TEST 3: Ajouter un autre mot clé ===');
+        keywords = ['vegan', 'pizzeria'];
+        localStorage.setItem(STORAGE, JSON.stringify(keywords));
+        stored = localStorage.getItem(STORAGE);
+        log(`Après save ['vegan', 'pizzeria']:`, stored);
+        
+        // Test 4: Récupérer et parser
+        log('\n=== TEST 4: Récupérer et parser ===');
+        const retrieved = JSON.parse(stored);
+        log(`Parse result:`, retrieved);
+        log(`Type:`, Array.isArray(retrieved) ? 'Array' : 'Pas un array');
+        log(`Longueur:`, retrieved.length);
+        
+        // Test 5: Simuler getTargetingParams
+        log('\n=== TEST 5: Simuler getTargetingParams ===');
+        const selectedKeywords = ['concert'];
+        const customKeywords = retrieved;
+        const allKeywords = [...selectedKeywords, ...customKeywords];
+        log(`Keywords sélectionnés:`, selectedKeywords);
+        log(`Keywords personnalisés:`, customKeywords);
+        log(`Tous les keywords:`, allKeywords);
+        log(`Joiné pour URL:`, allKeywords.join(','));
+        
+        // Test 6: Vérifier la condition
+        log('\n=== TEST 6: Vérifier la condition ===');
+        if (allKeywords.length > 0) {
+            const keywordsParam = allKeywords.join(',');
+            log(`✓ Keywords ajoutés aux params: "${keywordsParam}"`);
+        } else {
+            log(`✗ Keywords NOT ajoutés (length = 0)`);
+        }
+        
+        // Cleanup
+        log('\n=== CLEANUP ===');
+        localStorage.removeItem(STORAGE);
+        log(`localStorage vidé`);
+    </script>
+</body>
+</html>

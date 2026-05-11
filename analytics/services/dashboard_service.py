@@ -125,11 +125,39 @@ class DashboardService:
             average_order_value = (total_revenue / Decimal(total_orders)).quantize(Decimal('0.01'))
             completion_rate = (Decimal(completed_orders) * Decimal('100.00') / Decimal(total_orders)).quantize(Decimal('0.01'))
 
+        option_revenue_qs = OrderItemOption.objects.filter(
+            order_item__order__food_truck=self.foodtruck,
+            order_item__order__paid_at__isnull=False,
+        )
+        if start_date:
+            option_revenue_qs = option_revenue_qs.filter(order_item__order__paid_at__date__gte=start_date)
+        if end_date:
+            option_revenue_qs = option_revenue_qs.filter(order_item__order__paid_at__date__lte=end_date)
+        normalized_category_id = self._normalize_category_id(category_id)
+        if normalized_category_id is not None:
+            option_revenue_qs = option_revenue_qs.filter(
+                Q(order_item__item__category_id=normalized_category_id)
+                | Q(order_item__combo__category_id=normalized_category_id)
+            )
+
+        options_revenue = option_revenue_qs.aggregate(
+            total=Coalesce(
+                Sum('price_modifier'),
+                Value(Decimal('0.00')),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
+        )['total']
+
+        options_revenue_pct = Decimal('0.00')
+        if total_revenue > Decimal('0.00'):
+            options_revenue_pct = (Decimal(options_revenue) * Decimal('100.00') / Decimal(total_revenue)).quantize(Decimal('0.01'))
+
         return {
             'total_orders': total_orders,
             'total_revenue': total_revenue,
             'average_order_value': average_order_value,
             'completion_rate': completion_rate,
+            'options_revenue_pct': options_revenue_pct,
         }
 
     def get_revenue_timeseries(self, start_date, end_date, interval='day', category_id=None, display_mode=None):

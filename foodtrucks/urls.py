@@ -14,6 +14,10 @@ urlpatterns = [
     path('test-menu-page/', menu_test_page, name='test-menu-page'),
     path('list-api/', list_foodtrucks_view, name='list-foodtrucks-api'),
     path('<slug:slug>/dashboard/', views.FoodTruckDashboardView.as_view(), name='foodtruck-dashboard'),
+    path('<slug:slug>/dashboard/business-intelligence/', views.FoodTruckBusinessIntelligenceView.as_view(), name='foodtruck-business-intelligence'),
+    path('<slug:slug>/dashboard/bi/events/', views.FoodTruckBIEventsView.as_view(), name='foodtruck-bi-events'),
+    path('<slug:slug>/dashboard/bi/pricing/', views.FoodTruckBIPricingView.as_view(), name='foodtruck-bi-pricing'),
+    path('<slug:slug>/dashboard/options-analysis/', views.FoodTruckOptionsAnalysisView.as_view(), name='foodtruck-options-analysis'),
     path('<slug:slug>/dashboard/kpis/', views.DashboardKpiAPIView.as_view(), name='foodtruck-dashboard-kpis'),
     path('<slug:slug>/dashboard/revenue/', views.DashboardRevenueAPIView.as_view(), name='foodtruck-dashboard-revenue'),
     path('<slug:slug>/dashboard/orders/', views.DashboardOrdersAPIView.as_view(), name='foodtruck-dashboard-orders'),
@@ -27,5 +31,6 @@ urlpatterns = [
     path('<slug:slug>/dashboard/slots/insights/', views.DashboardSlotInsightsAPIView.as_view(), name='foodtruck-dashboard-slots-insights'),
     path('<slug:slug>/dashboard/slots/recommendations/', views.DashboardSlotRecommendationsAPIView.as_view(), name='foodtruck-dashboard-slots-recommendations'),
     path('<slug:slug>/dashboard/options/', views.DashboardOptionPerformanceAPIView.as_view(), name='foodtruck-dashboard-options'),
+    path('<slug:slug>/dashboard/bi/', views.DashboardBusinessIntelligenceAPIView.as_view(), name='foodtruck-dashboard-bi'),
     path('<slug:slug>/', views.foodtruck_detail, name='foodtruck-detail'),
 ]

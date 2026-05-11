@@ -288,6 +288,210 @@ A SaaS platform for food trucks allowing:
   - automatic creation/removal of `OptionGroup` and `Option`
   - graceful AI error handling
 
+  ---
+
+  ## 1️⃣3️⃣ AI Business Engine (Production Layer)
+
+  The project now includes a structured AI Business Intelligence layer designed for deterministic reliability first, with optional AI refinement.
+
+  ### Scope
+
+  - Spot scoring (location intelligence)
+  - Pricing suggestions
+  - Event opportunity detection
+  - Revenue prediction
+
+  ### Persisted models
+
+  - `foodtrucks.LocationScore`
+    - fields: `foodtruck`, `latitude`, `longitude`, `score`, `demand_score`, `competition_score`, `event_score`, `created_at`
+  - `menu.PricingSuggestion`
+    - fields: `item`, `suggested_price`, `current_price`, `confidence_score`, `reason`, `created_at`
+  - `analytics.Event`
+    - fields: `name`, `latitude`, `longitude`, `start_date`, `end_date`, `expected_attendance`, `created_at`
+  - `analytics.EventOpportunity`
+    - fields: `foodtruck`, `event`, `opportunity_score`, `predicted_revenue`, `created_at`
+  - `analytics.RevenuePrediction`
+    - fields: `foodtruck`, `date`, `predicted_revenue`, `confidence_score`, `created_at`
+
+  ### Services (business logic only)
+
+  - `analytics.services.location_ai_service.LocationAIService`
+    - `compute_score(lat, lng)`
+    - `find_best_spots(foodtruck)`
+  - `menu.services.pricing_ai_service.PricingAIService`
+    - `suggest_price(item)`
+  - `analytics.services.event_ai_service.EventAIService`
+    - `evaluate_event(foodtruck, event)`
+  - `analytics.services.revenue_prediction_service.RevenuePredictionService`
+    - `predict_day(foodtruck, date)`
+
+  ### Guarantees
+
+  - Deterministic baseline always computed first
+  - AI adjustment is optional, bounded, and non-blocking
+  - Errors in AI never break business flow (safe fallback)
+  - Explainability returned via `reason` and `breakdown`
+  - Results persisted and cache-backed
+  - No automatic override of owner choices (suggestions only)
+
+  ### Owner dashboard exposure
+
+  - New owner BI endpoint: `/foodtrucks/<slug>/dashboard/bi/`
+  - Returns:
+    - best location spots
+    - top item pricing suggestions
+    - upcoming event opportunities
+    - next-day revenue prediction
+
+  ### Tests
+
+  - New file: `analytics/tests/test_ai_services.py`
+    - `test_location_score_computation`
+    - `test_pricing_suggestion_valid`
+    - `test_event_opportunity_scoring`
+    - `test_revenue_prediction_fallback`
+  - Owner endpoint coverage added in `foodtrucks/tests/test_dashboard_views.py`
+
+### Event database population (production)
+
+- Django admin now exposes `analytics.Event` for manual creation and edits.
+- Automatic sync command: `python manage.py sync_events`
+  - `--mode fetch --source-url https://...` to ingest events from a JSON feed
+  - `--mode seed` to generate synthetic events around active food trucks (fallback)
+  - `--dry-run` to validate without DB writes
+
+Expected JSON format for `--mode fetch`:
+
+```json
+[
+  {
+    "name": "City Festival",
+    "latitude": 48.8566,
+    "longitude": 2.3522,
+    "start_date": "2026-05-10",
+    "end_date": "2026-05-10",
+    "expected_attendance": 7000
+  }
+]
+```
+
+Production scheduler example (cron, every 2 hours):
+
+```bash
+0 */2 * * * ANALYTICS_EVENTS_SOURCE_URL="https://example.com/events.json" /opt/foodtruck/scripts/sync_events_cron.sh >> /var/log/foodtruck-sync-events.log 2>&1
+```
+
+---
+
+## 1️⃣4️⃣ AI Event Evaluation System
+
+A dedicated system that analyses whether an upcoming event represents a strong business opportunity for food trucks, using a combination of deterministic feature extraction and AI-powered signal extraction.
+
+### Design principles
+
+- The AI **never produces the final score** — it only extracts calibrated signals.
+- The final score is **100 % deterministic**: same inputs always yield the same result.
+- Every factor is named, weighted, and stored for full explainability.
+- All analyses are **persisted** and are **replayable** (prompt versioning ensures comparability).
+- Business logic lives exclusively in service modules — zero logic in views or tasks.
+
+### Architecture
+
+```
+OpenAI API (structured JSON output, temperature=0)
+    ↓
+EventAIAnalysisService    — validates & normalises AI response
+    ↓ NormalizedAISignals (frozen dataclass)
+EventScoringService       — combines AI signals + deterministic features
+    ↓ ScoringResult (final_score 0-100 + full breakdown)
+analyze_event_task        — Celery task, idempotent, retry-safe
+```
+
+### New model: `analytics.EventAIAnalysis`
+
+Stored for every analysed event:
+
+| Field | Description |
+|---|---|
+| `event` | OneToOne FK to `analytics.Event` |
+| `provider` | AI provider (`openai`) |
+| `model_name` | Model used (e.g. `gpt-4o-mini`) |
+| `prompt_version` | Semver tag of the prompt (e.g. `1.0`) |
+| `raw_response` | Verbatim JSON returned by the AI |
+| `normalized_data` | Validated, typed signals stored as JSON |
+| `confidence_score` | AI self-reported confidence (0.0–1.0) |
+| `analyzed_at` | Timestamp of analysis |
+| `processing_time_ms` | End-to-end latency |
+| `token_usage_input` / `token_usage_output` | Token cost tracking |
+| `created_at` / `updated_at` | Audit timestamps |
+
+### New services (`analytics/services/`)
+
+| Module | Class / function | Responsibility |
+|---|---|---|
+| `schemas.py` | `validate_and_normalize()`, `NormalizedAISignals` | Strict JSON schema, enum validation, typed dataclass |
+| `prompts.py` | `PromptBuilder` | Versioned, deterministic prompt construction |
+| `feature_extraction.py` | `EventFeatureExtractor` | Pure feature computation: weekend, meal overlaps, duration, summer, timezone-safe |
+| `ai_analysis.py` | `EventAIAnalysisService` | OpenAI call (structured output), validation, DB persistence, idempotency |
+| `scoring.py` | `EventScoringService` | Weighted scoring (7 factors), full `ScoreBreakdown`, score range 0–100 |
+
+### AI signals extracted (10 fields)
+
+`attendance_estimation` · `foodtruck_compatibility` · `audience_type` · `family_friendly` · `outdoor_event` · `weather_dependency` · `estimated_visit_duration` · `peak_meal_relevance` · `confidence` · `reasoning`
+
+All enum-constrained; validated before any DB write.
+
+### Scoring factors
+
+| Factor | Weight | Source |
+|---|---|---|
+| Attendance estimation | 25 % | AI signal |
+| Food truck compatibility | 25 % | AI signal |
+| Meal time overlap | 15 % | Deterministic |
+| Weekend | 10 % | Deterministic |
+| Duration | 10 % | Deterministic |
+| Outdoor event | 8 % | AI signal |
+| Summer period | 7 % | Deterministic |
+
+### Celery task (`analytics/tasks/analyze_event.py`)
+
+```python
+analyze_event_task.delay(event_id)            # standard enqueue
+analyze_event_task.delay(event_id, force=True) # force re-analysis
+```
+
+- Idempotent: skips events already analysed at the current prompt version.
+- Retry-safe: up to 3 retries with exponential back-off on transient errors.
+- `acks_late=True`: message requeued if the worker crashes mid-execution.
+
+### Prompt versioning
+
+- Current version: `1.0` (`analytics/services/prompts.py::CURRENT_PROMPT_VERSION`)
+- Bump the constant whenever the prompt wording changes materially.
+- Old `EventAIAnalysis` records are preserved; `force=True` creates a fresh analysis.
+
+### Tests (43 tests, all passing)
+
+| File | Coverage |
+|---|---|
+| `analytics/tests/test_ai_analysis.py` | Schema validation, enum ranges, boundary values, immutability |
+| `analytics/tests/test_scoring.py` | Determinism, factor isolation, breakdown integrity, JSON serialisability |
+| `analytics/tests/test_feature_extraction.py` | Weekend detection, summer months, meal overlaps, multi-day, timezone safety |
+
+Run with:
+```bash
+DJANGO_SETTINGS_MODULE=config.settings python -m pytest analytics/tests/test_ai_analysis.py analytics/tests/test_scoring.py analytics/tests/test_feature_extraction.py -v
+```
+
+### Environment variables required
+
+```
+OPENAI_API_KEY=sk-...
+CELERY_BROKER_URL=redis://localhost:6379/0   # default
+CELERY_RESULT_BACKEND=redis://localhost:6379/0  # default
+```
+
 ---
 
 ## 🔟 Documentation
@@ -301,3 +505,5 @@ A SaaS platform for food trucks allowing:
 - Feature gating guarantees
 - AI Menu Intelligence (Phase 1 & Phase 2)
 - AI Menu dashboard workflow (Phase 3)
+- AI Event Evaluation System
+

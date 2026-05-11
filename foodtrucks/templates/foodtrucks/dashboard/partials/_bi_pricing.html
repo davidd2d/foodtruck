@@ -1,0 +1,31 @@
+{% load i18n %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h2 class="h6 mb-0">{% trans "Price Analysis" %}</h2>
+    </div>
+    <div class="card-body">
+        <h3 class="h6 mb-2">{% trans "Pricing Suggestions" %}</h3>
+        <div class="list-group list-group-flush" id="dashboard-bi-pricing"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="dashboardRevenueModal" tabindex="-1" aria-labelledby="dashboardRevenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-1" id="dashboardRevenueModalLabel">{% trans "Revenue estimate breakdown" %}</h5>
+                    <p class="text-muted small mb-0" id="dashboard-revenue-modal-subtitle">{% trans "How the daily revenue estimate is computed." %}</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dashboard-revenue-modal-body"></div>
+            </div>
+            <div class="modal-footer justify-content-between flex-wrap gap-2">
+                <div class="small text-muted" id="dashboard-revenue-modal-note"></div>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            </div>
+        </div>
+    </div>
+</div>

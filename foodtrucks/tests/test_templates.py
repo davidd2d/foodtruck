@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from foodtrucks.tests.factories import FoodTruckFactory, MenuFactory, CategoryFactory, UserFactory
+from foodtrucks.tests.factories import FoodTruckFactory, MenuFactory, CategoryFactory, UserFactory, PlanFactory
 
 
 class FoodTruckBrandingTemplateTests(TestCase):
@@ -42,17 +42,35 @@ class FoodTruckBrandingTemplateTests(TestCase):
         self.assertContains(response, 'Operations')
         self.assertContains(response, 'Billing')
         self.assertContains(response, reverse('accounts:profile', kwargs={'slug': self.foodtruck.slug}))
+        self.assertContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'identity'}))
+        self.assertContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'service'}))
+        self.assertContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'billing'}))
+        self.assertContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'account'}))
         self.assertContains(response, reverse(
             'orders:ticket-list-page',
             kwargs={'slug': self.foodtruck.slug, 'user_id': self.foodtruck.owner.id},
         ))
         self.assertContains(response, reverse('orders:owner-ticket-list', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(response, reverse('foodtrucks:foodtruck-dashboard', kwargs={'slug': self.foodtruck.slug}))
+        self.assertContains(response, reverse('foodtrucks:foodtruck-business-intelligence', kwargs={'slug': self.foodtruck.slug}))
         self.assertContains(
             response,
             f"{reverse('payment-accounting-export')}?start_date=",
         )
         self.assertContains(response, reverse('accounts:logout'))
+
+    def test_user_menu_hides_non_relevant_profile_sections(self):
+        optional_plan = PlanFactory(code='starter-navbar-hidden', name='Starter Navbar', allows_ordering=False)
+        self.foodtruck.subscription.plan = optional_plan
+        self.foodtruck.subscription.save(update_fields=['plan'])
+
+        self.client.login(email=self.foodtruck.owner.email, password='password123')
+        response = self.client.get(reverse('foodtrucks:foodtruck-detail', kwargs={'slug': self.foodtruck.slug}))
+
+        self.assertContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'identity'}))
+        self.assertContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'account'}))
+        self.assertNotContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'service'}))
+        self.assertNotContains(response, reverse('accounts:profile-section', kwargs={'slug': self.foodtruck.slug, 'section': 'billing'}))
 
     def test_customer_menu_hides_owner_sections(self):
         customer = UserFactory(password='password123')

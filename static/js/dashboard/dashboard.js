@@ -1,4 +1,4 @@
-import { fetchKpis, fetchMenuPerformance, fetchOrders, fetchRevenue, fetchMenuCategoryPerformance, fetchOptionPerformance } from './api.js';
+import { fetchBusinessIntelligence, fetchKpis, fetchMenuPerformance, fetchOrders, fetchRevenue, fetchMenuCategoryPerformance } from './api.js';
 import { initMenuCategoryChart, initRevenueChart, updateMenuCategoryChart, updateRevenueChart, initOptionsChart, updateOptionsChart } from './charts.js';
 import { loadSlotAnalytics } from './slots.js';
 import { applyCategoryChipActiveState, collectCategoryChips } from '../shared/categoryFilter.js';
@@ -36,6 +36,16 @@ function getLabels() {
             weekdayShortLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             datePlaceholderLabel: 'N/A',
             currency: 'EUR',
+            biPredictedRevenueLabel: 'Revenu predit (J+1)',
+            biConfidenceLabel: 'Confiance',
+            biSuggestedEventsLabel: 'Opportunites evenementielles suggerees',
+            biEmptySpotsLabel: 'Aucune recommandation d emplacement pour le moment.',
+            biScoreLabel: 'Score',
+            biLatLabel: 'Lat',
+            biLngLabel: 'Lng',
+            biEmptyPricingLabel: 'Aucune suggestion tarifaire pour le moment.',
+            biPredictedLabel: 'Predit',
+            biEmptyEventsLabel: 'Aucune opportunite evenementielle detectee.',
             indicatorDefinitionTitle: 'Indicator definition',
             indicatorDefinitionFallback: 'Definition is not available yet.',
             indicatorDefinitions: {},
@@ -70,13 +80,23 @@ function getLabels() {
         weekdayShortLabels: (root.dataset.weekdayShortLabels || 'Mon,Tue,Wed,Thu,Fri,Sat,Sun').split(','),
         datePlaceholderLabel: root.dataset.datePlaceholderLabel || 'N/A',
         currency: root.dataset.currency || 'EUR',
+        biPredictedRevenueLabel: root.dataset.biPredictedRevenueLabel || 'Revenu predit (J+1)',
+        biConfidenceLabel: root.dataset.biConfidenceLabel || 'Confiance',
+        biSuggestedEventsLabel: root.dataset.biSuggestedEventsLabel || 'Opportunites evenementielles suggerees',
+        biEmptySpotsLabel: root.dataset.biEmptySpotsLabel || 'Aucune recommandation d emplacement pour le moment.',
+        biScoreLabel: root.dataset.biScoreLabel || 'Score',
+        biLatLabel: root.dataset.biLatLabel || 'Lat',
+        biLngLabel: root.dataset.biLngLabel || 'Lng',
+        biEmptyPricingLabel: root.dataset.biEmptyPricingLabel || 'Aucune suggestion tarifaire pour le moment.',
+        biPredictedLabel: root.dataset.biPredictedLabel || 'Predit',
+        biEmptyEventsLabel: root.dataset.biEmptyEventsLabel || 'Aucune opportunite evenementielle detectee.',
         indicatorDefinitionTitle: root.dataset.indicatorDefinitionTitle || 'Indicator definition',
         indicatorDefinitionFallback: root.dataset.indicatorDefinitionFallback || 'Definition is not available yet.',
         indicatorDefinitions: {
             total_orders: root.dataset.indicatorDefTotalOrders,
             total_revenue: root.dataset.indicatorDefTotalRevenue,
             average_order_value: root.dataset.indicatorDefAverageOrderValue,
-            completion_rate: root.dataset.indicatorDefCompletionRate,
+            options_revenue_pct: root.dataset.indicatorDefOptionsRevenuePct,
             revenue_trend: root.dataset.indicatorDefRevenueTrend,
             top_menu_performance: root.dataset.indicatorDefTopMenuPerformance,
             recent_paid_orders: root.dataset.indicatorDefRecentPaidOrders,
@@ -128,7 +148,7 @@ function renderKpis(payload, labels) {
     document.getElementById('kpi-total-orders').textContent = String(data.total_orders || 0);
     document.getElementById('kpi-total-revenue').textContent = toCurrency(data.total_revenue, labels.currency);
     document.getElementById('kpi-average-order-value').textContent = toCurrency(data.average_order_value, labels.currency);
-    document.getElementById('kpi-completion-rate').textContent = toPercent(data.completion_rate);
+    document.getElementById('kpi-options-revenue-rate').textContent = toPercent(data.options_revenue_pct);
 }
 
 function renderOrders(payload, labels) {
@@ -228,14 +248,91 @@ function renderOptionPerformance(payload, labels) {
     `).join('');
 }
 
+function renderBusinessIntelligence(payload, labels) {
+    const data = payload?.data || {};
+    const dateBadge = document.getElementById('dashboard-bi-date');
+    const summary = document.getElementById('dashboard-bi-summary');
+    const spotsContainer = document.getElementById('dashboard-bi-spots');
+    const pricingContainer = document.getElementById('dashboard-bi-pricing');
+    const eventsContainer = document.getElementById('dashboard-bi-events');
+
+    if (!summary || !spotsContainer || !pricingContainer || !eventsContainer) {
+        return;
+    }
+
+    if (dateBadge) {
+        dateBadge.textContent = payload?.date || '-';
+    }
+
+    const revenuePrediction = data.revenue_prediction || {};
+    summary.innerHTML = `
+        <div class="col-12 col-md-4">
+            <div class="slot-summary-card">
+                <div class="slot-summary-label">${labels.biPredictedRevenueLabel}</div>
+                <div class="slot-summary-value">${toCurrency(revenuePrediction.predicted_revenue || 0, labels.currency)}</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="slot-summary-card">
+                <div class="slot-summary-label">${labels.biConfidenceLabel}</div>
+                <div class="slot-summary-value">${Number((revenuePrediction.confidence_score || 0) * 100).toFixed(0)}%</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="slot-summary-card">
+                <div class="slot-summary-label">${labels.biSuggestedEventsLabel}</div>
+                <div class="slot-summary-value">${(data.event_opportunities || []).length}</div>
+            </div>
+        </div>
+    `;
+
+    const bestSpots = data.best_spots || [];
+    if (!bestSpots.length) {
+        spotsContainer.innerHTML = `<div class="text-muted small">${labels.biEmptySpotsLabel}</div>`;
+    } else {
+        spotsContainer.innerHTML = bestSpots.map((spot) => `
+            <div class="list-group-item px-0 py-2 bg-transparent border-0 border-bottom">
+                <div class="fw-semibold">${labels.biScoreLabel} ${Number(spot.score || 0).toFixed(1)}/100</div>
+                <div class="small text-muted">${labels.biLatLabel} ${Number(spot.latitude).toFixed(4)}, ${labels.biLngLabel} ${Number(spot.longitude).toFixed(4)}</div>
+            </div>
+        `).join('');
+    }
+
+    const pricing = data.pricing_suggestions || [];
+    if (!pricing.length) {
+        pricingContainer.innerHTML = `<div class="text-muted small">${labels.biEmptyPricingLabel}</div>`;
+    } else {
+        pricingContainer.innerHTML = pricing.map((entry) => `
+            <div class="list-group-item px-0 py-2 bg-transparent border-0 border-bottom">
+                <div class="fw-semibold">${entry.item_name}</div>
+                <div class="small text-muted">${toCurrency(entry.current_price, labels.currency)} → ${toCurrency(entry.suggested_price, labels.currency)}</div>
+                <div class="small text-muted">${labels.biConfidenceLabel} ${Number((entry.confidence_score || 0) * 100).toFixed(0)}%</div>
+            </div>
+        `).join('');
+    }
+
+    const events = data.event_opportunities || [];
+    if (!events.length) {
+        eventsContainer.innerHTML = `<div class="text-muted small">${labels.biEmptyEventsLabel}</div>`;
+    } else {
+        eventsContainer.innerHTML = events.map((entry) => `
+            <div class="list-group-item px-0 py-2 bg-transparent border-0 border-bottom">
+                <div class="fw-semibold">${entry.event_name}</div>
+                <div class="small text-muted">${labels.biScoreLabel} ${Number(entry.opportunity_score || 0).toFixed(1)}/100</div>
+                <div class="small text-muted">${labels.biPredictedLabel} ${toCurrency(entry.predicted_revenue || 0, labels.currency)}</div>
+            </div>
+        `).join('');
+    }
+}
+
 async function loadDashboard(range, interval = 'day', labels, categoryId = null, displayMode = null) {
-    const [kpis, revenue, orders, menuPerformance, menuCategories, optionPerformance] = await Promise.all([
+    const [kpis, revenue, orders, menuPerformance, menuCategories, businessIntelligence] = await Promise.all([
         fetchKpis(root.dataset.kpisUrl, range, categoryId, displayMode),
         fetchRevenue(root.dataset.revenueUrl, range, interval, categoryId, displayMode),
         fetchOrders(root.dataset.ordersUrl, range, 20, categoryId, displayMode),
         fetchMenuPerformance(root.dataset.menuPerformanceUrl, range, 10, categoryId, displayMode),
         fetchMenuCategoryPerformance(root.dataset.menuCategoriesUrl, range, 8, categoryId, displayMode),
-        fetchOptionPerformance(root.dataset.optionsUrl, range, 10, categoryId, displayMode),
+        fetchBusinessIntelligence(root.dataset.biUrl),
     ]);
 
     renderKpis(kpis, labels);
@@ -243,7 +340,7 @@ async function loadDashboard(range, interval = 'day', labels, categoryId = null,
     renderOrders(orders, labels);
     renderMenuPerformance(menuPerformance, labels);
     renderMenuCategoryPerformance(menuCategories, labels);
-    renderOptionPerformance(optionPerformance, labels);
+    renderBusinessIntelligence(businessIntelligence, labels);
     await loadSlotAnalytics(root, range, labels, categoryId, displayMode);
 }
 

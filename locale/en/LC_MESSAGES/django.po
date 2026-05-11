@@ -1,0 +1,5286 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-05 09:20+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: accounts/forms.py:13
+msgid "Vous devez confirmer votre adresse e-mail pour vous connecter."
+msgstr ""
+
+#: accounts/forms.py:18
+msgid "Ce compte est inactif."
+msgstr ""
+
+#: accounts/forms.py:28 accounts/forms.py:52
+msgid "Adresse e-mail"
+msgstr ""
+
+#: accounts/forms.py:36
+msgid "Mot de passe"
+msgstr ""
+
+#: accounts/forms.py:37
+msgid "Confirmation du mot de passe"
+msgstr ""
+
+#: accounts/forms.py:53
+msgid "First name"
+msgstr ""
+
+#: accounts/forms.py:54
+msgid "Last name"
+msgstr ""
+
+#: accounts/forms.py:71
+msgid "A user with that email already exists."
+msgstr ""
+
+#: accounts/forms.py:77 accounts/forms.py:82 orders/forms.py:62
+msgid "Street and number"
+msgstr ""
+
+#: accounts/forms.py:78 accounts/forms.py:83 orders/forms.py:63
+msgid "Building, floor, landmark"
+msgstr ""
+
+#: accounts/forms.py:79 accounts/forms.py:84 orders/forms.py:31
+#: orders/forms.py:64
+msgid "Postal code"
+msgstr ""
+
+#: accounts/forms.py:80 accounts/forms.py:85 orders/forms.py:32
+#: orders/forms.py:65 orders/models/__init__.py:111
+#: orders/templates/orders/locations/list.html:43
+msgid "City"
+msgstr ""
+
+#: accounts/forms.py:81 accounts/forms.py:86 orders/forms.py:33
+#: orders/forms.py:66 orders/models/__init__.py:112
+msgid "Country"
+msgstr ""
+
+#: accounts/forms.py:121
+msgid "Food truck name"
+msgstr ""
+
+#: accounts/forms.py:122
+msgid "Food truck description"
+msgstr ""
+
+#: accounts/forms.py:123 accounts/templates/accounts/profile.html:41
+msgid "Content language"
+msgstr ""
+
+#: accounts/forms.py:124
+msgid "Displayed price mode"
+msgstr ""
+
+#: accounts/forms.py:125
+msgid "Logo"
+msgstr ""
+
+#: accounts/forms.py:126 templates/onboarding/preview.html:141
+msgid "Primary color"
+msgstr ""
+
+#: accounts/forms.py:127 templates/onboarding/preview.html:148
+msgid "Secondary color"
+msgstr ""
+
+#: accounts/forms.py:154
+msgid "Base service address line 1"
+msgstr ""
+
+#: accounts/forms.py:155
+msgid "Base service address line 2"
+msgstr ""
+
+#: accounts/forms.py:156 foodtrucks/models/__init__.py:311
+msgid "Base service postal code"
+msgstr ""
+
+#: accounts/forms.py:157 foodtrucks/models/__init__.py:317
+msgid "Base service city"
+msgstr ""
+
+#: accounts/forms.py:158 foodtrucks/models/__init__.py:323
+msgid "Base service country"
+msgstr ""
+
+#: accounts/forms.py:186 accounts/forms.py:280
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:90
+msgid "This field is required."
+msgstr ""
+
+#: accounts/forms.py:236
+msgid "Official business name"
+msgstr ""
+
+#: accounts/forms.py:237
+msgid "SIRET"
+msgstr ""
+
+#: accounts/forms.py:238
+msgid "VAT number"
+msgstr ""
+
+#: accounts/forms.py:239
+msgid "Official billing address line 1"
+msgstr ""
+
+#: accounts/forms.py:240
+msgid "Official billing address line 2"
+msgstr ""
+
+#: accounts/forms.py:241 foodtrucks/models/__init__.py:224
+msgid "Official billing postal code"
+msgstr ""
+
+#: accounts/forms.py:242 foodtrucks/models/__init__.py:230
+msgid "Official billing city"
+msgstr ""
+
+#: accounts/forms.py:243 foodtrucks/models/__init__.py:236
+msgid "Official billing country"
+msgstr ""
+
+#: accounts/forms.py:254
+msgid "Enter a valid 14-digit SIRET number."
+msgstr ""
+
+#: accounts/models.py:33
+msgid "Whether the email is verified"
+msgstr ""
+
+#: accounts/models.py:36
+msgid "Whether the user owns or manages food trucks"
+msgstr ""
+
+#: accounts/models.py:40
+msgid "Whether the user places orders"
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:6
+msgid "Email confirmation"
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:9
+#, python-format
+msgid "Hello %(first_name)s,"
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:11
+msgid "Thank you for signing up. Please click the link below to confirm your email address:"
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:15
+msgid "This link is valid for 24 hours."
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:17
+#: accounts/templates/accounts/password_reset_email.html:10
+msgid "Thank you,"
+msgstr ""
+
+#: accounts/templates/accounts/email_confirmation.html:17
+#: accounts/templates/accounts/password_reset_email.html:11
+msgid "The Intermas team"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_done.html:4
+#: accounts/templates/accounts/password_reset_done.html:26
+msgid "Password reset sent"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_done.html:27
+msgid "Check your email"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_done.html:28
+msgid "An email has been sent with instructions to reset your password."
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_done.html:32
+#: accounts/templates/accounts/password_reset_form.html:45
+msgid "Return to login"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_email.html:2
+msgid "You are receiving this email because you (or someone else) requested a password reset for your account."
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_email.html:4
+msgid "Please click the link below to choose a new password:"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_email.html:8
+msgid "If you did not request this, you may ignore this email."
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_form.html:4
+#: accounts/templates/accounts/password_reset_form.html:26
+msgid "Password reset"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_form.html:27
+msgid "Reset your password"
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_form.html:28
+msgid "Enter your email address to receive a password reset link."
+msgstr ""
+
+#: accounts/templates/accounts/password_reset_form.html:44
+msgid "Send"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:4
+#: accounts/templates/accounts/profile.html:21
+#: accounts/templates/accounts/profile.html:22
+msgid "Owner profile"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:23 accounts/views.py:42
+msgid "Manage the owner account linked to this food truck."
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:25
+msgid "Back to food truck"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:30
+msgid "Food truck"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:33 ai_menu/forms.py:47
+#: templates/onboarding/ai_input.html:17
+#: templates/onboarding/partials/_preview_foodtruck.html:10
+#: templates/onboarding/preview.html:97
+msgid "Name"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:45
+msgid "Verified email"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:48
+#: venv/lib/python3.8/site-packages/django/forms/widgets.py:795
+msgid "Yes"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:50
+#: venv/lib/python3.8/site-packages/django/forms/widgets.py:796
+msgid "No"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:55
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:52
+#: orders/templates/orders/tickets_list.html:4
+#: orders/templates/orders/tickets_list.html:23
+msgid "My tickets"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:63
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:93
+msgid "Issued tickets"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:83
+#: orders/templates/orders/dashboard.html:30
+msgid "Complete"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:85
+#: foodtrucks/templates/foodtrucks/detail.html:50
+#: menu/templates/menu/catalog.html:165
+msgid "Required"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:87
+#: foodtrucks/templates/foodtrucks/detail.html:51
+#: templates/onboarding/ai_input.html:43 templates/onboarding/ai_input.html:56
+#: templates/onboarding/ai_input.html:67 templates/onboarding/import.html:93
+#: templates/onboarding/import.html:107 templates/onboarding/import.html:121
+#: templates/onboarding/partials/_form.html:17
+#: templates/onboarding/partials/_form.html:31
+msgid "Optional"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:102
+msgid "This step is required for the services currently contracted by this food truck."
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:104
+msgid "This step is optional with the current service setup."
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:143
+msgid "No logo uploaded yet."
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:168
+msgid "GPS coordinates are automatically derived from this address."
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:178
+msgid "Derived latitude"
+msgstr ""
+
+#: accounts/templates/accounts/profile.html:182
+msgid "Derived longitude"
+msgstr ""
+
+#: accounts/templates/accounts/register.html:4
+#: accounts/templates/accounts/register.html:26
+#: accounts/templates/accounts/register.html:55
+msgid "Sign up"
+msgstr ""
+
+#: accounts/templates/accounts/register.html:27
+#: accounts/templates/registration/login.html:42
+msgid "Create an account"
+msgstr ""
+
+#: accounts/templates/accounts/register.html:56
+msgid "Already have an account? Log in."
+msgstr ""
+
+#: accounts/templates/core/basic.html:7
+msgid "Foodtruck"
+msgstr ""
+
+#: accounts/templates/registration/login.html:3
+#: accounts/templates/registration/login.html:12
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:101
+#: templates/base.html:40
+msgid "Login"
+msgstr ""
+
+#: accounts/templates/registration/login.html:13
+msgid "Access your account"
+msgstr ""
+
+#: accounts/templates/registration/login.html:27
+msgid "Email"
+msgstr ""
+
+#: accounts/templates/registration/login.html:34
+msgid "Password"
+msgstr ""
+
+#: accounts/templates/registration/login.html:41
+msgid "Sign in"
+msgstr ""
+
+#: accounts/templates/registration/login.html:45
+msgid "Forgot your password?"
+msgstr ""
+
+#: accounts/templates/registration/login.html:46
+msgid "Click here to reset it."
+msgstr ""
+
+#: accounts/utils.py:27
+msgid "Confirmation de votre adresse e-mail"
+msgstr ""
+
+#: accounts/views.py:26
+msgid "Food truck identity"
+msgstr ""
+
+#: accounts/views.py:27
+msgid "Update branding, public description, display language, and pricing mode."
+msgstr ""
+
+#: accounts/views.py:28
+msgid "Save identity"
+msgstr ""
+
+#: accounts/views.py:31
+msgid "Base service address"
+msgstr ""
+
+#: accounts/views.py:32
+msgid "Define the operational base address used to derive default GPS coordinates."
+msgstr ""
+
+#: accounts/views.py:33
+msgid "Save service address"
+msgstr ""
+
+#: accounts/views.py:36
+msgid "Billing information"
+msgstr ""
+
+#: accounts/views.py:37
+msgid "Provide the legal information required for invoicing and contracted payment services."
+msgstr ""
+
+#: accounts/views.py:38
+msgid "Save billing information"
+msgstr ""
+
+#: accounts/views.py:41
+msgid "Account details"
+msgstr ""
+
+#: accounts/views.py:43
+msgid "Save changes"
+msgstr ""
+
+#: accounts/views.py:67
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:44
+#: orders/templates/orders/locations/form.html:42
+msgid "Identity"
+msgstr ""
+
+#: accounts/views.py:75
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:46
+msgid "Service address"
+msgstr ""
+
+#: accounts/views.py:83
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:49
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:89
+msgid "Billing"
+msgstr ""
+
+#: accounts/views.py:91
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:51
+msgid "Owner account"
+msgstr ""
+
+#: accounts/views.py:152
+msgid "Un e-mail de confirmation vous a été envoyé."
+msgstr ""
+
+#: accounts/views.py:155
+msgid "Votre demande ne peut aboutir."
+msgstr ""
+
+#: accounts/views.py:166
+msgid "You have been logged out."
+msgstr ""
+
+#: accounts/views.py:172
+msgid "Lien de confirmation invalide ou expiré."
+msgstr ""
+
+#: accounts/views.py:178
+msgid "Utilisateur introuvable."
+msgstr ""
+
+#: accounts/views.py:184
+msgid "Email confirmé avec succès."
+msgstr ""
+
+#: accounts/views.py:192
+msgid "No managed food truck found for your account."
+msgstr ""
+
+#: accounts/views.py:230
+msgid "Your account has been updated. Please confirm your new email address."
+msgstr ""
+
+#: accounts/views.py:232
+msgid "Your account has been updated."
+msgstr ""
+
+#: accounts/views.py:240
+msgid "Your food truck identity has been updated."
+msgstr ""
+
+#: accounts/views.py:242
+msgid "Your base service address has been updated."
+msgstr ""
+
+#: accounts/views.py:244
+msgid "Your billing information has been updated."
+msgstr ""
+
+#: ai_menu/forms.py:48 templates/onboarding/ai_input.html:18
+#: templates/onboarding/partials/_preview_foodtruck.html:19
+#: templates/onboarding/preview.html:106
+msgid "Description"
+msgstr ""
+
+#: ai_menu/forms.py:49 menu/forms.py:94 menu/forms.py:137
+#: menu/templates/menu/catalog.html:129 menu/templates/menu/catalog.html:223
+#: orders/templates/orders/partials/_ticket_receipt.html:11
+#: orders/templates/orders/partials/_ticket_receipt.html:59
+#: orders/templates/orders/tickets_list.html:48
+msgid "Tax"
+msgstr ""
+
+#: ai_menu/forms.py:50 menu/forms.py:136
+msgid "Combo price"
+msgstr ""
+
+#: ai_menu/forms.py:51
+msgid "Combo discount"
+msgstr ""
+
+#: ai_menu/forms.py:52
+msgid "Is available"
+msgstr ""
+
+#: ai_menu/forms.py:53 ai_menu/forms.py:145
+msgid "Display order"
+msgstr ""
+
+#: ai_menu/forms.py:69 menu/forms.py:81 menu/forms.py:124
+msgid "Default tax"
+msgstr ""
+
+#: ai_menu/forms.py:116 menu/models/__init__.py:49
+msgid "Category"
+msgstr ""
+
+#: ai_menu/forms.py:134 ai_menu/forms.py:143
+msgid "Fixed item"
+msgstr ""
+
+#: ai_menu/forms.py:141
+msgid "Display name"
+msgstr ""
+
+#: ai_menu/forms.py:142
+msgid "Customer choice category"
+msgstr ""
+
+#: ai_menu/forms.py:144
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:17
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:48
+#: foodtrucks/templates/foodtrucks/detail.html:55
+#: orders/templates/orders/partials/_ticket_receipt.html:9
+msgid "Quantity"
+msgstr ""
+
+#: ai_menu/forms.py:178
+msgid "A combo component needs either fixed item(s) or a source category."
+msgstr ""
+
+#: ai_menu/forms.py:181
+msgid "All fixed items must belong to the selected source category."
+msgstr ""
+
+#: ai_menu/models.py:69
+msgid "Free Option"
+msgstr ""
+
+#: ai_menu/models.py:70
+msgid "Paid Option"
+msgstr ""
+
+#: ai_menu/models.py:71
+msgid "Bundle"
+msgstr ""
+
+#: ai_menu/models.py:72
+msgid "Pricing"
+msgstr ""
+
+#: ai_menu/models.py:76
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:140
+#: onboarding/models.py:46 orders/models/__init__.py:355
+#: orders/templates/orders/dashboard.html:33
+#: orders/templates/orders/dashboard.html:47
+msgid "Pending"
+msgstr ""
+
+#: ai_menu/models.py:77
+#: templates/ai_menu/partials/recommendations_panel.html:221
+msgid "Accepted"
+msgstr ""
+
+#: ai_menu/models.py:78
+#: templates/ai_menu/partials/recommendations_panel.html:265
+msgid "Rejected"
+msgstr ""
+
+#: ai_menu/models.py:86
+msgid "The menu item this recommendation is for"
+msgstr ""
+
+#: ai_menu/models.py:93
+msgid "Type of recommendation"
+msgstr ""
+
+#: ai_menu/models.py:101
+msgid "Language used to generate this recommendation"
+msgstr ""
+
+#: ai_menu/models.py:106
+msgid "Structured recommendation data (varies by type)"
+msgstr ""
+
+#: ai_menu/models.py:114
+msgid "Current status of the recommendation"
+msgstr ""
+
+#: ai_menu/models.py:118
+msgid "When the recommendation was created"
+msgstr ""
+
+#: ai_menu/models.py:119
+msgid "When the recommendation was last updated"
+msgstr ""
+
+#: ai_menu/models.py:124
+msgid "AI Recommendation"
+msgstr ""
+
+#: ai_menu/models.py:125
+msgid "AI Recommendations"
+msgstr ""
+
+#: ai_menu/models.py:144
+msgid "Only pending recommendations can be accepted."
+msgstr ""
+
+#: ai_menu/models.py:151
+msgid "Only pending recommendations can be rejected."
+msgstr ""
+
+#: ai_menu/models.py:158
+msgid "This recommendation is already pending."
+msgstr ""
+
+#: ai_menu/views.py:69
+msgid "Create an active menu category before adding combos."
+msgstr ""
+
+#: ai_menu/views.py:80
+msgid "Combo created successfully. You can now define its composition."
+msgstr ""
+
+#: ai_menu/views.py:124
+msgid "Combo updated successfully."
+msgstr ""
+
+#: analytics/models.py:14
+msgid "OpenAgenda Source"
+msgstr ""
+
+#: analytics/models.py:15
+msgid "OpenAgenda Sources"
+msgstr ""
+
+#: analytics/models.py:34
+msgid "Event"
+msgstr ""
+
+#: analytics/models.py:35
+msgid "Events"
+msgstr ""
+
+#: analytics/models.py:58
+msgid "Score from 0 to 100"
+msgstr ""
+
+#: analytics/models.py:63
+msgid "Event Opportunity"
+msgstr ""
+
+#: analytics/models.py:64
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_bi_intelligence.html:20
+msgid "Event Opportunities"
+msgstr ""
+
+#: analytics/models.py:85 menu/models/__init__.py:659
+msgid "Confidence score from 0 to 1"
+msgstr ""
+
+#: analytics/models.py:89
+msgid "Revenue Prediction"
+msgstr ""
+
+#: analytics/models.py:90
+msgid "Revenue Predictions"
+msgstr ""
+
+#: foodtrucks/api/i18n_example_serializers.py:62
+#: foodtrucks/models/__init__.py:182
+msgid "Name of the food truck"
+msgstr ""
+
+#: foodtrucks/api/i18n_example_serializers.py:66
+msgid "Detailed description of the food truck"
+msgstr ""
+
+#: foodtrucks/api/i18n_example_serializers.py:130
+msgid "Item name in the current language"
+msgstr ""
+
+#: foodtrucks/api/i18n_example_serializers.py:134
+msgid "Item description"
+msgstr ""
+
+#: foodtrucks/api/i18n_example_serializers.py:139
+msgid "Price in USD"
+msgstr ""
+
+#: foodtrucks/api/i18n_example_serializers.py:143
+msgid "Whether this item is currently available"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:24 test_translations.py:36
+#: test_translations.py:45
+msgid "Display name of the plan"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:28
+msgid "Unique code identifier for the plan"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:34
+msgid "Monthly price of the plan"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:38
+msgid "Whether this plan allows accepting orders"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:40
+msgid "When the plan was created"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:43 test_translations.py:26
+#: test_translations.py:32 test_translations.py:44
+msgid "Plan"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:44
+msgid "Plans"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:68
+msgid "The food truck this subscription belongs to"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:74
+msgid "The plan this subscription is for"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:80
+msgid "Current status of the subscription"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:84
+msgid "When the subscription started"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:89
+msgid "When the subscription ends (null for ongoing)"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:91
+msgid "When the subscription was created"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:94
+msgid "Subscription"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:95
+msgid "Subscriptions"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:169
+msgid "The user who owns this food truck"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:173
+msgid "Taxes added to displayed prices"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:174
+msgid "Taxes included in displayed prices"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:180
+msgid "Primary content language for this food truck and its menu"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:183
+msgid "Description of the food truck"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:188
+msgid "Whether displayed prices already include taxes or should show taxes separately"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:194
+msgid "Official business name used on invoices"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:200
+msgid "French SIRET number used for billing"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:206
+msgid "VAT number used on invoices when applicable"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:212
+msgid "Official billing street address"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:218
+msgid "Official billing address complement"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:238
+msgid "Whether the food truck is active"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:239
+msgid "When the food truck was created"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:246
+msgid "Logo image for the food truck"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:252
+msgid "Cover image for the food truck"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:257
+msgid "Primary brand color (hex code)"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:262
+msgid "Secondary brand color (hex code)"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:269
+msgid "SEO-friendly resource slug"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:276
+msgid "Stripe Connect account id for seller payouts"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:280
+msgid "Whether seller onboarding is complete"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:284
+msgid "Whether Stripe account details were submitted"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:288
+msgid "Whether Stripe charges are enabled"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:292
+msgid "Whether Stripe payouts are enabled"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:299
+msgid "Base service street address"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:305
+msgid "Base service address complement"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:330
+msgid "Latitude coordinate"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:336
+msgid "Longitude coordinate"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:388
+msgid "Dietary preferences this food truck supports"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:394 test_translations.py:37
+#: test_translations.py:46
+msgid "Food Truck"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:395
+msgid "Food Trucks"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:762
+msgid "Food truck this location score belongs to"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:766
+msgid "Global score from 0 to 100"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:767
+msgid "Demand sub-score from 0 to 100"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:768
+msgid "Competition sub-score from 0 to 100"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:769
+msgid "Event sub-score from 0 to 100"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:773
+msgid "Location Score"
+msgstr ""
+
+#: foodtrucks/models/__init__.py:774
+msgid "Location Scores"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:4
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:68
+msgid "Business Intelligence"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:19
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:52
+msgid "Horizon (days)"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:20
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:56
+msgid "Minimum attendance"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:21
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:60
+msgid "Minimum score"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:22
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:64
+msgid "Time slot"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:23
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:82
+msgid "Keywords"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:24
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:78
+msgid "Max opportunities"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:25
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:73
+msgid "Radius (km)"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:26
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:118
+msgid "Apply targeting"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:27
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:123
+msgid "Opportunity search in progress..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:28
+msgid "events analyzed"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:29
+msgid "opportunities retained"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:30
+#: foodtrucks/templates/foodtrucks/dashboard.html:76
+msgid "Predicted revenue (D+1)"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:31
+#: foodtrucks/templates/foodtrucks/dashboard.html:77
+msgid "Confidence"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:32
+#: foodtrucks/templates/foodtrucks/dashboard.html:78
+msgid "Suggested event opportunities"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:33
+#: foodtrucks/templates/foodtrucks/dashboard.html:79
+msgid "No spot recommendations yet."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:34
+#: foodtrucks/templates/foodtrucks/dashboard.html:80
+msgid "Score"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:35
+#: foodtrucks/templates/foodtrucks/dashboard.html:81
+msgid "Lat"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:36
+#: foodtrucks/templates/foodtrucks/dashboard.html:82
+msgid "Lng"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:37
+#: foodtrucks/templates/foodtrucks/dashboard.html:83
+msgid "No pricing suggestions yet."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:38
+#: foodtrucks/templates/foodtrucks/dashboard.html:84
+msgid "Predicted"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:39
+msgid "No event opportunities were found for the next 14 days."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:42
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_bi_intelligence.html:4
+msgid "AI Business Intelligence"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:45
+msgid "Back to dashboard"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:66
+msgid "Full day"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:67
+msgid "Morning"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:68
+msgid "Noon"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:69
+msgid "Evening"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:74
+msgid "All distances"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:75
+msgid "0 = no limit"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:85
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:86
+msgid "Festival"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:89
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:90
+msgid "Market"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:93
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:94
+msgid "Concert"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:97
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:98
+msgid "Sports"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:101
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:102
+msgid "Family"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:106
+msgid "Add custom keywords"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:111
+msgid "Enter keywords separated by commas (e.g., vegan, organic, drinks)"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/business_intelligence.html:113
+msgid "Custom keywords will be added to the search"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:8
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:34
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:66
+#: foodtrucks/templates/foodtrucks/dashboard.html:154
+msgid "Close"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:21
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:53
+#: orders/templates/orders/locations/confirm_delete.html:36
+#: orders/templates/orders/locations/form.html:125
+#: orders/templates/orders/slot_management.html:95
+#: templates/orders/working_hours/partials/modal_form.html:44
+#: templates/schedules/partials/modal_form.html:28
+msgid "Cancel"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:22
+#: foodtrucks/templates/foodtrucks/detail.html:67
+msgid "Add item to cart"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:44
+#: foodtrucks/templates/foodtrucks/detail.html:72
+msgid "Estimated combo price"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:54
+#: foodtrucks/templates/foodtrucks/detail.html:68
+msgid "Add combo to cart"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:65
+msgid "Sign in required"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:69
+msgid "Log in or create an account to add items to your cart."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:72
+msgid "Maybe later"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:73
+msgid "Create account"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/add_to_cart_modals.html:74
+msgid "Log in"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:6
+msgid "Your cart"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:7
+msgid "Session-based cart for fast MVP ordering."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:9
+#: orders/models/__init__.py:354
+msgid "Draft"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:14
+msgid "Preparing cart…"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:20
+#: orders/templates/orders/owner_tickets_list.html:68
+#: orders/templates/orders/partials/_ticket_receipt.html:12
+#: orders/templates/orders/partials/_ticket_receipt.html:63
+#: orders/templates/orders/tickets_list.html:49
+msgid "Total"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:24
+msgid "Pickup window"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:26
+msgid "Loading available slots…"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:30
+#: foodtrucks/templates/foodtrucks/detail.html:57
+#: foodtrucks/templates/foodtrucks/detail_debug.html:12
+msgid "Recommended pickup time selected automatically."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:32
+msgid "Choose an available slot before checkout."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:38
+#: foodtrucks/templates/foodtrucks/detail.html:77
+msgid "Pay online"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:41
+#: foodtrucks/templates/foodtrucks/detail.html:78 orders/models/__init__.py:364
+msgid "Pay at the food truck"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:48
+#: foodtrucks/templates/foodtrucks/detail.html:46
+msgid "Your cart is empty."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/cart_drawer.html:49
+msgid "Pick a menu item to start building your order."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:6
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:76
+#: menu/models/__init__.py:27 templates/onboarding/preview.html:121
+#: test_translations.py:38 test_translations.py:47
+msgid "Menu"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:8
+msgid "Live menu"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/components/menu_panel.html:15
+msgid "Loading menu…"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:4
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:67
+msgid "Dashboard"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:35
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_menu_performance.html:18
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:34
+msgid "Revenue"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:36
+msgid "Revenue by category"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:37
+msgid "No paid orders in this range."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:38
+msgid "No menu performance data."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:39
+msgid "No category performance data."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:40
+msgid "No slot data."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:41
+msgid "No slot insights available."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:42
+msgid "No slot recommendations available."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:43
+msgid "No hourly performance data."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:44
+msgid "more slots"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:45
+msgid "more recommendations"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:46
+msgid "demand"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:47
+msgid "orders"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:48
+msgid "Active slots"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:49
+msgid "Avg utilization"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:50
+msgid "Slot revenue"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:51
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_insights.html:10
+msgid "Underperforming"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:52
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_insights.html:13
+msgid "Optimal"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:53
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_insights.html:16
+msgid "Saturated"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:54
+msgid "Best slot"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:55
+msgid "orders include options"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:56
+msgid "Options revenue"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:57
+msgid "Avg. option uplift / order"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:58
+msgid "No option data."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:59
+msgid "Mon,Tue,Wed,Thu,Fri,Sat,Sun"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:60
+msgid "N/A"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:62
+#: foodtrucks/templates/foodtrucks/dashboard.html:153
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:8
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:19
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:30
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:41
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_menu_performance.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_option_performance.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_insights.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_recommendations.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_utilization.html:6
+msgid "Indicator definition"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:63
+msgid "Definition is not available yet."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:64
+msgid "Number of paid orders in the selected date range."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:65
+msgid "Total paid revenue for the selected date range and category filter."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:66
+msgid "Average paid order amount: total revenue divided by total paid orders."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:67
+msgid "Share of paid orders that reached completed status."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:68
+msgid "Revenue evolution across the selected interval (daily, weekly, monthly)."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:69
+msgid "Top selling items by quantity and generated revenue."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:70
+msgid "Most recent paid orders with payment time and pickup slot."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:71
+msgid "How each pickup slot is used compared to its capacity and revenue."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:72
+msgid "Option selection behavior and additional revenue generated by options."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:73
+msgid "Order density by weekday and hour to identify demand peaks."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:74
+msgid "Classification of slots by utilization: underperforming, optimal, saturated."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:75
+msgid "Suggested operational actions on slots: increase, reduce, or add capacity."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:85
+msgid "No event opportunities detected."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:88
+msgid "Food Truck Dashboard"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:92
+msgid "Date range"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:94
+msgid "Today"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:95
+msgid "Last 7 days"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:96
+msgid "Last 30 days"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard.html:98
+msgid "Price display"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_bi_intelligence.html:12
+msgid "Best Spots"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_bi_intelligence.html:16
+#: menu/models/__init__.py:665
+msgid "Pricing Suggestions"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:6
+msgid "Revenue trend"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:8
+msgid "Revenue interval"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:9
+msgid "Daily"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:10
+msgid "Weekly"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_chart.html:11
+msgid "Monthly"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:7
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:8
+msgid "Total orders"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:18
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:19
+msgid "Total revenue"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:29
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:30
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:35
+msgid "Average order value"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:40
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_kpis.html:41
+msgid "Completion rate"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_menu_performance.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_menu_performance.html:6
+msgid "Top menu performance"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_menu_performance.html:16
+#: menu/models/__init__.py:96
+#: orders/templates/orders/partials/_ticket_receipt.html:8
+msgid "Item"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_menu_performance.html:17
+#: foodtrucks/templates/foodtrucks/detail.html:41
+msgid "Qty"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_option_performance.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_option_performance.html:6
+msgid "Options performance"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_option_performance.html:20
+#: foodtrucks/templates/foodtrucks/detail.html:39 menu/models/__init__.py:625
+msgid "Option"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_option_performance.html:21
+msgid "Selections"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_option_performance.html:22
+msgid "Revenue from option"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:6
+msgid "Recent paid orders"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:8
+#: orders/templates/orders/dashboard.html:25
+#: orders/templates/orders/dashboard.html:54
+#: templates/orders/working_hours/index.html:41
+#: templates/schedules/index.html:36
+msgid "Refresh"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:15
+#: menu/templates/menu/catalog.html:188
+#: orders/templates/orders/slot_management.html:53
+msgid "Status"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:16
+msgid "Paid at"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:17
+msgid "Pickup"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_orders_table.html:18
+msgid "Amount"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:6
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:25
+msgid "Slot heatmap"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:8
+msgid "Orders by weekday and hour"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:13
+msgid "Low"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:19
+msgid "High"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:21
+msgid "Scroll horizontally to view all hours"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:24
+msgid "Slot heatmap grid"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:32
+msgid "Hour"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_heatmap.html:33
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_performance.html:11
+#: orders/models/__init__.py:495
+msgid "Orders"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_insights.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_insights.html:6
+msgid "Slot insights"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_performance.html:4
+msgid "Slot performance"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_performance.html:10
+msgid "Slot"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_performance.html:12
+msgid "Usage"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_recommendations.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_recommendations.html:6
+msgid "Slot recommendations"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_recommendations.html:10
+msgid "Increase capacity"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_recommendations.html:13
+msgid "Reduce or remove"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_recommendations.html:16
+msgid "Suggested new slots"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_utilization.html:5
+#: foodtrucks/templates/foodtrucks/dashboard/partials/_slot_utilization.html:6
+msgid "Slot utilization & revenue"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:4
+#: foodtrucks/templates/foodtrucks/detail_debug.html:4
+#: foodtrucks/templates/foodtrucks/list.html:4 templates/base.html:7
+#: templates/base.html:21 templates/base.html:95
+#: templates/onboarding/ai_input.html:4 templates/onboarding/import.html:4
+#: templates/onboarding/preview.html:4
+msgid "FoodTruck SaaS"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:22
+msgid "Loading menu..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:23
+msgid "No menu items are available right now."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:24
+msgid "Please check back later."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:25
+#, python-brace-format
+msgid "Cart ({count})"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:26
+msgid "Log in to submit your order."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:27
+msgid "Add items to your cart to checkout."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:28
+msgid "Add items to your cart to continue."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:29
+#: foodtrucks/templates/foodtrucks/detail_debug.html:19
+msgid "No pickup slots are currently available."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:30
+#: foodtrucks/templates/foodtrucks/detail_debug.html:21
+msgid "Select a pickup slot before checkout."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:31
+#: foodtrucks/templates/foodtrucks/detail.html:64
+#: foodtrucks/templates/foodtrucks/detail_debug.html:20
+msgid "Unable to load pickup slots."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:32
+msgid "Unable to load cart."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:33
+msgid "Could not identify foodtruck."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:34
+msgid "Unable to load menu."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:35
+msgid "Add to cart"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:36
+msgid "Adding..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:37
+msgid "Unable to add item to cart."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:38
+#: foodtrucks/templates/foodtrucks/detail.html:49 menu/models/__init__.py:268
+msgid "Combo"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:40
+msgid "No extras selected"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:42
+msgid "Decrease quantity"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:43
+msgid "Increase quantity"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:44
+msgid "each"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:45
+msgid "Remove"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:47
+#: templates/ai_menu/combo_list.html:53
+msgid "Price to confirm"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:48
+#: templates/ai_menu/combo_create.html:4 templates/ai_menu/combo_create.html:18
+#: templates/ai_menu/combo_list.html:29
+msgid "Add combo"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:52
+msgid "min"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:53
+msgid "max"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:54 menu/forms.py:93
+msgid "Price"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:56
+#, python-brace-format
+msgid "{count} items"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:58
+#: foodtrucks/templates/foodtrucks/detail_debug.html:13
+msgid "Recommended pickup: right now"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:59
+#: foodtrucks/templates/foodtrucks/detail_debug.html:14
+#, python-brace-format
+msgid "Next available slot: {time}"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:60
+#: foodtrucks/templates/foodtrucks/detail_debug.html:15
+msgid "Choose a pickup slot"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:61
+#: foodtrucks/templates/foodtrucks/detail_debug.html:16
+msgid "unavailable"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:62
+#: foodtrucks/templates/foodtrucks/detail_debug.html:17
+msgid "Loading available slots..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:63
+#: foodtrucks/templates/foodtrucks/detail_debug.html:18
+msgid "No pickup slots available."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:65
+#, python-brace-format
+msgid "Customize {item}"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:66
+#, python-brace-format
+msgid "Compose {combo}"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:69
+msgid "Compose combo"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:70
+msgid "No customization options for this item."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:71
+#, python-brace-format
+msgid "Choose an item for {component}."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:73
+#, python-brace-format
+msgid "Customer chooses from {category}"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:74
+#, python-brace-format
+msgid "Please choose at least {count} option(s) for {group}."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:75
+#, python-brace-format
+msgid "You can select up to {count} option(s) for {group}."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:76
+#: foodtrucks/templates/foodtrucks/detail_debug.html:22
+msgid "Order submitted. Redirecting to payment..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:79
+msgid "Order submitted. Pay at the food truck on pickup."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail.html:91
+#: foodtrucks/templates/foodtrucks/detail_debug.html:69
+msgid "Ordering is not available for this foodtruck."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:37
+#: templates/onboarding/preview.html:136
+msgid "Branding"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:41
+msgid "Primary"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:45
+msgid "Secondary"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:51
+msgid "Back to table"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:79
+msgid "Debug information"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:80
+msgid "Foodtruck slug:"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:81
+msgid "API URL:"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/detail_debug.html:82
+msgid "Check browser console for detailed logs."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:4
+msgid "Foodtrucks"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:12
+msgid "Discover foodtrucks"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:13
+msgid "Find delicious food from local foodtrucks near you."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:18
+msgid "Add foodtruck"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:33
+msgid "Search foodtrucks..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:37
+msgid "All locations"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:38
+msgid "Nearby"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:43
+msgid "Search"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:54
+msgid "No foodtrucks found"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:55
+msgid "Check back later for new foodtrucks in your area."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:56
+#: orders/templates/orders/slot_management.html:61 templates/menu_test.html:19
+#: templates/onboarding/import.html:148 templates/onboarding/preview.html:178
+msgid "Loading..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:57
+msgid "Loading foodtrucks..."
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:58
+msgid "Oops!"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:59
+msgid "Failed to load foodtrucks"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:60
+msgid "Try Again"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:61
+msgid "No description available"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:62
+msgid "Open"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:63
+#: orders/templates/orders/slot_management.html:28
+msgid "Closed"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/list.html:64
+msgid "View Menu"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:16
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:19
+msgid "Show description"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:17
+msgid "Hide description"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:31
+msgid "Owner space"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:33
+msgid "Customer space"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:39
+msgid "My account"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:43
+msgid "Profile"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:54
+msgid "Admin"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:60
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:63
+msgid "Operations"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:69
+msgid "Active orders"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:70
+#: templates/orders/working_hours/index.html:4
+#: templates/orders/working_hours/index.html:36
+#: templates/schedules/index.html:4 templates/schedules/index.html:31
+msgid "Service hours"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:71
+msgid "Sales locations"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:80
+#: menu/templates/menu/dashboard.html:4 menu/templates/menu/dashboard.html:21
+msgid "Menu management"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:81
+#: menu/templates/menu/dashboard.html:32 menu/templates/menu/import.html:4
+#: menu/templates/menu/import.html:22
+msgid "Import a menu"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:82
+msgid "Catalog and pricing"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:83
+#: menu/templates/menu/dashboard.html:63
+msgid "AI suggestions"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:84
+#: menu/models/__init__.py:269 menu/templates/menu/catalog.html:204
+#: menu/templates/menu/dashboard.html:52 menu/templates/menu/dashboard.html:55
+msgid "Combos"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:94
+msgid "Monthly accounting export"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:99
+#: templates/base.html:36
+msgid "Logout"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:106
+msgid "Open cart"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:122
+msgid "Clear category filter"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:146
+#: orders/models/__init__.py:356 orders/templates/orders/dashboard.html:34
+#: orders/templates/orders/dashboard.html:48
+msgid "Confirmed"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:152
+#: orders/models/__init__.py:357 orders/templates/orders/dashboard.html:35
+#: orders/templates/orders/dashboard.html:49
+msgid "Preparing"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:158
+#: orders/models/__init__.py:358 orders/templates/orders/dashboard.html:36
+#: orders/templates/orders/dashboard.html:50
+msgid "Ready"
+msgstr ""
+
+#: foodtrucks/templates/foodtrucks/partials/_foodtruck_navbar.html:164
+#: onboarding/models.py:48 orders/models/__init__.py:359
+#: orders/templates/orders/dashboard.html:37
+#: orders/templates/orders/dashboard.html:51
+msgid "Completed"
+msgstr ""
+
+#: menu/forms.py:60
+msgid "Raw text"
+msgstr ""
+
+#: menu/forms.py:64
+msgid "Paste an existing menu, website copy, or pricing notes here."
+msgstr ""
+
+#: menu/forms.py:69 templates/onboarding/import.html:121
+#: templates/onboarding/partials/_form.html:31
+msgid "Reference URL"
+msgstr ""
+
+#: menu/forms.py:95 menu/forms.py:138 menu/forms.py:173
+#: orders/templates/orders/slot_management.html:27
+#: templates/ai_menu/combo_list.html:58
+msgid "Available"
+msgstr ""
+
+#: menu/forms.py:172
+msgid "Price modifier"
+msgstr ""
+
+#: menu/models/__init__.py:20
+msgid "The food truck this menu belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:22
+msgid "Name of the menu"
+msgstr ""
+
+#: menu/models/__init__.py:23
+msgid "Whether the menu is active"
+msgstr ""
+
+#: menu/models/__init__.py:24
+msgid "When the menu was created"
+msgstr ""
+
+#: menu/models/__init__.py:28
+msgid "Menus"
+msgstr ""
+
+#: menu/models/__init__.py:43
+msgid "The menu this category belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:45
+msgid "Name of the category"
+msgstr ""
+
+#: menu/models/__init__.py:46 menu/models/__init__.py:86
+#: menu/models/__init__.py:265 menu/models/__init__.py:495
+msgid "Order for display"
+msgstr ""
+
+#: menu/models/__init__.py:50 templates/menu_test.html:30
+msgid "Categories"
+msgstr ""
+
+#: menu/models/__init__.py:68
+msgid "The category this item belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:70
+msgid "Name of the item"
+msgstr ""
+
+#: menu/models/__init__.py:71
+msgid "Description of the item"
+msgstr ""
+
+#: menu/models/__init__.py:78
+msgid "Tax configuration applied to this item"
+msgstr ""
+
+#: menu/models/__init__.py:83
+msgid "Base price of the item"
+msgstr ""
+
+#: menu/models/__init__.py:85
+msgid "Whether the item is available"
+msgstr ""
+
+#: menu/models/__init__.py:92
+msgid "Dietary preferences this item is compatible with"
+msgstr ""
+
+#: menu/models/__init__.py:97
+msgid "Items"
+msgstr ""
+
+#: menu/models/__init__.py:239
+msgid "The category this combo belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:241
+msgid "Name of the combo"
+msgstr ""
+
+#: menu/models/__init__.py:242
+msgid "Description of the combo"
+msgstr ""
+
+#: menu/models/__init__.py:249
+msgid "Tax configuration applied to this combo"
+msgstr ""
+
+#: menu/models/__init__.py:256
+msgid "Explicit combo price when known"
+msgstr ""
+
+#: menu/models/__init__.py:262
+msgid "Owner-defined reduction applied to the composed combo"
+msgstr ""
+
+#: menu/models/__init__.py:264
+msgid "Whether the combo is available"
+msgstr ""
+
+#: menu/models/__init__.py:469
+msgid "The combo this component belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:477
+msgid "Legacy fixed item for this combo component"
+msgstr ""
+
+#: menu/models/__init__.py:483
+msgid "Fixed menu items always included for this combo component"
+msgstr ""
+
+#: menu/models/__init__.py:491
+msgid "Category from which the customer chooses the item for this combo component"
+msgstr ""
+
+#: menu/models/__init__.py:493
+msgid "Display name of the combo component"
+msgstr ""
+
+#: menu/models/__init__.py:494
+msgid "Quantity of this component in the combo"
+msgstr ""
+
+#: menu/models/__init__.py:498
+msgid "Combo Item"
+msgstr ""
+
+#: menu/models/__init__.py:499
+msgid "Combo Items"
+msgstr ""
+
+#: menu/models/__init__.py:575
+msgid "The category this option group belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:577
+msgid "Name of the option group"
+msgstr ""
+
+#: menu/models/__init__.py:578
+msgid "Whether this group is required"
+msgstr ""
+
+#: menu/models/__init__.py:579
+msgid "Minimum number of choices required"
+msgstr ""
+
+#: menu/models/__init__.py:583
+msgid "Maximum number of choices allowed (null for unlimited)"
+msgstr ""
+
+#: menu/models/__init__.py:587
+msgid "Option Group"
+msgstr ""
+
+#: menu/models/__init__.py:588
+msgid "Option Groups"
+msgstr ""
+
+#: menu/models/__init__.py:607
+msgid "The option group this option belongs to"
+msgstr ""
+
+#: menu/models/__init__.py:613
+msgid "Items that can use this option"
+msgstr ""
+
+#: menu/models/__init__.py:615
+msgid "Name of the option"
+msgstr ""
+
+#: menu/models/__init__.py:620
+msgid "Price modifier for this option (can be negative)"
+msgstr ""
+
+#: menu/models/__init__.py:622
+msgid "Whether the option is available"
+msgstr ""
+
+#: menu/models/__init__.py:626 menu/templates/menu/catalog.html:140
+msgid "Options"
+msgstr ""
+
+#: menu/models/__init__.py:655
+msgid "Item this pricing suggestion targets"
+msgstr ""
+
+#: menu/models/__init__.py:660
+msgid "Explainable reasoning for this suggestion"
+msgstr ""
+
+#: menu/models/__init__.py:664
+msgid "Pricing Suggestion"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:4 menu/templates/menu/catalog.html:81
+#: menu/templates/menu/dashboard.html:41
+msgid "Catalogue and pricing"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:76
+#: templates/orders/working_hours/index.html:24
+#: templates/schedules/index.html:19
+msgid "Saving..."
+msgstr ""
+
+#: menu/templates/menu/catalog.html:77
+msgid "Saved"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:78 templates/menu_test.html:40
+msgid "Error"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:82
+msgid "Update live prices and temporarily disable dishes without leaving the owner space."
+msgstr ""
+
+#: menu/templates/menu/catalog.html:85 templates/ai_menu/combo_create.html:22
+#: templates/ai_menu/combo_form.html:59 templates/ai_menu/combo_list.html:22
+msgid "Displayed prices are TTC (tax included)."
+msgstr ""
+
+#: menu/templates/menu/catalog.html:87 templates/ai_menu/combo_create.html:24
+#: templates/ai_menu/combo_form.html:61 templates/ai_menu/combo_list.html:24
+msgid "Displayed prices are HT (tax excluded)."
+msgstr ""
+
+#: menu/templates/menu/catalog.html:92 menu/templates/menu/dashboard.html:34
+msgid "Importer une carte"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:93
+msgid "Gestion de carte"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:98
+msgid "No active menu is available yet. Import a menu first."
+msgstr ""
+
+#: menu/templates/menu/catalog.html:106 menu/templates/menu/dashboard.html:43
+#: templates/ai_menu/dashboard.html:44 templates/menu_test.html:32
+msgid "items"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:106 menu/templates/menu/dashboard.html:43
+msgid "combos"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:118 menu/templates/menu/catalog.html:212
+msgid "Taxe effective"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:125 menu/templates/menu/catalog.html:219
+msgid "Price (TTC)"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:125 menu/templates/menu/catalog.html:219
+msgid "Price (HT)"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:133 menu/templates/menu/catalog.html:182
+#: menu/templates/menu/catalog.html:227
+#: orders/templates/orders/locations/list.html:39
+#: templates/ai_menu/partials/recommendations_panel.html:20
+msgid "Active"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:141
+msgid "group(s)"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:152
+msgid "Options du plat"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:153
+msgid "Les options sont rattachées à ce plat. Leur supplément est éditable ici, mais leur taxe est automatiquement celle du plat."
+msgstr ""
+
+#: menu/templates/menu/catalog.html:155
+msgid "Produit"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:155
+msgid "Taxe"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:164
+msgid "Affectation"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:168
+msgid "Fiscalité"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:168
+msgid "hérite du plat"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:175
+msgid "Produit lié"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:175
+msgid "Taxe héritée"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:178
+msgid "Price modifier (TTC)"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:178
+msgid "Price modifier (HT)"
+msgstr ""
+
+#: menu/templates/menu/catalog.html:240
+msgid "This menu has no categories yet."
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:22
+msgid "Import a new menu, adjust live prices, and temporarily disable dishes without going through Django admin."
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:33
+msgid "Upload menu photos, add a PDF, or paste raw text to replace the live menu in one pass."
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:42
+msgid "Update dish prices and availability on the current menu from a single owner page."
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:44 menu/templates/menu/import.html:25
+msgid "Catalogue et prix"
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:53
+msgid "Keep AI-generated bundles available from the same menu area."
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:64
+msgid "Review upsell suggestions after the core catalogue is in place."
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:66
+msgid "Suggestions IA"
+msgstr ""
+
+#: menu/templates/menu/dashboard.html:73
+msgid "No active menu is currently published. Start with an import."
+msgstr ""
+
+#: menu/templates/menu/import.html:23
+msgid "Mix raw text, photos, or PDF files. The imported menu replaces the current live menu and keeps the previous one archived."
+msgstr ""
+
+#: menu/templates/menu/import.html:41
+msgid "Menu photos"
+msgstr ""
+
+#: menu/templates/menu/import.html:43
+msgid "Use clear photos of the printed menu, blackboard, or flyers."
+msgstr ""
+
+#: menu/templates/menu/import.html:46
+msgid "PDF menu"
+msgstr ""
+
+#: menu/templates/menu/import.html:48
+msgid "Import one or several PDF menus. Their text is extracted before AI parsing."
+msgstr ""
+
+#: menu/templates/menu/import.html:55
+msgid "Import and publish menu"
+msgstr ""
+
+#: menu/templates/menu/import.html:56
+msgid "Back"
+msgstr ""
+
+#: menu/templates/menu/import.html:65
+msgid "What happens next"
+msgstr ""
+
+#: menu/templates/menu/import.html:67
+msgid "The current active menu is archived, not deleted."
+msgstr ""
+
+#: menu/templates/menu/import.html:68
+msgid "A new live menu is generated from the imported sources."
+msgstr ""
+
+#: menu/templates/menu/import.html:69
+msgid "You can immediately adjust prices and availability from the catalogue page."
+msgstr ""
+
+#: menu/views.py:142
+msgid "Add text, photos, or at least one PDF to import a menu."
+msgstr ""
+
+#: menu/views.py:161
+#, python-format
+msgid "Menu imported successfully: %(categories)s categories and %(items)s items are now live."
+msgstr ""
+
+#: menu/views.py:212 menu/views.py:247 menu/views.py:278
+#, python-format
+msgid "Updated %(name)s."
+msgstr ""
+
+#: onboarding/admin.py:13
+msgid "Basic Information"
+msgstr ""
+
+#: onboarding/admin.py:16
+msgid "Input Data"
+msgstr ""
+
+#: onboarding/admin.py:19
+msgid "Processed Data"
+msgstr ""
+
+#: onboarding/models.py:34
+msgid "Onboarding Image"
+msgstr ""
+
+#: onboarding/models.py:35
+msgid "Onboarding Images"
+msgstr ""
+
+#: onboarding/models.py:47
+msgid "Processing"
+msgstr ""
+
+#: onboarding/models.py:49
+msgid "Failed"
+msgstr ""
+
+#: onboarding/models.py:56
+msgid "User who initiated the import"
+msgstr ""
+
+#: onboarding/models.py:60
+msgid "Raw text input from user (e.g., copied from Instagram, website)"
+msgstr ""
+
+#: onboarding/models.py:66
+msgid "Uploaded images for AI processing"
+msgstr ""
+
+#: onboarding/models.py:71
+msgid "Optional reference URL (not scraped automatically)"
+msgstr ""
+
+#: onboarding/models.py:77
+msgid "Current processing status"
+msgstr ""
+
+#: onboarding/models.py:82
+msgid "Structured data extracted by AI processing"
+msgstr ""
+
+#: onboarding/models.py:86
+msgid "Timestamp when import was created"
+msgstr ""
+
+#: onboarding/models.py:90
+msgid "Onboarding Import"
+msgstr ""
+
+#: onboarding/models.py:91
+msgid "Onboarding Imports"
+msgstr ""
+
+#: orders/admin.py:9 orders/models/__init__.py:121
+#: orders/templates/orders/locations/form.html:4
+#: templates/orders/working_hours/partials/modal_form.html:35
+msgid "Location"
+msgstr ""
+
+#: orders/admin.py:15
+msgid "No location (base)"
+msgstr ""
+
+#: orders/admin.py:128
+msgid "Metadata"
+msgstr ""
+
+#: orders/api/serializers.py:55 orders/views.py:342
+msgid "Base location"
+msgstr ""
+
+#: orders/forms.py:28
+msgid "Spot name"
+msgstr ""
+
+#: orders/forms.py:29
+msgid "Address line 1"
+msgstr ""
+
+#: orders/forms.py:30
+msgid "Address line 2"
+msgstr ""
+
+#: orders/forms.py:34
+msgid "Latitude"
+msgstr ""
+
+#: orders/forms.py:35
+msgid "Longitude"
+msgstr ""
+
+#: orders/forms.py:36
+msgid "Notes / instructions"
+msgstr ""
+
+#: orders/forms.py:37
+msgid "Active location"
+msgstr ""
+
+#: orders/forms.py:40
+msgid "If you provide an address only, GPS coordinates will be resolved automatically."
+msgstr ""
+
+#: orders/forms.py:41 orders/forms.py:42
+msgid "If you provide GPS coordinates only, the address fields will be resolved automatically."
+msgstr ""
+
+#: orders/forms.py:61
+msgid "e.g. Lunch spot République"
+msgstr ""
+
+#: orders/forms.py:76
+msgid "Provide either an address or GPS coordinates to define the location."
+msgstr ""
+
+#: orders/models/__init__.py:27
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:7
+msgid "Monday"
+msgstr ""
+
+#: orders/models/__init__.py:28
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:8
+msgid "Tuesday"
+msgstr ""
+
+#: orders/models/__init__.py:29
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:9
+msgid "Wednesday"
+msgstr ""
+
+#: orders/models/__init__.py:30
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:10
+msgid "Thursday"
+msgstr ""
+
+#: orders/models/__init__.py:31
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:11
+msgid "Friday"
+msgstr ""
+
+#: orders/models/__init__.py:32
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:12
+msgid "Saturday"
+msgstr ""
+
+#: orders/models/__init__.py:33
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:13
+msgid "Sunday"
+msgstr ""
+
+#: orders/models/__init__.py:40
+msgid "The food truck this schedule belongs to"
+msgstr ""
+
+#: orders/models/__init__.py:42
+msgid "Day of week (0=Monday)"
+msgstr ""
+
+#: orders/models/__init__.py:43
+msgid "Window start time"
+msgstr ""
+
+#: orders/models/__init__.py:44
+msgid "Window end time"
+msgstr ""
+
+#: orders/models/__init__.py:45
+msgid "Capacity per generated slot"
+msgstr ""
+
+#: orders/models/__init__.py:46
+msgid "Duration of each slot in minutes"
+msgstr ""
+
+#: orders/models/__init__.py:47
+msgid "Whether this schedule is currently active"
+msgstr ""
+
+#: orders/models/__init__.py:54
+msgid "Optional location this schedule takes place at"
+msgstr ""
+
+#: orders/models/__init__.py:60
+msgid "Service Schedule"
+msgstr ""
+
+#: orders/models/__init__.py:61
+msgid "Service Schedules"
+msgstr ""
+
+#: orders/models/__init__.py:80
+msgid "Schedule end time must be after start time."
+msgstr ""
+
+#: orders/models/__init__.py:92
+msgid "This schedule overlaps with another window on the same day."
+msgstr ""
+
+#: orders/models/__init__.py:95
+msgid "Selected location must belong to this food truck."
+msgstr ""
+
+#: orders/models/__init__.py:105
+msgid "Food truck this location belongs to"
+msgstr ""
+
+#: orders/models/__init__.py:107
+msgid "Optional spot name"
+msgstr ""
+
+#: orders/models/__init__.py:108
+msgid "Street address"
+msgstr ""
+
+#: orders/models/__init__.py:110
+msgid "Postal / ZIP code"
+msgstr ""
+
+#: orders/models/__init__.py:115
+msgid "Pickup instructions"
+msgstr ""
+
+#: orders/models/__init__.py:116
+msgid "Whether this location is currently in use"
+msgstr ""
+
+#: orders/models/__init__.py:122 orders/templates/orders/locations/list.html:4
+#: orders/templates/orders/locations/list.html:22
+msgid "Locations"
+msgstr ""
+
+#: orders/models/__init__.py:144
+msgid "Latitude must be between -90 and 90."
+msgstr ""
+
+#: orders/models/__init__.py:146
+msgid "Longitude must be between -180 and 180."
+msgstr ""
+
+#: orders/models/__init__.py:148
+msgid "Provide either an address or GPS coordinates."
+msgstr ""
+
+#: orders/models/__init__.py:247
+msgid "The food truck this slot belongs to"
+msgstr ""
+
+#: orders/models/__init__.py:249
+msgid "Start time of the pickup slot"
+msgstr ""
+
+#: orders/models/__init__.py:250
+msgid "End time of the pickup slot"
+msgstr ""
+
+#: orders/models/__init__.py:251
+msgid "Maximum number of orders for this slot"
+msgstr ""
+
+#: orders/models/__init__.py:258
+msgid "Originating service schedule, if any"
+msgstr ""
+
+#: orders/models/__init__.py:260
+msgid "When the slot was created"
+msgstr ""
+
+#: orders/models/__init__.py:261
+msgid "When the slot was last updated"
+msgstr ""
+
+#: orders/models/__init__.py:264
+msgid "Pickup Slot"
+msgstr ""
+
+#: orders/models/__init__.py:265
+msgid "Pickup Slots"
+msgstr ""
+
+#: orders/models/__init__.py:360 orders/templates/orders/dashboard.html:52
+msgid "Cancelled"
+msgstr ""
+
+#: orders/models/__init__.py:363
+msgid "Online payment"
+msgstr ""
+
+#: orders/models/__init__.py:437
+msgid "The account that placed or owns this order"
+msgstr ""
+
+#: orders/models/__init__.py:443
+msgid "The food truck for this order"
+msgstr ""
+
+#: orders/models/__init__.py:451
+msgid "The pickup slot for this order"
+msgstr ""
+
+#: orders/models/__init__.py:457
+msgid "Current status of the order"
+msgstr ""
+
+#: orders/models/__init__.py:466
+msgid "How the customer intends to pay for the order"
+msgstr ""
+
+#: orders/models/__init__.py:473
+msgid "Total price of the order"
+msgstr ""
+
+#: orders/models/__init__.py:479
+msgid "Frozen financial total amount"
+msgstr ""
+
+#: orders/models/__init__.py:485
+msgid "Frozen total tax amount"
+msgstr ""
+
+#: orders/models/__init__.py:487
+msgid "ISO 4217 currency code"
+msgstr ""
+
+#: orders/models/__init__.py:488
+msgid "When the order was created"
+msgstr ""
+
+#: orders/models/__init__.py:489
+msgid "When the order was submitted"
+msgstr ""
+
+#: orders/models/__init__.py:490
+msgid "When the order was paid"
+msgstr ""
+
+#: orders/models/__init__.py:494 orders/templates/orders/dashboard.html:32
+#: orders/templates/orders/owner_tickets_list.html:76
+#: orders/templates/orders/partials/_ticket_receipt.html:51
+#: orders/templates/orders/partials/order_card.html:9
+#: orders/templates/orders/tickets_list.html:59
+#: venv/lib/python3.8/site-packages/django/forms/formsets.py:484
+#: venv/lib/python3.8/site-packages/django/forms/formsets.py:491
+msgid "Order"
+msgstr ""
+
+#: orders/models/__init__.py:571
+#, python-format
+msgid "Cannot transition order from %(from_status)s to %(to_status)s."
+msgstr ""
+
+#: orders/models/__init__.py:1030
+msgid "The order this item belongs to"
+msgstr ""
+
+#: orders/models/__init__.py:1037
+msgid "The menu item"
+msgstr ""
+
+#: orders/models/__init__.py:1045
+msgid "The menu combo"
+msgstr ""
+
+#: orders/models/__init__.py:1050
+msgid "Selected item options snapshot"
+msgstr ""
+
+#: orders/models/__init__.py:1052
+msgid "Quantity ordered"
+msgstr ""
+
+#: orders/models/__init__.py:1056
+msgid "Price per unit at time of order"
+msgstr ""
+
+#: orders/models/__init__.py:1061
+msgid "Tax rate snapshot stored as a fraction"
+msgstr ""
+
+#: orders/models/__init__.py:1067
+msgid "Tax amount snapshot for this line"
+msgstr ""
+
+#: orders/models/__init__.py:1072
+msgid "Total price for this item including tax"
+msgstr ""
+
+#: orders/models/__init__.py:1076
+msgid "Order Item"
+msgstr ""
+
+#: orders/models/__init__.py:1077
+msgid "Order Items"
+msgstr ""
+
+#: orders/models/__init__.py:1199
+#: orders/templates/orders/owner_tickets_list.html:65
+#: orders/templates/orders/tickets_list.html:46
+msgid "Ticket"
+msgstr ""
+
+#: orders/models/__init__.py:1200
+msgid "Tickets"
+msgstr ""
+
+#: orders/models/__init__.py:1228
+msgid "The order item this option belongs to"
+msgstr ""
+
+#: orders/models/__init__.py:1233
+msgid "The selected option"
+msgstr ""
+
+#: orders/models/__init__.py:1238
+msgid "Price modifier at time of order"
+msgstr ""
+
+#: orders/models/__init__.py:1242
+msgid "Order Item Option"
+msgstr ""
+
+#: orders/models/__init__.py:1243
+msgid "Order Item Options"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:4
+#: orders/templates/orders/dashboard.html:40
+msgid "Operations dashboard"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:21
+#: orders/templates/orders/dashboard.html:75
+msgid "No orders for this section."
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:22
+msgid "Refreshing orders..."
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:23
+msgid "Unable to load orders right now."
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:24
+msgid "Unable to update this order."
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:26
+msgid "Confirm order"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:27
+#: orders/templates/orders/partials/order_card.html:61
+#: orders/templates/orders/partials/order_card.html:64
+msgid "Cancel order"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:28
+msgid "Start preparing"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:29
+msgid "Mark as ready"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:31
+msgid "Urgent pickup"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:41
+msgid "Track active orders and move them through preparation to pickup."
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:44
+msgid "Filter by status"
+msgstr ""
+
+#: orders/templates/orders/dashboard.html:46
+msgid "All statuses"
+msgstr ""
+
+#: orders/templates/orders/history.html:4
+#: orders/templates/orders/history.html:8
+msgid "Order history"
+msgstr ""
+
+#: orders/templates/orders/history.html:9
+msgid "Order history will appear here once you place orders."
+msgstr ""
+
+#: orders/templates/orders/locations/confirm_delete.html:4
+#: orders/templates/orders/locations/confirm_delete.html:22
+msgid "Delete location"
+msgstr ""
+
+#: orders/templates/orders/locations/confirm_delete.html:23
+msgid "Deactivate this pickup location without losing its history."
+msgstr ""
+
+#: orders/templates/orders/locations/confirm_delete.html:30
+msgid "Are you sure you want to mark this location as inactive?"
+msgstr ""
+
+#: orders/templates/orders/locations/confirm_delete.html:35
+msgid "Confirm"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:24
+msgid "Edit location"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:24
+#: orders/templates/orders/locations/list.html:26
+msgid "Add location"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:25
+msgid "Use an address or GPS coordinates. Missing values will be completed automatically."
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:27
+msgid "Back to locations"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:60
+msgid "Postal address"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:93
+msgid "GPS coordinates"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:126
+msgid "Save location"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:135
+msgid "How it works"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:137
+msgid "Address first"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:138
+msgid "Enter the postal address and the platform will determine GPS coordinates automatically."
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:141
+msgid "Coordinates first"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:142
+msgid "Enter latitude and longitude if the spot is easier to define from a map or event pin."
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:145
+msgid "Operational use"
+msgstr ""
+
+#: orders/templates/orders/locations/form.html:146
+msgid "These locations are reused in schedules and customer pickup flows for this food truck."
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:23
+msgid "Current pickup spots for"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:39
+#: templates/ai_menu/partials/recommendations_panel.html:22
+msgid "Inactive"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:42
+msgid "Address"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:44
+msgid "Coordinates"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:45
+msgid "Base foodtruck location fallback available"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:47
+#: templates/orders/working_hours/index.html:18
+#: templates/schedules/index.html:13
+msgid "Edit"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:48
+#: orders/templates/orders/slot_management.html:29
+#: templates/orders/working_hours/index.html:19
+#: templates/schedules/index.html:14
+#: venv/lib/python3.8/site-packages/django/forms/formsets.py:499
+msgid "Delete"
+msgstr ""
+
+#: orders/templates/orders/locations/list.html:55
+msgid "No custom locations defined yet."
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:4
+#: orders/templates/orders/owner_tickets_list.html:23
+msgid "Billing and tickets"
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:24
+msgid "Review paid tickets grouped by customer for this food truck."
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:26
+msgid "tickets"
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:37
+msgid "Clients"
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:47
+msgid "ticket(s)"
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:52
+msgid "No paid tickets yet for this food truck."
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:66
+msgid "Customer"
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:67
+#: orders/templates/orders/tickets_list.html:47
+msgid "Issued at"
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:88
+msgid "No paid tickets yet."
+msgstr ""
+
+#: orders/templates/orders/owner_tickets_list.html:89
+msgid "Paid tickets will appear here after successful payments."
+msgstr ""
+
+#: orders/templates/orders/partials/_ticket_receipt.html:10
+msgid "Unit price"
+msgstr ""
+
+#: orders/templates/orders/partials/_ticket_receipt.html:48
+msgid "Summary"
+msgstr ""
+
+#: orders/templates/orders/partials/_ticket_receipt.html:55
+msgid "Currency"
+msgstr ""
+
+#: orders/templates/orders/partials/order_card.html:18
+msgid "Pickup soon"
+msgstr ""
+
+#: orders/templates/orders/partials/order_card.html:60
+msgid "Validate order"
+msgstr ""
+
+#: orders/templates/orders/partials/order_card.html:63
+msgid "Start preparation"
+msgstr ""
+
+#: orders/templates/orders/partials/order_card.html:66
+msgid "Mark ready for pickup"
+msgstr ""
+
+#: orders/templates/orders/partials/order_card.html:68
+msgid "Close order"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:4
+#: orders/templates/orders/slot_management.html:36
+msgid "Manage Pickup Slots"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:23
+msgid "No slots configured yet."
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:24
+#: orders/templates/orders/slot_management.html:63
+msgid "Loading slots..."
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:25
+msgid "Edit slot"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:26
+#: orders/templates/orders/slot_management.html:75
+msgid "Create pickup slot"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:30
+msgid "Unable to load slots"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:31
+msgid "Are you sure you want to delete this slot?"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:32
+msgid "Unable to delete slot."
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:33
+msgid "Loading"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:37
+msgid "Only future slots can be created and must not overlap."
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:40
+msgid "Create slot"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:48
+msgid "Start"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:49
+msgid "End"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:50
+#: orders/templates/orders/slot_management.html:89
+msgid "Capacity"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:51
+msgid "Remaining"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:52
+msgid "Bookings"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:54
+msgid "Actions"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:81
+msgid "Start time (Paris)"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:85
+msgid "End time (Paris)"
+msgstr ""
+
+#: orders/templates/orders/slot_management.html:96
+msgid "Save slot"
+msgstr ""
+
+#: orders/templates/orders/ticket_detail.html:24
+#: orders/templates/orders/tickets_list.html:98
+msgid "Issued on"
+msgstr ""
+
+#: orders/templates/orders/ticket_detail.html:27
+msgid "Back to tickets"
+msgstr ""
+
+#: orders/templates/orders/ticket_detail.html:28
+#: orders/templates/orders/tickets_list.html:102
+msgid "Print"
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:24
+msgid "Find all issued tickets for this food truck in one place."
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:28
+#: payments/templates/payments/success.html:25
+msgid "Back to menu"
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:66
+msgid "Display"
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:67
+#: orders/templates/orders/tickets_list.html:101
+msgid "Open on a dedicated page"
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:77
+msgid "No tickets available yet."
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:78
+msgid "Once an order is paid, its ticket will appear here for this food truck."
+msgstr ""
+
+#: orders/templates/orders/tickets_list.html:80
+msgid "Browse the menu"
+msgstr ""
+
+#: orders/views.py:173
+msgid "Location saved successfully."
+msgstr ""
+
+#: orders/views.py:200
+msgid "Location updated successfully."
+msgstr ""
+
+#: orders/views.py:224
+msgid "Location marked as inactive."
+msgstr ""
+
+#: payments/models/__init__.py:24
+msgid "The order this payment is for"
+msgstr ""
+
+#: payments/models/__init__.py:26
+msgid "Payment provider"
+msgstr ""
+
+#: payments/models/__init__.py:34
+msgid "Payment amount"
+msgstr ""
+
+#: payments/models/__init__.py:40
+msgid "Current payment status"
+msgstr ""
+
+#: payments/models/__init__.py:43
+msgid "When the payment was created"
+msgstr ""
+
+#: payments/models/__init__.py:44
+msgid "When the payment was last updated"
+msgstr ""
+
+#: payments/models/__init__.py:47
+msgid "Payment"
+msgstr ""
+
+#: payments/models/__init__.py:48
+msgid "Payments"
+msgstr ""
+
+#: payments/models/__init__.py:121
+msgid "Stripe Event"
+msgstr ""
+
+#: payments/models/__init__.py:122
+msgid "Stripe Events"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:4
+#: payments/templates/payments/checkout.html:12
+msgid "Checkout"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:13
+#, python-format
+msgid "Order ID: %(order_id)s"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:14
+msgid "Amount due"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:23
+msgid "Pay now"
+msgstr ""
+
+#: payments/templates/payments/checkout.html:42
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: payments/templates/payments/checkout.html:43
+msgid "Order ID is missing."
+msgstr ""
+
+#: payments/templates/payments/checkout.html:44
+msgid "Creating payment..."
+msgstr ""
+
+#: payments/templates/payments/checkout.html:45
+msgid "Authorizing payment..."
+msgstr ""
+
+#: payments/templates/payments/checkout.html:46
+msgid "Capturing payment..."
+msgstr ""
+
+#: payments/templates/payments/checkout.html:47
+msgid "Payment captured! Redirecting..."
+msgstr ""
+
+#: payments/templates/payments/success.html:4
+msgid "Payment success"
+msgstr ""
+
+#: payments/templates/payments/success.html:11
+msgid "Payment successful!"
+msgstr ""
+
+#: payments/templates/payments/success.html:12
+msgid "Thank you for your order. We'll notify you when it's ready for pickup."
+msgstr ""
+
+#: payments/templates/payments/success.html:17
+msgid "View my ticket"
+msgstr ""
+
+#: payments/templates/payments/success.html:21
+msgid "View my tickets"
+msgstr ""
+
+#: payments/templates/payments/success.html:29
+msgid "Back to food trucks"
+msgstr ""
+
+#: preferences/models/__init__.py:13
+msgid "Name of the dietary preference"
+msgstr ""
+
+#: preferences/models/__init__.py:14
+msgid "URL-friendly identifier"
+msgstr ""
+
+#: preferences/models/__init__.py:15
+msgid "Optional description of the preference"
+msgstr ""
+
+#: preferences/models/__init__.py:18
+msgid "Preference"
+msgstr ""
+
+#: preferences/models/__init__.py:19
+#: templates/onboarding/partials/_preview_foodtruck.html:23
+#: templates/onboarding/preview.html:110
+msgid "Preferences"
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:19
+msgid "Create the combo base information, then continue to define the composition."
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:28 templates/ai_menu/combo_form.html:65
+msgid "Back to combos"
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:50 templates/ai_menu/combo_form.html:89
+msgid "Combo price (TTC)"
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:50 templates/ai_menu/combo_form.html:89
+msgid "Combo price (HT)"
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:52 templates/ai_menu/combo_form.html:91
+msgid "Combo discount (TTC)"
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:52 templates/ai_menu/combo_form.html:91
+msgid "Combo discount (HT)"
+msgstr ""
+
+#: templates/ai_menu/combo_create.html:66
+msgid "Create combo"
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:56
+msgid "Define the general composition of the combo and the discount applied when the customer builds it."
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:74
+msgid "Combo details"
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:75
+msgid "Use a fixed price only if the combo should always cost the same. Otherwise set a discount and let the final customer compose the menu."
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:110
+msgid "General composition"
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:111
+msgid "For each line, either pin a fixed item or let the customer choose from a category such as Pasta Box, Dessert or Drink."
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:128
+msgid "No fixed item available for this category."
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:144
+msgid "Remove this component"
+msgstr ""
+
+#: templates/ai_menu/combo_form.html:161
+msgid "Save combo"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:4 templates/ai_menu/combo_list.html:18
+#: templates/ai_menu/dashboard.html:36
+msgid "Manage combos"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:19
+msgid "Define a simple combo composition and the discount applied when the customer personalizes the menu."
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:30
+msgid "Back to AI Menu"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:45
+msgid "No description yet."
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:56
+msgid "discount"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:58
+msgid "Hidden"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:67
+msgid "customer chooses from"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:75
+msgid "No composition yet."
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:78
+#: templates/ai_menu/partials/recommendations_panel.html:234
+msgid "Edit combo"
+msgstr ""
+
+#: templates/ai_menu/combo_list.html:86
+msgid "No combos exist for this food truck yet."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:4
+msgid "AI Menu"
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:28
+msgid "Loading AI recommendations..."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:29
+msgid "Unable to analyze this item."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:30
+msgid "Unable to update this recommendation."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:33
+msgid "AI Menu Analysis"
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:34
+msgid "Launch AI analysis for each menu item and review upsell opportunities without leaving the dashboard."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:54
+msgid "No description provided yet."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:56
+msgid "Base price"
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:64
+msgid "Analyzing..."
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:65 templates/ai_menu/dashboard.html:66
+msgid "Analyze this dish"
+msgstr ""
+
+#: templates/ai_menu/dashboard.html:81
+msgid "No active menu was found for this food truck."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:6
+msgid "Current options on this item"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:17
+msgid "Free"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:27
+msgid "AI opinion"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:29
+#: templates/ai_menu/partials/recommendations_panel.html:86
+#: templates/ai_menu/partials/recommendations_panel.html:141
+msgid "Enable for this item"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:31
+#: templates/ai_menu/partials/recommendations_panel.html:88
+#: templates/ai_menu/partials/recommendations_panel.html:143
+msgid "Disable for this item"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:33
+#: templates/ai_menu/partials/recommendations_panel.html:90
+#: templates/ai_menu/partials/recommendations_panel.html:145
+msgid "Keep as is"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:40
+msgid "Run an AI analysis to get an option-by-option opinion."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:46
+msgid "No options are currently assigned to this item."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:57
+msgid "The AI service was unavailable. Rule-based suggestions are shown instead."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:66
+msgid "Free Options"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:74
+#: templates/ai_menu/partials/recommendations_panel.html:129
+msgid "Existing option"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:77
+#: templates/ai_menu/partials/recommendations_panel.html:132
+msgid "Currently enabled"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:79
+#: templates/ai_menu/partials/recommendations_panel.html:134
+msgid "Currently disabled"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:84
+#: templates/ai_menu/partials/recommendations_panel.html:139
+msgid "AI action"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:97
+#: templates/ai_menu/partials/recommendations_panel.html:152
+#: templates/ai_menu/partials/recommendations_panel.html:183
+msgid "Accept"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:100
+#: templates/ai_menu/partials/recommendations_panel.html:155
+#: templates/ai_menu/partials/recommendations_panel.html:186
+msgid "Reject"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:107
+msgid "No free suggestions for this item yet."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:116
+msgid "Paid Upsells"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:162
+msgid "No paid suggestions for this item yet."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:171
+msgid "Bundles"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:193
+msgid "No bundle suggestions for this item yet."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:201
+msgid "No AI analysis has been launched for this item yet."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:211
+msgid "Accepted History"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:229
+msgid "Linked to menu"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:239
+#: templates/ai_menu/partials/recommendations_panel.html:270
+msgid "Undo"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:246
+msgid "No accepted recommendations yet."
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:255
+msgid "Rejected History"
+msgstr ""
+
+#: templates/ai_menu/partials/recommendations_panel.html:277
+msgid "No rejected recommendations yet."
+msgstr ""
+
+#: templates/base.html:29
+msgid "Welcome"
+msgstr ""
+
+#: templates/base.html:33
+msgid "Cart"
+msgstr ""
+
+#: templates/base.html:43
+msgid "Register"
+msgstr ""
+
+#: templates/base.html:50
+msgid "Language"
+msgstr ""
+
+#: templates/base.html:95
+msgid "All rights reserved."
+msgstr ""
+
+#: templates/base.html:98
+msgid "Privacy Policy"
+msgstr ""
+
+#: templates/base.html:99
+msgid "Terms of Service"
+msgstr ""
+
+#: templates/menu_test.html:6 templates/menu_test.html:11
+msgid "Menu API Test"
+msgstr ""
+
+#: templates/menu_test.html:12
+msgid "Test Menu API"
+msgstr ""
+
+#: templates/menu_test.html:29
+msgid "Menu loaded successfully"
+msgstr ""
+
+#: templates/menu_test.html:36
+msgid "No categories found"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:4
+msgid "AI foodtruck onboarding"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:9
+msgid "Generating..."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:10 templates/onboarding/ai_input.html:95
+#: templates/onboarding/import.html:136
+msgid "Generate my foodtruck"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:11
+msgid "Creating..."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:12 templates/onboarding/ai_input.html:124
+#: templates/onboarding/preview.html:168
+msgid "Create my foodtruck"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:13
+msgid "Failed to generate foodtruck. Please try again."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:14
+msgid "Failed to create foodtruck. Please try again."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:16
+msgid "Foodtruck Details"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:19
+msgid "Menu Preview"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:20
+msgid "No menu items generated."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:21
+msgid "Remove item"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:22
+msgid "Add Item"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:23
+msgid "New Item"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:29
+msgid "Create your foodtruck with AI"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:30
+msgid "Tell us about your concept and we'll generate a complete foodtruck with menu."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:36
+msgid "Foodtruck concept"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:37
+msgid "e.g., Mexican street food, Vegan burgers, Italian gelato"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:38
+msgid "Describe your foodtruck idea in a few words."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:43
+#: templates/onboarding/partials/_preview_foodtruck.html:14
+#: templates/onboarding/preview.html:101
+msgid "Cuisine type"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:45
+msgid "Select cuisine..."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:46
+msgid "American"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:47
+msgid "Italian"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:48
+msgid "Mexican"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:49
+msgid "Asian"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:50
+msgid "Mediterranean"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:51 templates/onboarding/ai_input.html:76
+msgid "Vegan"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:52
+msgid "Other"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:56
+msgid "Price range"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:58
+msgid "Select range..."
+msgstr ""
+
+#: templates/onboarding/ai_input.html:59
+msgid "$ (Budget)"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:60
+msgid "$$ (Moderate)"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:61
+msgid "$$$ (Premium)"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:67
+msgid "Dietary preferences"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:72
+msgid "Vegetarian"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:82
+msgid "Gluten free"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:86
+msgid "Halal"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:115
+msgid "Review your AI-generated foodtruck"
+msgstr ""
+
+#: templates/onboarding/ai_input.html:116
+msgid "Edit concept"
+msgstr ""
+
+#: templates/onboarding/import.html:4 templates/onboarding/import.html:59
+msgid "Import your foodtruck"
+msgstr ""
+
+#: templates/onboarding/import.html:60
+msgid "Paste your content and upload images. We'll use AI to create your complete foodtruck profile."
+msgstr ""
+
+#: templates/onboarding/import.html:71
+#: templates/onboarding/partials/_form.html:4
+msgid "Content"
+msgstr ""
+
+#: templates/onboarding/import.html:77
+msgid "Paste your foodtruck description, menu, or any relevant text here. For example: Welcome to Taco Fiesta! We serve authentic Mexican street food with fresh ingredients. Our menu includes: - Chicken Tacos $8.99 - Beef Burritos $10.99 - Quesadillas $7.99 - Chips & Salsa $4.99 Located downtown, open daily 11am-9pm. #tacofiesta #mexicanfood"
+msgstr ""
+
+#: templates/onboarding/import.html:88
+#: templates/onboarding/partials/_form.html:13
+msgid "Copy from your Instagram, website, or any text describing your foodtruck."
+msgstr ""
+
+#: templates/onboarding/import.html:93
+#: templates/onboarding/partials/_form.html:17
+msgid "Images"
+msgstr ""
+
+#: templates/onboarding/import.html:102
+#: templates/onboarding/partials/_form.html:26
+msgid "Upload menu photos, logo, or any relevant images."
+msgstr ""
+
+#: templates/onboarding/import.html:107
+msgid "Upload your logo"
+msgstr ""
+
+#: templates/onboarding/import.html:115
+msgid "We use your logo to extract reliable brand colors and style."
+msgstr ""
+
+#: templates/onboarding/import.html:129
+#: templates/onboarding/partials/_form.html:39
+msgid "Link to your social media or website (for reference only)."
+msgstr ""
+
+#: templates/onboarding/import.html:150
+msgid "AI is analyzing your content..."
+msgstr ""
+
+#: templates/onboarding/import.html:151
+msgid "This may take a few moments."
+msgstr ""
+
+#: templates/onboarding/partials/_form.html:10
+msgid "Paste your foodtruck description, menu, or any relevant text here..."
+msgstr ""
+
+#: templates/onboarding/partials/_form.html:37
+msgid "https://instagram.com/yourfoodtruck"
+msgstr ""
+
+#: templates/onboarding/partials/_preview_foodtruck.html:5
+#: templates/onboarding/preview.html:92
+msgid "Foodtruck details"
+msgstr ""
+
+#: templates/onboarding/partials/_preview_foodtruck.html:31
+#: templates/onboarding/preview.html:112
+msgid "Add preference..."
+msgstr ""
+
+#: templates/onboarding/preview.html:4 templates/onboarding/preview.html:83
+msgid "Preview your foodtruck"
+msgstr ""
+
+#: templates/onboarding/preview.html:84
+msgid "Review and edit the AI-generated content before creating your foodtruck."
+msgstr ""
+
+#: templates/onboarding/preview.html:123
+msgid "Add category"
+msgstr ""
+
+#: templates/onboarding/preview.html:165
+msgid "Back to import"
+msgstr ""
+
+#: templates/onboarding/preview.html:180
+msgid "Creating your foodtruck..."
+msgstr ""
+
+#: templates/onboarding/preview.html:181
+msgid "This will only take a moment."
+msgstr ""
+
+#: templates/onboarding/preview.html:193
+msgid "Foodtruck created successfully!"
+msgstr ""
+
+#: templates/onboarding/preview.html:194
+msgid "Your foodtruck has been created and is ready to use."
+msgstr ""
+
+#: templates/onboarding/preview.html:196
+msgid "View my foodtrucks"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:20
+#: templates/schedules/index.html:15
+msgid "No windows defined"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:21
+#: templates/schedules/index.html:16
+#, python-brace-format
+msgid "{count} window(s)"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:22
+#: templates/schedules/index.html:17
+msgid "Edit time window"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:23
+#: templates/orders/working_hours/partials/modal_form.html:6
+#: templates/schedules/index.html:18
+#: templates/schedules/partials/modal_form.html:5
+msgid "Add time window"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:25
+#: templates/orders/working_hours/partials/modal_form.html:45
+#: templates/schedules/index.html:20
+#: templates/schedules/partials/modal_form.html:29
+msgid "Save"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:26
+#: templates/schedules/index.html:21
+#, python-brace-format
+msgid "{count} orders / {minutes} min"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:27
+#: templates/schedules/index.html:22
+msgid "Unable to load schedules."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:28
+#: templates/schedules/index.html:23
+msgid "Delete this time window?"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:29
+#: templates/schedules/index.html:24
+msgid "Time window removed."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:30
+#: templates/schedules/index.html:25
+msgid "Unable to delete schedule."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:31
+#: templates/schedules/index.html:26
+msgid "Time window updated."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:32
+#: templates/schedules/index.html:27
+msgid "Time window added."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:33
+#: templates/schedules/index.html:28
+msgid "Preset not available."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:37
+#: templates/schedules/index.html:32
+msgid "Define when your foodtruck accepts orders and serves customers."
+msgstr ""
+
+#: templates/orders/working_hours/index.html:46
+#: templates/orders/working_hours/partials/modal_form.html:14
+msgid "Day"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:53
+msgid "Add lunch service"
+msgstr ""
+
+#: templates/orders/working_hours/index.html:56
+msgid "Add dinner service"
+msgstr ""
+
+#: templates/orders/working_hours/partials/day_card.html:8
+#: templates/schedules/partials/day_card.html:7
+msgid "Loading time windows…"
+msgstr ""
+
+#: templates/orders/working_hours/partials/day_card.html:11
+#: templates/schedules/partials/day_card.html:10
+msgid "Add"
+msgstr ""
+
+#: templates/orders/working_hours/partials/day_card.html:16
+#: templates/schedules/partials/day_card.html:15
+msgid "No service hours defined"
+msgstr ""
+
+#: templates/orders/working_hours/partials/modal_form.html:23
+#: templates/schedules/partials/modal_form.html:15
+msgid "Start time"
+msgstr ""
+
+#: templates/orders/working_hours/partials/modal_form.html:27
+#: templates/schedules/partials/modal_form.html:19
+msgid "End time"
+msgstr ""
+
+#: templates/orders/working_hours/partials/modal_form.html:31
+#: templates/schedules/partials/modal_form.html:23
+msgid "Capacity per slot"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/_pytest/config/argparsing.py:474
+#, python-format
+msgid "ambiguous option: %(option)s could match %(matches)s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/contrib/messages/apps.py:15
+msgid "Messages"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/contrib/sitemaps/apps.py:8
+msgid "Site Maps"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/contrib/staticfiles/apps.py:9
+msgid "Static Files"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/contrib/syndication/apps.py:7
+msgid "Syndication"
+msgstr ""
+
+#. Translators: String used to replace omitted page numbers in elided page
+#. range generated by paginators, e.g. [1, 2, '…', 5, 6, 7, '…', 9, 10].
+#: venv/lib/python3.8/site-packages/django/core/paginator.py:30
+msgid "…"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/paginator.py:50
+msgid "That page number is not an integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/paginator.py:52
+msgid "That page number is less than 1"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/paginator.py:54
+msgid "That page contains no results"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:22
+msgid "Enter a valid value."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:104
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:751
+msgid "Enter a valid URL."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:165
+msgid "Enter a valid integer."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:176
+msgid "Enter a valid email address."
+msgstr ""
+
+#. Translators: "letters" means latin letters: a-z and A-Z.
+#: venv/lib/python3.8/site-packages/django/core/validators.py:259
+msgid "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:267
+msgid "Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or hyphens."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:281
+#: venv/lib/python3.8/site-packages/django/core/validators.py:289
+#: venv/lib/python3.8/site-packages/django/core/validators.py:318
+msgid "Enter a valid IPv4 address."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:298
+#: venv/lib/python3.8/site-packages/django/core/validators.py:319
+msgid "Enter a valid IPv6 address."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:310
+#: venv/lib/python3.8/site-packages/django/core/validators.py:317
+msgid "Enter a valid IPv4 or IPv6 address."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:353
+msgid "Enter only digits separated by commas."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:359
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:394
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:403
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:412
+#, python-format
+msgid "Ensure this value is a multiple of step size %(limit_value)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:422
+#, python-format
+msgid "Ensure this value has at least %(limit_value)d character (it has %(show_value)d)."
+msgid_plural "Ensure this value has at least %(limit_value)d characters (it has %(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:440
+#, python-format
+msgid "Ensure this value has at most %(limit_value)d character (it has %(show_value)d)."
+msgid_plural "Ensure this value has at most %(limit_value)d characters (it has %(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:463
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:346
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:385
+msgid "Enter a number."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:465
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:470
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:475
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit before the decimal point."
+msgid_plural "Ensure that there are no more than %(max)s digits before the decimal point."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:546
+#, python-format
+msgid "File extension “%(extension)s” is not allowed. Allowed extensions are: %(allowed_extensions)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/core/validators.py:607
+msgid "Null characters are not allowed."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/base.py:1423
+#: venv/lib/python3.8/site-packages/django/forms/models.py:893
+msgid "and"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/base.py:1425
+#, python-format
+msgid "%(model_name)s with this %(field_labels)s already exists."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/constraints.py:17
+#, python-format
+msgid "Constraint “%(name)s” is violated."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:128
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:129
+msgid "This field cannot be null."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:130
+msgid "This field cannot be blank."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:131
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr ""
+
+#. Translators: The 'lookup_type' is one of 'date', 'year' or
+#. 'month'. Eg: "Title must be unique for pub_date year"
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:135
+#, python-format
+msgid "%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:173
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1094
+#, python-format
+msgid "“%(value)s” value must be either True or False."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1095
+#, python-format
+msgid "“%(value)s” value must be either True, False, or None."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1097
+msgid "Boolean (Either True or False)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1147
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1149
+msgid "String (unlimited)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1253
+msgid "Comma-separated integers"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1354
+#, python-format
+msgid "“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD format."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1358
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1493
+#, python-format
+msgid "“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid date."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1362
+msgid "Date (without time)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1489
+#, python-format
+msgid "“%(value)s” value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1497
+#, python-format
+msgid "“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ]) but it is an invalid date/time."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1502
+msgid "Date (with time)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1626
+#, python-format
+msgid "“%(value)s” value must be a decimal number."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1628
+msgid "Decimal number"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1789
+#, python-format
+msgid "“%(value)s” value has an invalid format. It must be in [DD] [[HH:]MM:]ss[.uuuuuu] format."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1793
+msgid "Duration"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1845
+msgid "Email address"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1870
+msgid "File path"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1948
+#, python-format
+msgid "“%(value)s” value must be a float."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1950
+msgid "Floating point number"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1990
+#, python-format
+msgid "“%(value)s” value must be an integer."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1992
+msgid "Integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2088
+msgid "Big (8 byte) integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2105
+msgid "Small integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2113
+msgid "IPv4 address"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2144
+msgid "IP address"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2237
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2238
+#, python-format
+msgid "“%(value)s” value must be either None, True or False."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2240
+msgid "Boolean (Either True, False or None)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2291
+msgid "Positive big integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2306
+msgid "Positive integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2321
+msgid "Positive small integer"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2337
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2373
+msgid "Text"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2448
+#, python-format
+msgid "“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] format."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2452
+#, python-format
+msgid "“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an invalid time."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2456
+msgid "Time"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2564
+msgid "URL"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2588
+msgid "Raw binary data"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2653
+#, python-format
+msgid "“%(value)s” is not a valid UUID."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2655
+msgid "Universally unique identifier"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:232
+msgid "File"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/files.py:393
+msgid "Image"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/json.py:26
+msgid "A JSON object"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/json.py:28
+msgid "Value must be valid JSON."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:919
+#, python-format
+msgid "%(model)s instance with %(field)s %(value)r does not exist."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:921
+msgid "Foreign Key (type determined by related field)"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1212
+msgid "One-to-one relationship"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1269
+#, python-format
+msgid "%(from)s-%(to)s relationship"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1271
+#, python-format
+msgid "%(from)s-%(to)s relationships"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/db/models/fields/related.py:1319
+msgid "Many-to-many relationship"
+msgstr ""
+
+#. Translators: If found as last label character, these punctuation
+#. characters will prevent the default label_suffix to be appended to the label
+#: venv/lib/python3.8/site-packages/django/forms/boundfield.py:184
+msgid ":?.!"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:297
+msgid "Enter a whole number."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:466
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:1231
+msgid "Enter a valid date."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:489
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:1232
+msgid "Enter a valid time."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:516
+msgid "Enter a valid date/time."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:550
+msgid "Enter a valid duration."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:551
+#, python-brace-format
+msgid "The number of days must be between {min_days} and {max_days}."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:620
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:621
+msgid "No file was submitted."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:622
+msgid "The submitted file is empty."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:624
+#, python-format
+msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural "Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:629
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:693
+msgid "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:847
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:939
+#: venv/lib/python3.8/site-packages/django/forms/models.py:1566
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:941
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:1060
+#: venv/lib/python3.8/site-packages/django/forms/models.py:1564
+msgid "Enter a list of values."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:1061
+msgid "Enter a complete value."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:1303
+msgid "Enter a valid UUID."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/fields.py:1333
+msgid "Enter a valid JSON."
+msgstr ""
+
+#. Translators: This is the default suffix added to form field labels
+#: venv/lib/python3.8/site-packages/django/forms/forms.py:98
+msgid ":"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/forms.py:244
+#: venv/lib/python3.8/site-packages/django/forms/forms.py:328
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/formsets.py:63
+#, python-format
+msgid "ManagementForm data is missing or has been tampered with. Missing fields: %(field_names)s. You may need to file a bug report if the issue persists."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/formsets.py:67
+#, python-format
+msgid "Please submit at most %(num)d form."
+msgid_plural "Please submit at most %(num)d forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/forms/formsets.py:72
+#, python-format
+msgid "Please submit at least %(num)d form."
+msgid_plural "Please submit at least %(num)d forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:886
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:891
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:898
+#, python-format
+msgid "Please correct the duplicate data for %(field_name)s which must be unique for the %(lookup)s in %(date_field)s."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:907
+msgid "Please correct the duplicate values below."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:1338
+msgid "The inline value did not match the parent instance."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:1429
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/models.py:1568
+#, python-format
+msgid "“%(pk)s” is not a valid value."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/utils.py:226
+#, python-format
+msgid "%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it may be ambiguous or it may not exist."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/widgets.py:463
+msgid "Clear"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/widgets.py:464
+msgid "Currently"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/widgets.py:465
+msgid "Change"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/forms/widgets.py:794
+msgid "Unknown"
+msgstr ""
+
+#. Translators: Please do not add spaces around commas.
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:874
+msgid "yes,no,maybe"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:904
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:921
+#, python-format
+msgid "%(size)d byte"
+msgid_plural "%(size)d bytes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:923
+#, python-format
+msgid "%s KB"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:925
+#, python-format
+msgid "%s MB"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:927
+#, python-format
+msgid "%s GB"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:929
+#, python-format
+msgid "%s TB"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/template/defaultfilters.py:931
+#, python-format
+msgid "%s PB"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:73
+msgid "p.m."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:74
+msgid "a.m."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:79
+msgid "PM"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:80
+msgid "AM"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:152
+msgid "midnight"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dateformat.py:154
+msgid "noon"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:16
+msgid "Mon"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:17
+msgid "Tue"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "Wed"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:19
+msgid "Thu"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:20
+msgid "Fri"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:21
+msgid "Sat"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:22
+msgid "Sun"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:25
+msgid "January"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:26
+msgid "February"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:27
+msgid "March"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:28
+msgid "April"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:29
+msgid "May"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:30
+msgid "June"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:31
+msgid "July"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:32
+msgid "August"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:33
+msgid "September"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:34
+msgid "October"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:35
+msgid "November"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:36
+msgid "December"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:39
+msgid "jan"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:40
+msgid "feb"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:41
+msgid "mar"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:42
+msgid "apr"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:43
+msgid "may"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:44
+msgid "jun"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:45
+msgid "jul"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:46
+msgid "aug"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:47
+msgid "sep"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:48
+msgid "oct"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:49
+msgid "nov"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:50
+msgid "dec"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:53
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:54
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:55
+msgctxt "abbrev. month"
+msgid "March"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:56
+msgctxt "abbrev. month"
+msgid "April"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:57
+msgctxt "abbrev. month"
+msgid "May"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:58
+msgctxt "abbrev. month"
+msgid "June"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:59
+msgctxt "abbrev. month"
+msgid "July"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:60
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:61
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:62
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:63
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:64
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:67
+msgctxt "alt. month"
+msgid "January"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:68
+msgctxt "alt. month"
+msgid "February"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:69
+msgctxt "alt. month"
+msgid "March"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:70
+msgctxt "alt. month"
+msgid "April"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:71
+msgctxt "alt. month"
+msgid "May"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:72
+msgctxt "alt. month"
+msgid "June"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:73
+msgctxt "alt. month"
+msgid "July"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:74
+msgctxt "alt. month"
+msgid "August"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:75
+msgctxt "alt. month"
+msgid "September"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:76
+msgctxt "alt. month"
+msgid "October"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:77
+msgctxt "alt. month"
+msgid "November"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/dates.py:78
+msgctxt "alt. month"
+msgid "December"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/ipv6.py:20
+msgid "This is not a valid IPv6 address."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/text.py:138
+#, python-format
+msgctxt "String to return when truncating text"
+msgid "%(truncated_text)s…"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/text.py:319
+msgid "or"
+msgstr ""
+
+#. Translators: This string is used as a separator between list elements
+#: venv/lib/python3.8/site-packages/django/utils/text.py:338
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:135
+msgid ", "
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:8
+#, python-format
+msgid "%(num)d year"
+msgid_plural "%(num)d years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:9
+#, python-format
+msgid "%(num)d month"
+msgid_plural "%(num)d months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:10
+#, python-format
+msgid "%(num)d week"
+msgid_plural "%(num)d weeks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:11
+#, python-format
+msgid "%(num)d day"
+msgid_plural "%(num)d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:12
+#, python-format
+msgid "%(num)d hour"
+msgid_plural "%(num)d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/utils/timesince.py:13
+#, python-format
+msgid "%(num)d minute"
+msgid_plural "%(num)d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:111
+msgid "Forbidden"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:112
+msgid "CSRF verification failed. Request aborted."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:116
+msgid "You are seeing this message because this HTTPS site requires a “Referer header” to be sent by your web browser, but none was sent. This header is required for security reasons, to ensure that your browser is not being hijacked by third parties."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:122
+msgid "If you have configured your browser to disable “Referer” headers, please re-enable them, at least for this site, or for HTTPS connections, or for “same-origin” requests."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:127
+msgid "If you are using the <meta name=\"referrer\" content=\"no-referrer\"> tag or including the “Referrer-Policy: no-referrer” header, please remove them. The CSRF protection requires the “Referer” header to do strict referer checking. If you’re concerned about privacy, use alternatives like <a rel=\"noreferrer\" …> for links to third-party sites."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:136
+msgid "You are seeing this message because this site requires a CSRF cookie when submitting forms. This cookie is required for security reasons, to ensure that your browser is not being hijacked by third parties."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:142
+msgid "If you have configured your browser to disable cookies, please re-enable them, at least for this site, or for “same-origin” requests."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/csrf.py:148
+msgid "More information is available with DEBUG=True."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:44
+msgid "No year specified"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:64
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:115
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:214
+msgid "Date out of range"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:94
+msgid "No month specified"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:147
+msgid "No day specified"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:194
+msgid "No week specified"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:349
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:380
+#, python-format
+msgid "No %(verbose_name_plural)s available"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:652
+#, python-format
+msgid "Future %(verbose_name_plural)s not available because %(class_name)s.allow_future is False."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/dates.py:692
+#, python-format
+msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/detail.py:56
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/list.py:70
+msgid "Page is not “last”, nor can it be converted to an int."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/list.py:77
+#, python-format
+msgid "Invalid page (%(page_number)s): %(message)s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/generic/list.py:169
+#, python-format
+msgid "Empty list and “%(class_name)s.allow_empty” is False."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/static.py:38
+msgid "Directory indexes are not allowed here."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/static.py:40
+#, python-format
+msgid "“%(path)s” does not exist"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/static.py:79
+#, python-format
+msgid "Index of %(directory)s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:7
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:220
+msgid "The install worked successfully! Congratulations!"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:206
+#, python-format
+msgid "View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:221
+#, python-format
+msgid "You are seeing this page because <a href=\"https://docs.djangoproject.com/en/%(version)s/ref/settings/#debug\" target=\"_blank\" rel=\"noopener\">DEBUG=True</a> is in your settings file and you have not configured any URLs."
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:229
+msgid "Django Documentation"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:230
+msgid "Topics, references, &amp; how-to’s"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:238
+msgid "Tutorial: A Polling App"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:239
+msgid "Get started with Django"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:247
+msgid "Django Community"
+msgstr ""
+
+#: venv/lib/python3.8/site-packages/django/views/templates/default_urlconf.html:248
+msgid "Connect, get help, or contribute"
+msgstr ""

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}{{ foodtruck.name }} - {% trans "Price Analysis" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'foodtrucks/css/foodtruckBranding.css' %}">
+<link rel="stylesheet" href="{% static 'foodtrucks/css/dashboard.css' %}">
+{% endblock %}
+
+{% block navbar %}
+{% include 'foodtrucks/partials/_foodtruck_navbar.html' with categories=categories %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" id="foodtruck-bi-page"
+     data-bi-url="{% url 'foodtrucks:foodtruck-dashboard-bi' slug=foodtruck.slug %}"
+     data-currency="EUR"
+     data-bi-confidence-label="{% trans 'Confidence' %}"
+     data-bi-empty-pricing-label="{% trans 'No pricing suggestions yet.' %}"
+     data-bi-predicted-revenue-label="{% trans 'Predicted revenue (D+1)' %}"
+     data-bi-revenue-details-label="{% trans 'How is this estimate calculated?' %}"
+     data-bi-revenue-modal-title="{% trans 'Revenue estimate breakdown' %}"
+     data-bi-revenue-modal-subtitle="{% trans 'This estimate combines recent sales, basket value, pickup activity and event potential.' %}"
+     data-bi-revenue-modal-empty-label="{% trans 'No revenue breakdown is available yet.' %}"
+     data-bi-revenue-method-label="{% trans 'Method' %}"
+     data-bi-revenue-formula-label="{% trans 'Formula' %}"
+     data-bi-revenue-inputs-label="{% trans 'Inputs used' %}"
+     data-bi-revenue-floor-label="{% trans 'Minimum floor' %}"
+     data-bi-revenue-factor-historical="{% trans 'Historical daily average' %}"
+     data-bi-revenue-factor-weekday="{% trans 'Weekday factor' %}"
+     data-bi-revenue-factor-slot="{% trans 'Slot factor' %}"
+     data-bi-revenue-factor-event="{% trans 'Event factor' %}"
+     data-bi-revenue-factor-ai="{% trans 'AI adjustment' %}">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 mb-1">{% trans "Price Analysis" %}</h1>
+            <p class="text-muted mb-0">{{ foodtruck.name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{% url 'foodtrucks:foodtruck-bi-events' slug=foodtruck.slug %}">← {% trans "Events & Locations" %}</a>
+            <a class="btn btn-outline-secondary" href="{% url 'foodtrucks:foodtruck-dashboard' slug=foodtruck.slug %}">{% trans "Back to dashboard" %}</a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12">
+            {% include 'foodtrucks/dashboard/partials/_bi_pricing.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/dashboard/business_intelligence_pricing.js' %}"></script>
+{% endblock %}

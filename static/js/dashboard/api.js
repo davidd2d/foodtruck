@@ -74,3 +74,7 @@ export function fetchSlotRecommendations(url, categoryId = null) {
 export function fetchOptionPerformance(url, range, limit = 10, categoryId = null, displayMode = null) {
     return getJson(url, { range, limit, category_id: categoryId, display_mode: displayMode });
 }
+
+export function fetchBusinessIntelligence(url, params = {}) {
+    return getJson(url, params);
+}
